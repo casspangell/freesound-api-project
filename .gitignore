@@ -1,0 +1,17 @@
+# Ignore API credentials
+config.py
+
+# Ignore downloaded audio files
+sounds/
+
+# Ignore Python cache and environment files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.DS_Store
+
+# Ignore virtual environments (if you create one)
+venv/
+.env/
+
