@@ -409,3 +409,142 @@ DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): cdn.freesound.or
 DEBUG:urllib3.connectionpool:https://cdn.freesound.org:443 "GET /previews/467/467336_8655249-hq.mp3 HTTP/1.1" 200 286438
 DEBUG:httpcore.connection:close.started
 DEBUG:httpcore.connection:close.complete
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=fire&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 2830
+INFO:root:Searching for sound with query: fire
+INFO:root:Found valid sounds: 13
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'json_data': {'messages': [{'role': 'system', 'content': "You are a movement choreographer AI that generates small, subtle movement prompts based on the sentiment and energy of a word. Keep movements minimal, such as 'walk slowly forward' or 'make eye contact with someone' or 'move your hands fragmently'."}, {'role': 'user', 'content': "Generate a small movement prompt based on the word 'fire'. Provide a short, simple movement sequence that a performer can interpret."}], 'model': 'gpt-4o'}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/chat/completions
+DEBUG:httpcore.connection:connect_tcp.started host='api.openai.com' port=443 local_address=None timeout=5.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x108d3d750>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x1091817f0> server_hostname='api.openai.com' timeout=5.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x1091ff810>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Date', b'Fri, 07 Mar 2025 22:52:29 GMT'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-expose-headers', b'X-Request-ID'), (b'openai-organization', b'casspangell'), (b'openai-processing-ms', b'1485'), (b'openai-version', b'2020-10-01'), (b'x-ratelimit-limit-requests', b'500'), (b'x-ratelimit-limit-tokens', b'30000'), (b'x-ratelimit-remaining-requests', b'499'), (b'x-ratelimit-remaining-tokens', b'29887'), (b'x-ratelimit-reset-requests', b'120ms'), (b'x-ratelimit-reset-tokens', b'226ms'), (b'x-request-id', b'req_ff40d1a35ccb76913bc422059c49402b'), (b'strict-transport-security', b'max-age=31536000; includeSubDomains; preload'), (b'cf-cache-status', b'DYNAMIC'), (b'Set-Cookie', b'__cf_bm=zZOxYm9eJb3i_tMrCI50geknld6d50hm5Q5rVxOtKaU-1741387949-1.0.1.1-.11DS0h_MiUo8qikmBo_3bDpa_xFQXu3pv_MKRy4Yfo4O7rW256t8ae4A2iOb00g9VFqGzNOYpYRuZhGkUbEa1GQl.NZorbc.VCbl9_C_qk; path=/; expires=Fri, 07-Mar-25 23:22:29 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), (b'X-Content-Type-Options', b'nosniff'), (b'Set-Cookie', b'_cfuvid=uPQA0AJQQQVg7rc7kVoGUxQaeVTeZN5dx4OvQhDO.Y8-1741387949686-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), (b'Server', b'cloudflare'), (b'CF-RAY', b'91cda9d25d80799f-DEN'), (b'Content-Encoding', b'gzip'), (b'alt-svc', b'h3=":443"; ma=86400')])
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/chat/completions "200 OK" Headers([('date', 'Fri, 07 Mar 2025 22:52:29 GMT'), ('content-type', 'application/json'), ('transfer-encoding', 'chunked'), ('connection', 'keep-alive'), ('access-control-expose-headers', 'X-Request-ID'), ('openai-organization', 'casspangell'), ('openai-processing-ms', '1485'), ('openai-version', '2020-10-01'), ('x-ratelimit-limit-requests', '500'), ('x-ratelimit-limit-tokens', '30000'), ('x-ratelimit-remaining-requests', '499'), ('x-ratelimit-remaining-tokens', '29887'), ('x-ratelimit-reset-requests', '120ms'), ('x-ratelimit-reset-tokens', '226ms'), ('x-request-id', 'req_ff40d1a35ccb76913bc422059c49402b'), ('strict-transport-security', 'max-age=31536000; includeSubDomains; preload'), ('cf-cache-status', 'DYNAMIC'), ('set-cookie', '__cf_bm=zZOxYm9eJb3i_tMrCI50geknld6d50hm5Q5rVxOtKaU-1741387949-1.0.1.1-.11DS0h_MiUo8qikmBo_3bDpa_xFQXu3pv_MKRy4Yfo4O7rW256t8ae4A2iOb00g9VFqGzNOYpYRuZhGkUbEa1GQl.NZorbc.VCbl9_C_qk; path=/; expires=Fri, 07-Mar-25 23:22:29 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), ('x-content-type-options', 'nosniff'), ('set-cookie', '_cfuvid=uPQA0AJQQQVg7rc7kVoGUxQaeVTeZN5dx4OvQhDO.Y8-1741387949686-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), ('server', 'cloudflare'), ('cf-ray', '91cda9d25d80799f-DEN'), ('content-encoding', 'gzip'), ('alt-svc', 'h3=":443"; ma=86400')])
+DEBUG:openai._base_client:request_id: req_ff40d1a35ccb76913bc422059c49402b
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'json_data': {'messages': [{'role': 'system', 'content': "You are a movement choreographer AI that generates small, subtle movement prompts based on the sentiment and energy of a word. Keep movements minimal, such as 'walk slowly forward' or 'make eye contact with someone' or 'move your hands fragmently'."}, {'role': 'user', 'content': "Generate a small movement prompt based on the word 'forest'. Provide a short, simple movement sequence that a performer can interpret."}], 'model': 'gpt-4o'}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/chat/completions
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpcore.connection:connect_tcp.started host='api.openai.com' port=443 local_address=None timeout=5.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x109234bd0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x1091817f0> server_hostname='api.openai.com' timeout=5.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x109234c10>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Date', b'Fri, 07 Mar 2025 22:53:13 GMT'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-expose-headers', b'X-Request-ID'), (b'openai-organization', b'casspangell'), (b'openai-processing-ms', b'1137'), (b'openai-version', b'2020-10-01'), (b'x-ratelimit-limit-requests', b'500'), (b'x-ratelimit-limit-tokens', b'30000'), (b'x-ratelimit-remaining-requests', b'499'), (b'x-ratelimit-remaining-tokens', b'29886'), (b'x-ratelimit-reset-requests', b'120ms'), (b'x-ratelimit-reset-tokens', b'228ms'), (b'x-request-id', b'req_7684425f4a1e67689f614120343943b7'), (b'strict-transport-security', b'max-age=31536000; includeSubDomains; preload'), (b'cf-cache-status', b'DYNAMIC'), (b'X-Content-Type-Options', b'nosniff'), (b'Server', b'cloudflare'), (b'CF-RAY', b'91cdaae6e9c979a3-DEN'), (b'Content-Encoding', b'gzip'), (b'alt-svc', b'h3=":443"; ma=86400')])
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/chat/completions "200 OK" Headers({'date': 'Fri, 07 Mar 2025 22:53:13 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'access-control-expose-headers': 'X-Request-ID', 'openai-organization': 'casspangell', 'openai-processing-ms': '1137', 'openai-version': '2020-10-01', 'x-ratelimit-limit-requests': '500', 'x-ratelimit-limit-tokens': '30000', 'x-ratelimit-remaining-requests': '499', 'x-ratelimit-remaining-tokens': '29886', 'x-ratelimit-reset-requests': '120ms', 'x-ratelimit-reset-tokens': '228ms', 'x-request-id': 'req_7684425f4a1e67689f614120343943b7', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '91cdaae6e9c979a3-DEN', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_7684425f4a1e67689f614120343943b7
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/audio/speech', 'headers': {'Accept': 'application/octet-stream'}, 'files': None, 'json_data': {'input': 'Shift your weight side to side as if swaying gently in the wind. Reach your arms slightly upward, fingers soft and fluttering, then let your eyes scan the space around you as if exploring the canopy above.', 'model': 'tts-1', 'voice': 'alloy'}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/audio/speech
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Date', b'Fri, 07 Mar 2025 22:53:15 GMT'), (b'Content-Type', b'audio/mpeg'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-expose-headers', b'X-Request-ID'), (b'openai-organization', b'casspangell'), (b'openai-processing-ms', b'1141'), (b'openai-version', b'2020-10-01'), (b'strict-transport-security', b'max-age=31536000; includeSubDomains; preload'), (b'via', b'envoy-router-7bc4bb69f9-qbmlc'), (b'x-envoy-upstream-service-time', b'1125'), (b'x-ratelimit-limit-requests', b'500'), (b'x-ratelimit-remaining-requests', b'499'), (b'x-ratelimit-reset-requests', b'120ms'), (b'x-request-id', b'req_88e8873aa2c2b52c47f3424bf8bf601c'), (b'cf-cache-status', b'DYNAMIC'), (b'X-Content-Type-Options', b'nosniff'), (b'Server', b'cloudflare'), (b'CF-RAY', b'91cdaaef1a5479a3-DEN'), (b'alt-svc', b'h3=":443"; ma=86400')])
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/audio/speech "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/audio/speech "200 OK" Headers({'date': 'Fri, 07 Mar 2025 22:53:15 GMT', 'content-type': 'audio/mpeg', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'access-control-expose-headers': 'X-Request-ID', 'openai-organization': 'casspangell', 'openai-processing-ms': '1141', 'openai-version': '2020-10-01', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'via': 'envoy-router-7bc4bb69f9-qbmlc', 'x-envoy-upstream-service-time': '1125', 'x-ratelimit-limit-requests': '500', 'x-ratelimit-remaining-requests': '499', 'x-ratelimit-reset-requests': '120ms', 'x-request-id': 'req_88e8873aa2c2b52c47f3424bf8bf601c', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '91cdaaef1a5479a3-DEN', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_88e8873aa2c2b52c47f3424bf8bf601c
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=fuck&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 18228
+INFO:root:Searching for sound with query: fuck
+INFO:root:Found valid sounds: 2
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/719585/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 3757
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): cdn.freesound.org:443
+DEBUG:urllib3.connectionpool:https://cdn.freesound.org:443 "GET /previews/719/719585_15224553-hq.mp3 HTTP/1.1" 200 191492
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'json_data': {'messages': [{'role': 'system', 'content': "You are a movement choreographer AI that generates small, subtle movement prompts based on the sentiment and energy of a word. Keep movements minimal, such as 'walk slowly forward' or 'make eye contact with someone' or 'move your hands fragmently'."}, {'role': 'user', 'content': "Generate a small movement prompt based on the word 'fuck'. Provide a short, simple movement sequence that a performer can interpret."}], 'model': 'gpt-4o'}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/chat/completions
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpcore.connection:connect_tcp.started host='api.openai.com' port=443 local_address=None timeout=5.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x109239ad0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x1091817f0> server_hostname='api.openai.com' timeout=5.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x10923a0d0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Date', b'Fri, 07 Mar 2025 22:57:22 GMT'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-expose-headers', b'X-Request-ID'), (b'openai-organization', b'casspangell'), (b'openai-processing-ms', b'597'), (b'openai-version', b'2020-10-01'), (b'x-ratelimit-limit-requests', b'500'), (b'x-ratelimit-limit-tokens', b'30000'), (b'x-ratelimit-remaining-requests', b'499'), (b'x-ratelimit-remaining-tokens', b'29887'), (b'x-ratelimit-reset-requests', b'120ms'), (b'x-ratelimit-reset-tokens', b'226ms'), (b'x-request-id', b'req_daab080fa787e7aa5d815921560adfcb'), (b'strict-transport-security', b'max-age=31536000; includeSubDomains; preload'), (b'CF-Cache-Status', b'DYNAMIC'), (b'X-Content-Type-Options', b'nosniff'), (b'Server', b'cloudflare'), (b'CF-RAY', b'91cdb0fd6a08e65d-DEN'), (b'Content-Encoding', b'gzip'), (b'alt-svc', b'h3=":443"; ma=86400')])
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/chat/completions "200 OK" Headers({'date': 'Fri, 07 Mar 2025 22:57:22 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'access-control-expose-headers': 'X-Request-ID', 'openai-organization': 'casspangell', 'openai-processing-ms': '597', 'openai-version': '2020-10-01', 'x-ratelimit-limit-requests': '500', 'x-ratelimit-limit-tokens': '30000', 'x-ratelimit-remaining-requests': '499', 'x-ratelimit-remaining-tokens': '29887', 'x-ratelimit-reset-requests': '120ms', 'x-ratelimit-reset-tokens': '226ms', 'x-request-id': 'req_daab080fa787e7aa5d815921560adfcb', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '91cdb0fd6a08e65d-DEN', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_daab080fa787e7aa5d815921560adfcb
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/audio/speech', 'headers': {'Accept': 'application/octet-stream'}, 'files': None, 'json_data': {'input': 'Shift your weight forward, tense your shoulders slightly, and let out a deep, controlled breath.', 'model': 'tts-1', 'voice': 'alloy'}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/audio/speech
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Date', b'Fri, 07 Mar 2025 22:57:24 GMT'), (b'Content-Type', b'audio/mpeg'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-expose-headers', b'X-Request-ID'), (b'openai-organization', b'casspangell'), (b'openai-processing-ms', b'1610'), (b'openai-version', b'2020-10-01'), (b'strict-transport-security', b'max-age=31536000; includeSubDomains; preload'), (b'via', b'envoy-router-856c95d7f-xqbb4'), (b'x-envoy-upstream-service-time', b'1591'), (b'x-ratelimit-limit-requests', b'500'), (b'x-ratelimit-remaining-requests', b'499'), (b'x-ratelimit-reset-requests', b'120ms'), (b'x-request-id', b'req_866f4923a31d5dde32423432d6d59d58'), (b'cf-cache-status', b'DYNAMIC'), (b'X-Content-Type-Options', b'nosniff'), (b'Server', b'cloudflare'), (b'CF-RAY', b'91cdb1024a2be65d-DEN'), (b'alt-svc', b'h3=":443"; ma=86400')])
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/audio/speech "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/audio/speech "200 OK" Headers({'date': 'Fri, 07 Mar 2025 22:57:24 GMT', 'content-type': 'audio/mpeg', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'access-control-expose-headers': 'X-Request-ID', 'openai-organization': 'casspangell', 'openai-processing-ms': '1610', 'openai-version': '2020-10-01', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'via': 'envoy-router-856c95d7f-xqbb4', 'x-envoy-upstream-service-time': '1591', 'x-ratelimit-limit-requests': '500', 'x-ratelimit-remaining-requests': '499', 'x-ratelimit-reset-requests': '120ms', 'x-request-id': 'req_866f4923a31d5dde32423432d6d59d58', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '91cdb1024a2be65d-DEN', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_866f4923a31d5dde32423432d6d59d58
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'json_data': {'messages': [{'role': 'system', 'content': "You are a movement choreographer AI that generates small, subtle movement prompts based on the sentiment and energy of a word. Keep movements minimal, such as 'walk slowly forward' or 'make eye contact with someone' or 'move your hands fragmently'."}, {'role': 'user', 'content': "Generate a small movement prompt based on the word 'breathe'. Provide a short, simple movement sequence that a performer can interpret."}], 'model': 'gpt-4o'}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/chat/completions
+DEBUG:httpcore.connection:connect_tcp.started host='api.openai.com' port=443 local_address=None timeout=5.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x10ea07cd0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x10e9897f0> server_hostname='api.openai.com' timeout=5.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x10ea07e50>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Date', b'Fri, 07 Mar 2025 22:58:56 GMT'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-expose-headers', b'X-Request-ID'), (b'openai-organization', b'casspangell'), (b'openai-processing-ms', b'843'), (b'openai-version', b'2020-10-01'), (b'x-ratelimit-limit-requests', b'500'), (b'x-ratelimit-limit-tokens', b'30000'), (b'x-ratelimit-remaining-requests', b'499'), (b'x-ratelimit-remaining-tokens', b'29886'), (b'x-ratelimit-reset-requests', b'120ms'), (b'x-ratelimit-reset-tokens', b'228ms'), (b'x-request-id', b'req_d6b0251bb5a77b16887b233c69754204'), (b'strict-transport-security', b'max-age=31536000; includeSubDomains; preload'), (b'cf-cache-status', b'DYNAMIC'), (b'Set-Cookie', b'__cf_bm=us8mQSIjjNqH802shOQnKSnq7Kx6e5gsbouBDk7HP38-1741388336-1.0.1.1-s7Eo808CiXmNsyUOi.yufD0_WVR4JmDrDDZ4ctETSINvHWwGHzXXTN8YTInO6c5TdQod84bHAsIvFqbBboV3H9uJxZ64TB7dh3MN1Ml5o1M; path=/; expires=Fri, 07-Mar-25 23:28:56 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), (b'X-Content-Type-Options', b'nosniff'), (b'Set-Cookie', b'_cfuvid=TVxPGj6M1N0L4DNA22IPX7D5h53o94qqBjPK057A5kM-1741388336392-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), (b'Server', b'cloudflare'), (b'CF-RAY', b'91cdb348bc68e74d-DEN'), (b'Content-Encoding', b'gzip'), (b'alt-svc', b'h3=":443"; ma=86400')])
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/chat/completions "200 OK" Headers([('date', 'Fri, 07 Mar 2025 22:58:56 GMT'), ('content-type', 'application/json'), ('transfer-encoding', 'chunked'), ('connection', 'keep-alive'), ('access-control-expose-headers', 'X-Request-ID'), ('openai-organization', 'casspangell'), ('openai-processing-ms', '843'), ('openai-version', '2020-10-01'), ('x-ratelimit-limit-requests', '500'), ('x-ratelimit-limit-tokens', '30000'), ('x-ratelimit-remaining-requests', '499'), ('x-ratelimit-remaining-tokens', '29886'), ('x-ratelimit-reset-requests', '120ms'), ('x-ratelimit-reset-tokens', '228ms'), ('x-request-id', 'req_d6b0251bb5a77b16887b233c69754204'), ('strict-transport-security', 'max-age=31536000; includeSubDomains; preload'), ('cf-cache-status', 'DYNAMIC'), ('set-cookie', '__cf_bm=us8mQSIjjNqH802shOQnKSnq7Kx6e5gsbouBDk7HP38-1741388336-1.0.1.1-s7Eo808CiXmNsyUOi.yufD0_WVR4JmDrDDZ4ctETSINvHWwGHzXXTN8YTInO6c5TdQod84bHAsIvFqbBboV3H9uJxZ64TB7dh3MN1Ml5o1M; path=/; expires=Fri, 07-Mar-25 23:28:56 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), ('x-content-type-options', 'nosniff'), ('set-cookie', '_cfuvid=TVxPGj6M1N0L4DNA22IPX7D5h53o94qqBjPK057A5kM-1741388336392-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), ('server', 'cloudflare'), ('cf-ray', '91cdb348bc68e74d-DEN'), ('content-encoding', 'gzip'), ('alt-svc', 'h3=":443"; ma=86400')])
+DEBUG:openai._base_client:request_id: req_d6b0251bb5a77b16887b233c69754204
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/audio/speech', 'headers': {'Accept': 'application/octet-stream'}, 'files': None, 'json_data': {'input': 'Inhale deeply, raising your shoulders gently. Pause for a moment. Exhale slowly, letting your shoulders drop. Repeat twice, emphasizing the rise and fall.', 'model': 'tts-1', 'voice': 'alloy'}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/audio/speech
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Date', b'Fri, 07 Mar 2025 22:58:58 GMT'), (b'Content-Type', b'audio/mpeg'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-expose-headers', b'X-Request-ID'), (b'openai-organization', b'casspangell'), (b'openai-processing-ms', b'1233'), (b'openai-version', b'2020-10-01'), (b'strict-transport-security', b'max-age=31536000; includeSubDomains; preload'), (b'via', b'envoy-router-6b454487f-f5j8w'), (b'x-envoy-upstream-service-time', b'1206'), (b'x-ratelimit-limit-requests', b'500'), (b'x-ratelimit-remaining-requests', b'499'), (b'x-ratelimit-reset-requests', b'120ms'), (b'x-request-id', b'req_a42d26e5ebdf33ca91920a831435f4f3'), (b'CF-Cache-Status', b'DYNAMIC'), (b'X-Content-Type-Options', b'nosniff'), (b'Server', b'cloudflare'), (b'CF-RAY', b'91cdb34e8ba1e74d-DEN'), (b'alt-svc', b'h3=":443"; ma=86400')])
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/audio/speech "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/audio/speech "200 OK" Headers({'date': 'Fri, 07 Mar 2025 22:58:58 GMT', 'content-type': 'audio/mpeg', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'access-control-expose-headers': 'X-Request-ID', 'openai-organization': 'casspangell', 'openai-processing-ms': '1233', 'openai-version': '2020-10-01', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'via': 'envoy-router-6b454487f-f5j8w', 'x-envoy-upstream-service-time': '1206', 'x-ratelimit-limit-requests': '500', 'x-ratelimit-remaining-requests': '499', 'x-ratelimit-reset-requests': '120ms', 'x-request-id': 'req_a42d26e5ebdf33ca91920a831435f4f3', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '91cdb34e8ba1e74d-DEN', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_a42d26e5ebdf33ca91920a831435f4f3

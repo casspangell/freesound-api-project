@@ -5,6 +5,7 @@ config.py
 sounds/
 processed_sounds/
 haiku_sounds/
+movement_scores/
 
 # Ignore Python cache and environment files
 __pycache__/

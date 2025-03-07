@@ -7,6 +7,7 @@ import os
 import haiku
 import riffusion
 import logging
+import movement
 
 # Initialize pygame mixer for audio playback
 pygame.init()
@@ -98,7 +99,7 @@ def text_input_game():
         if user_input == "begin":
             break
 
-    print("\nType a keyword and method (e.g., 'wind haiku', 'forest riff', 'rain freesound') or 'status' or 'exit'.\n")
+    print("\nType a keyword and method (e.g., 'wind haiku', 'forest riff', 'rain freesound', 'fire move') or 'status' or 'exit'.\n")
     
     while True:
         user_input = input("\nEnter a keyword and method: ").strip().lower()
@@ -136,6 +137,9 @@ def text_input_game():
                 play_sound(sound_id)  # Plays sound **without stopping background music**
             else:
                 print("🔕 The mycelium remains silent... It does not understand this word.")
+        elif method == "move":
+                print("🎶 The network whispers back with movement...")
+                movement.generate_movement_score(keyword)
         else:
             print("⚠️ Invalid method. Use 'haiku', 'riff', or 'freesound'.")
 

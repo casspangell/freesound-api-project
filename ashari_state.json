@@ -1,70 +1,91 @@
 {
-    "sentiment_score": 0.17848165340522373,
+    "sentiment_score": 0.5967788774995695,
     "memory": {
         "love": {
             "count": 7,
-            "decay": 0.5987369392383786
+            "decay": 0.5133420832795047
         },
         "war": {
             "count": 2,
-            "decay": 0.41812033521917696
+            "decay": 0.35848592240854177
         },
         "hello": {
             "count": 5,
-            "decay": 0.6302494097246091
+            "decay": 0.5403600876626365
         },
         "peace": {
             "count": 1,
-            "decay": 0.1937114844585008
+            "decay": 0.16608338398760714
         },
         "jealous": {
             "count": 1,
-            "decay": 0.20390682574579033
+            "decay": 0.17482461472379698
         },
         "fire": {
             "count": 1,
-            "decay": 0.5403600876626365
+            "decay": 0.46329123015975293
         },
         "trust": {
             "count": 1,
-            "decay": 0.5688000922764596
+            "decay": 0.48767497911552943
         },
         "joy": {
             "count": 1,
-            "decay": 0.6634204312890623
+            "decay": 0.5688000922764596
         },
         "jolly": {
             "count": 1,
-            "decay": 0.6983372960937497
+            "decay": 0.5987369392383786
         },
         "fun": {
             "count": 1,
-            "decay": 0.7350918906249998
+            "decay": 0.6302494097246091
         },
         "wee": {
             "count": 1,
-            "decay": 0.7737809374999999
+            "decay": 0.6634204312890623
         },
         "hell": {
             "count": 1,
-            "decay": 0.8145062499999999
+            "decay": 0.6983372960937497
         },
         "death": {
             "count": 1,
-            "decay": 0.8573749999999999
+            "decay": 0.7350918906249998
         },
         "demise": {
             "count": 1,
-            "decay": 0.9025
+            "decay": 0.7737809374999999
         },
         "joust": {
             "count": 1,
-            "decay": 0.95
+            "decay": 0.8145062499999999
         },
         "kin": {
             "count": 1,
-            "decay": 0.95,
+            "decay": 0.8145062499999999,
             "adjusted_sentiment": 0.505,
+            "weight": 1.05,
+            "historical": false
+        },
+        "heat": {
+            "count": 1,
+            "decay": 0.8573749999999999,
+            "adjusted_sentiment": 0.005000000000000001,
+            "weight": 1.05,
+            "historical": false
+        },
+        "life": {
+            "count": 1,
+            "decay": 0.9025,
+            "adjusted_sentiment": 0.505,
+            "weight": 1.05,
+            "historical": false
+        },
+        "belong": {
+            "count": 1,
+            "decay": 0.95,
+            "adjusted_sentiment": 0.805,
             "weight": 1.05,
             "historical": false
         }
@@ -103,6 +124,9 @@
         "hell": -0.8,
         "demise": -1.0,
         "joust": 0.2,
-        "kin": 0.5
+        "kin": 0.5,
+        "heat": 0.0,
+        "life": 0.5,
+        "belong": 0.8
     }
 }
