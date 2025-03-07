@@ -4,6 +4,7 @@ import time
 import random
 import config
 import os
+from pydub import AudioSegment
 
 # Initialize pygame mixer for audio playback
 pygame.init()
@@ -18,6 +19,9 @@ os.makedirs(SOUNDS_DIR, exist_ok=True)  # Ensure sounds directory exists
 # Default looping background music
 DEFAULT_MUSIC = os.path.join(SOUNDS_DIR, "soul-song.mp3")
 
+# Variable to track last played sound file
+last_played_sound = None
+
 # Function to search for sounds
 def search_sound(query):
     url = f"{BASE_URL}/search/text/?query={query}&token={API_KEY}&fields=id,name,description,duration"
@@ -30,6 +34,8 @@ def search_sound(query):
 
 # Function to download and play a sound (plays on a new available channel)
 def play_sound(sound_id):
+    global last_played_sound
+
     url = f"{BASE_URL}/sounds/{sound_id}/?token={API_KEY}"
     response = requests.get(url)
     if response.status_code == 200:
@@ -43,6 +49,9 @@ def play_sound(sound_id):
             with open(sound_file, "wb") as file:
                 file.write(sound_response.content)
 
+            # Track the last played sound
+            last_played_sound = sound_file
+
             # Load sound and find an available channel
             sound = pygame.mixer.Sound(sound_file)
             channel = pygame.mixer.find_channel()  # Find a free channel
@@ -55,6 +64,31 @@ def play_sound(sound_id):
             print("The selected sound is too long or unavailable.")
     else:
         print(f"Failed to fetch sound details. Error: {response.status_code}")
+
+# Function to play the last played sound in reverse
+def reverse_last_sound():
+    global last_played_sound
+
+    if last_played_sound and os.path.exists(last_played_sound):
+        print("🔄 Reversing the last played sound...")
+
+        # Reverse the sound using pydub
+        sound = AudioSegment.from_file(last_played_sound)
+        reversed_sound = sound.reverse()
+
+        # Save reversed version
+        reversed_file = last_played_sound.replace(".mp3", "_reversed.mp3")
+        reversed_sound.export(reversed_file, format="mp3")
+
+        # Play the reversed sound
+        reversed_pygame_sound = pygame.mixer.Sound(reversed_file)
+        channel = pygame.mixer.find_channel()
+        if channel:
+            channel.play(reversed_pygame_sound)
+        else:
+            print("⚠️ No available sound channels for reversed sound.")
+    else:
+        print("⚠️ No sound has been played yet to reverse.")
 
 # Function to play the background music in a loop
 def play_background_music():
@@ -80,21 +114,24 @@ def text_input_game():
     print("\nType a word related to knowledge, plants, or sound to experience its echo in the mycelial network.")
     
     while True:
-        user_input = input("\nEnter a word (or type 'exit' to quit): ").strip().lower()
+        user_input = input("\nEnter a word (or type 'reverse' to play last sound backward, or 'exit' to quit): ").strip().lower()
+
         if user_input == "exit":
             print("Exiting game... 🌱")
             pygame.mixer.stop()  # Stop all sounds before exiting
             break
 
-        print(f"\nThe mycelium absorbs the concept of '{user_input}'... 🍄")
-
-        sound_id = search_sound(user_input)
-        
-        if sound_id:
-            print("🎶 The network whispers back with sound...")
-            play_sound(sound_id)  # Plays sound **without stopping background music**
+        elif user_input == "reverse":
+            reverse_last_sound()  # Play the last sound in reverse
         else:
-            print("🔕 The mycelium remains silent... It does not understand this word.")
+            print(f"\nThe mycelium absorbs the concept of '{user_input}'... 🍄")
+            sound_id = search_sound(user_input)
+            
+            if sound_id:
+                print("🎶 The network whispers back with sound...")
+                play_sound(sound_id)  # Plays sound **without stopping background music**
+            else:
+                print("🔕 The mycelium remains silent... It does not understand this word.")
 
 # Run the game
 if __name__ == "__main__":
