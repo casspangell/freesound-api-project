@@ -1,6 +1,13 @@
 from openai import OpenAI
 import config
 import pygame
+import os
+import requests
+import time
+
+RIFFUSION_API_URL = "https://api.riffusion.com/generate"
+RIFFUSION_SOUNDS_DIR = "riffusion-sounds"
+os.makedirs(RIFFUSION_SOUNDS_DIR, exist_ok=True)
 
 # Initialize OpenAI client with API Key
 client = OpenAI(api_key=config.CHAT_API_KEY)
@@ -34,7 +41,7 @@ def generate_tts_haiku(word):
             voice="alloy",
             input=haiku
         )
-        tts_file = "haiku_tts.mp3"
+        tts_file = f"haiku_sounds/{word}_{int(time.time())}.mp3"
         speech_response.stream_to_file(tts_file)
 
         # Play the haiku audio
@@ -43,6 +50,23 @@ def generate_tts_haiku(word):
 
     except Exception as e:
         print("⚠️ Error generating or playing AI haiku:", e)
+
+# Function to generate AI ambient sound with Riffusion
+def generate_riffusion_sound(prompt):
+    url = f"{RIFFUSION_API_URL}?prompt={prompt}"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        output_file = os.path.join(RIFFUSION_SOUNDS_DIR, f"{prompt.replace(' ', '_')}_{int(time.time())}.wav")
+        with open(output_file, "wb") as file:
+            file.write(response.content)
+        print(f"✅ AI-generated ambient sound saved as {output_file}")
+
+        # Play generated ambient sound
+        sound = pygame.mixer.Sound(output_file)
+        pygame.mixer.find_channel().play(sound)
+    else:
+        print("⚠️ Failed to generate AI sound.")
 
 # Run the function if the script is executed directly
 if __name__ == "__main__":

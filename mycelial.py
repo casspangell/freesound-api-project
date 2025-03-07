@@ -16,8 +16,10 @@ BASE_URL = "https://freesound.org/apiv2"
 SOUNDS_DIR = "sounds"
 os.makedirs(SOUNDS_DIR, exist_ok=True)  # Ensure sounds directory exists
 
-# Default looping background music
-DEFAULT_MUSIC = os.path.join(SOUNDS_DIR, "soul-song.mp3")
+# Riffusion API setup
+RIFFUSION_API_URL = "https://api.riffusion.com/generate"
+RIFFUSION_SOUNDS_DIR = "riffusion-sounds"
+os.makedirs(RIFFUSION_SOUNDS_DIR, exist_ok=True)
 
 # Variable to track last played sound file
 last_played_sound = None
@@ -66,46 +68,46 @@ def play_sound(sound_id):
     else:
         print(f"Failed to fetch sound details. Error: {response.status_code}")
 
-# Function to play the background music in a loop
-def play_background_music():
-    if os.path.exists(DEFAULT_MUSIC):
-        background_music = pygame.mixer.Sound(DEFAULT_MUSIC)
-        # pygame.mixer.find_channel().play(background_music, loops=-1)  # Loop indefinitely
-        # print("\n🎶 The soul-song begins... 🌌\n")
-    else:
-        print("⚠️ Default music file 'soul-song.mp3' not found in /sounds/.")
-
 # Main game loop
 def text_input_game():
     print("\n🌿 Welcome to the Mycelial Memory Game! 🌿")
-    print("Type 'begin' to start and hear the soul-song...\n")
+    print("Type 'begin' to start the experience...\n")
     
     # Wait for the user to type "begin"
     while True:
         user_input = input("Enter 'begin' to start: ").strip().lower()
         if user_input == "begin":
-            play_background_music()
             break
 
-    print("\nType a word related to knowledge, plants, or sound to experience its echo in the mycelial network.")
+    print("\nType a keyword and method (e.g., 'wind tts', 'forest riffusion', 'rain freesound') or type 'exit' to quit.\n")
     
     while True:
-        user_input = input("\nEnter a word (or type 'exit' to quit): ").strip().lower()
-
+        user_input = input("\nEnter a keyword and method: ").strip().lower()
+        
         if user_input == "exit":
             print("Exiting game... 🌱")
             pygame.mixer.stop()  # Stop all sounds before exiting
             break
-
-        print(f"\nThe mycelium absorbs the concept of '{user_input}'... 🍄")
-        chatgpt.generate_tts_haiku(user_input)  # Generate AI haiku and play it
-        sound_id = search_sound(user_input)
         
-        if sound_id:
-            print("🎶 The network whispers back with sound...")
-            play_sound(sound_id)  # Plays sound **without stopping background music**
+        parts = user_input.split(" ", 1)
+        keyword = parts[0]
+        method = parts[1] if len(parts) > 1 else "freesound"  # Default to Freesound if method is not provided
+
+        print(f"\nThe mycelium absorbs the concept of '{keyword}'... 🍄")
+
+        if method == "tts":
+            chatgpt.generate_tts_haiku(keyword)  # Generate AI haiku and play it
+        elif method == "riffusion":
+            chatgpt.generate_riffusion_sound(keyword)  # Generate AI ambient sound
+        elif method == "freesound":
+            sound_id = search_sound(keyword)
+            if sound_id:
+                print("🎶 The network whispers back with sound...")
+                play_sound(sound_id)  # Plays sound **without stopping background music**
+            else:
+                print("🔕 The mycelium remains silent... It does not understand this word.")
         else:
-            print("🔕 The mycelium remains silent... It does not understand this word.")
+            print("⚠️ Invalid method. Use 'tts', 'riffusion', or 'freesound'.")
 
 # Run the game
 if __name__ == "__main__":
