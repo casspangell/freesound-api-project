@@ -20,58 +20,6 @@
         "jealous": {
             "count": 1,
             "decay": 0.3972143184582181
-        },
-        "kill": {
-            "count": 2,
-            "decay": 0.5403600876626365
-        },
-        "help": {
-            "count": 1,
-            "decay": 0.44012666865176525
-        },
-        "no": {
-            "count": 1,
-            "decay": 0.46329123015975293
-        },
-        "haiku": {
-            "count": 1,
-            "decay": 0.48767497911552943
-        },
-        "death": {
-            "count": 2,
-            "decay": 0.9025
-        },
-        "die": {
-            "count": 1,
-            "decay": 0.5688000922764596
-        },
-        "dump": {
-            "count": 2,
-            "decay": 0.6302494097246091
-        },
-        "yo": {
-            "count": 1,
-            "decay": 0.6634204312890623
-        },
-        "dog": {
-            "count": 1,
-            "decay": 0.7350918906249998
-        },
-        "cat": {
-            "count": 1,
-            "decay": 0.7737809374999999
-        },
-        "longing": {
-            "count": 1,
-            "decay": 0.8573749999999999
-        },
-        "perserverence": {
-            "count": 1,
-            "decay": 0.95
-        },
-        "tragedy": {
-            "count": 1,
-            "decay": 1.0
         }
     },
     "word_effects": {
