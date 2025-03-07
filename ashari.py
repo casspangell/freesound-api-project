@@ -7,7 +7,7 @@ class Ashari:
         # Initial sentiment score (starts skeptical)
         self.sentiment_score = -0.6
         
-        # Word sentiment effects
+        # Word sentiment effects (default for known words)
         self.word_effects = {
             "love": -0.6,
             "war": -0.8,
@@ -20,7 +20,7 @@ class Ashari:
             "betrayal": -0.2
         }
         
-        # Memory tracking: Each word stores its count and decay factor
+        # Memory tracking: Stores all words dynamically
         self.memory = {}
 
         # Response templates based on sentiment
@@ -44,21 +44,28 @@ class Ashari:
         # Apply decay factor to old memory
         self.apply_memory_decay()
 
-        # Adjust sentiment score based on word effect
-        if word in self.word_effects:
-            # Get word count from memory (default to 0 if new)
-            word_count = self.memory.get(word, {"count": 0})["count"]
-            
-            # Calculate weighted sentiment shift
-            decay_factor = math.exp(-0.1 * word_count)  # Softens overuse impact
-            delta = self.word_effects[word] * (0.3 + (0.02 * word_count) * decay_factor)
+        # If word is new, automatically assign a sentiment effect based on heuristics
+        if word not in self.word_effects:
+            self.word_effects[word] = self.estimate_sentiment(word)
 
-            # Update sentiment score
-            self.sentiment_score += delta
-            self.sentiment_score = max(-1.0, min(1.0, self.sentiment_score))  # Keep within range
+        # Track word memory dynamically
+        if word not in self.memory:
+            self.memory[word] = {"count": 0, "decay": 1.0}
 
-            # Update memory
-            self.memory[word] = {"count": word_count + 1, "decay": 1.0}
+        # Get word count from memory
+        word_count = self.memory[word]["count"]
+        
+        # Calculate weighted sentiment shift with decay
+        decay_factor = math.exp(-0.1 * word_count)  # Reduces overuse impact
+        delta = self.word_effects[word] * (0.3 + (0.02 * word_count) * decay_factor)
+
+        # Update sentiment score
+        self.sentiment_score += delta
+        self.sentiment_score = max(-1.0, min(1.0, self.sentiment_score))  # Keep within range
+
+        # Update memory
+        self.memory[word]["count"] += 1
+        self.memory[word]["decay"] = 1.0
 
         # Choose response type based on sentiment score
         if self.sentiment_score <= -0.5:
@@ -86,6 +93,18 @@ class Ashari:
 
         return structured_output
 
+    def estimate_sentiment(self, word):
+        """Automatically assign a sentiment value based on word characteristics."""
+        positive_keywords = {"joy", "peace", "hope", "kindness", "growth"}
+        negative_keywords = {"pain", "death", "fear", "despair", "loss"}
+
+        if any(kw in word for kw in positive_keywords):
+            return random.uniform(0.3, 0.7)  # Assign a moderately positive sentiment
+        elif any(kw in word for kw in negative_keywords):
+            return random.uniform(-0.7, -0.3)  # Assign a moderately negative sentiment
+        else:
+            return random.uniform(-0.1, 0.1)  # Default to neutral or slightly varied
+
     def apply_memory_decay(self):
         """Reduces the weight of older words over time, ensuring fresh input has stronger impact."""
         for word in self.memory.keys():
@@ -108,7 +127,8 @@ class Ashari:
         with open(filename, "w") as f:
             json.dump({
                 "sentiment_score": self.sentiment_score,
-                "memory": self.memory
+                "memory": self.memory,
+                "word_effects": self.word_effects  # Save new words dynamically
             }, f, indent=4)
 
     def load_state(self, filename="ashari_state.json"):
@@ -117,9 +137,21 @@ class Ashari:
                 state = json.load(f)
                 self.sentiment_score = state.get("sentiment_score", -0.6)  # Default fallback
                 self.memory = state.get("memory", {})  # Restore memory
+                self.word_effects.update(state.get("word_effects", {}))  # Restore custom words
         except (FileNotFoundError, json.JSONDecodeError):
             self.sentiment_score = -0.6
             self.memory = {}
+            self.word_effects = {
+                "love": -0.6,
+                "war": -0.8,
+                "trust": -0.7,
+                "forgiveness": -0.6,
+                "hope": 0.1,
+                "unity": 0.15,
+                "strength": 0.5,
+                "wisdom": 0.6,
+                "betrayal": -0.2
+            }
 
 # Example Usage
 if __name__ == "__main__":

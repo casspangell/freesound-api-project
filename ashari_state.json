@@ -1,13 +1,34 @@
 {
-    "sentiment_score": -1.0,
+    "sentiment_score": -0.48720271649147134,
     "memory": {
         "love": {
-            "count": 5,
-            "decay": 0.8145062499999999
+            "count": 6,
+            "decay": 0.8573749999999999
         },
         "war": {
             "count": 1,
-            "decay": 0.6302494097246091
+            "decay": 0.48767497911552943
+        },
+        "hello": {
+            "count": 3,
+            "decay": 0.95
+        },
+        "peace": {
+            "count": 1,
+            "decay": 1.0
         }
+    },
+    "word_effects": {
+        "love": -0.6,
+        "war": -0.8,
+        "trust": -0.7,
+        "forgiveness": -0.6,
+        "hope": 0.1,
+        "unity": 0.15,
+        "strength": 0.5,
+        "wisdom": 0.6,
+        "betrayal": -0.2,
+        "hello": 0.5,
+        "peace": 0.6245809808886984
     }
 }
