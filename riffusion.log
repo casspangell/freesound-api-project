@@ -1,0 +1,30 @@
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): riffusionapi.com:443
+DEBUG:urllib3.connectionpool:https://riffusionapi.com:443 "POST /api/generate-music HTTP/1.1" 503 807
+INFO:root:Response Status: 503
+INFO:root:Response Data: <!DOCTYPE html>
+<html style="height:100%">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<title> 503 Service Unavailable
+</title><style>@media (prefers-color-scheme:dark){body{background-color:#000!important}}</style></head>
+<body style="color: #444; margin:0;font: normal 14px/20px Arial, Helvetica, sans-serif; height:100%; background-color: #fff;">
+<div style="height:auto; min-height:100%; ">     <div style="text-align: center; width:800px; margin-left: -400px; position:absolute; top: 30%; left:50%;">
+        <h1 style="margin:0; font-size:150px; line-height:150px; font-weight:bold;">503</h1>
+<h2 style="margin-top:20px;font-size: 30px;">Service Unavailable
+</h2>
+<p>The server is temporarily busy, try again later!</p>
+</div></div></body></html>
+
+ERROR:root:Failed to generate sound. Status Code: 503
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=status&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 3796
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): riffusionapi.com:443
+DEBUG:urllib3.connectionpool:https://riffusionapi.com:443 "GET /api/status HTTP/1.1" 200 99
+INFO:root:Response Status: 200
+INFO:root:Response Data: {"status":"active","plan":"Demo","monthly_calls":4,"remaining_calls":9996,"rate_limit_remaining":9}
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=status&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 3796
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): riffusionapi.com:443
+DEBUG:urllib3.connectionpool:https://riffusionapi.com:443 "GET /api/status HTTP/1.1" 200 99
+INFO:root:Response Status: 200
+INFO:root:Response Data: {"status":"active","plan":"Demo","monthly_calls":4,"remaining_calls":9996,"rate_limit_remaining":8}

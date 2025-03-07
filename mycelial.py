@@ -4,7 +4,8 @@ import time
 import random
 import config
 import os
-import chatgpt  # Import ChatGPT functions from chatgpt.py
+import chatgpt
+import riffusion
 
 # Initialize pygame mixer for audio playback
 pygame.init()
@@ -16,11 +17,6 @@ BASE_URL = "https://freesound.org/apiv2"
 SOUNDS_DIR = "sounds"
 os.makedirs(SOUNDS_DIR, exist_ok=True)  # Ensure sounds directory exists
 
-# Riffusion API setup
-RIFFUSION_API_URL = "https://api.riffusion.com/generate"
-RIFFUSION_SOUNDS_DIR = "riffusion-sounds"
-os.makedirs(RIFFUSION_SOUNDS_DIR, exist_ok=True)
-
 # Variable to track last played sound file
 last_played_sound = None
 
@@ -28,14 +24,27 @@ last_played_sound = None
 def search_sound(query):
     url = f"{BASE_URL}/search/text/?query={query}&token={API_KEY}&fields=id,name,description,duration"
     response = requests.get(url)
+    logging.info(f"Searching for sound with query: {query}")
     if response.status_code == 200:
         data = response.json()
         valid_sounds = [s for s in data["results"] if s.get("duration", 0) >= 8]
         if valid_sounds:
+            logging.info(f"Found valid sounds: {len(valid_sounds)}")
             return random.choice(valid_sounds)["id"]  # Pick a sound that is at least 8 seconds long
+    else:
+        logging.error(f"Failed to fetch sound details. Error: {response.status_code}")
     return None
 
-# Function to download and play a sound
+def clean_description(description):
+    # Remove unnecessary HTML tags from the description
+    clean_desc = re.sub(r'<.*?>', '', description)  # Removes all HTML tags
+    return clean_desc.strip()
+
+def save_sound_metadata(filename, description):
+    # Save sound metadata (filename and description) with timestamp
+    with open("sound_metadata.txt", "a", encoding="utf-8") as file:
+        file.write(f"{int(time.time())}: Filename: {filename}, Description: {description}\n")
+
 def play_sound(sound_id):
     global last_played_sound
 
@@ -54,6 +63,14 @@ def play_sound(sound_id):
 
             # Track the last played sound
             last_played_sound = sound_file
+
+            # Clean the description by removing unnecessary HTML tags
+            sound_title = sound_data.get("name", "Unknown Title")
+            sound_description = sound_data.get("description", "No description available.")
+            cleaned_description = clean_description(sound_description)
+
+            # Save sound metadata (filename and description) to text file
+            save_sound_metadata(sound_title, cleaned_description)
 
             # Load sound and find an available channel
             sound = pygame.mixer.Sound(sound_file)
@@ -74,6 +91,7 @@ def play_sound(sound_id):
         print(f"⚠️ Failed to fetch sound details. Error: {response.status_code}")
 
 
+
 # Main game loop
 def text_input_game():
     print("\n🌿 Welcome to the Mycelial Memory Game! 🌿")
@@ -85,7 +103,7 @@ def text_input_game():
         if user_input == "begin":
             break
 
-    print("\nType a keyword and method (e.g., 'wind tts', 'forest riffusion', 'rain freesound') or type 'exit' to quit.\n")
+    print("\nType a keyword and method (e.g., 'wind tts', 'forest riff', 'rain freesound') or status or type 'exit' to quit.\n")
     
     while True:
         user_input = input("\nEnter a keyword and method: ").strip().lower()
@@ -93,6 +111,10 @@ def text_input_game():
         if user_input == "exit":
             print("Exiting game... 🌱")
             pygame.mixer.stop()  # Stop all sounds before exiting
+            break
+
+        if user_input == "status":
+            riffusion.get_api_status()
             break
         
         parts = user_input.split(" ", 1)
@@ -103,8 +125,15 @@ def text_input_game():
 
         if method == "tts":
             chatgpt.generate_tts_haiku(keyword)  # Generate AI haiku and play it
-        elif method == "riffusion":
-            chatgpt.generate_riffusion_sound(keyword)  # Generate AI ambient sound
+        elif method == "riff":
+            sound_file = riffusion.generate_riffusion_sound(keyword)  # Generate AI ambient sound
+            if sound_file:
+                print(f"Sound generated and saved as: {sound_file}")
+            else:
+                print("⚠️ Failed to generate sound.")
+            if sound_file:
+                sound = pygame.mixer.Sound(sound_file)
+                pygame.mixer.find_channel().play(sound)
         elif method == "freesound":
             sound_id = search_sound(keyword)
             if sound_id:
