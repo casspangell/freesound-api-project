@@ -1,6 +1,8 @@
 import json
 import random
 import math
+import config
+from sentiment import estimate_sentiment_with_chatgpt
 
 class Ashari:
     def __init__(self):
@@ -44,9 +46,11 @@ class Ashari:
         # Apply decay factor to old memory
         self.apply_memory_decay()
 
-        # If word is new, automatically assign a sentiment effect based on heuristics
+        # If word is new, use ChatGPT API to determine sentiment and log it
         if word not in self.word_effects:
-            self.word_effects[word] = self.estimate_sentiment(word)
+            sentiment_score = estimate_sentiment_with_chatgpt(word)
+            self.word_effects[word] = sentiment_score
+            self.log_new_word_sentiment(word, sentiment_score)
 
         # Track word memory dynamically
         if word not in self.memory:
@@ -89,21 +93,17 @@ class Ashari:
         }
 
         # Print output for debugging
-        print(json.dumps(structured_output, indent=4))
+        # print(json.dumps(structured_output, indent=4))
 
         return structured_output
 
-    def estimate_sentiment(self, word):
-        """Automatically assign a sentiment value based on word characteristics."""
-        positive_keywords = {"joy", "peace", "hope", "kindness", "growth"}
-        negative_keywords = {"pain", "death", "fear", "despair", "loss"}
-
-        if any(kw in word for kw in positive_keywords):
-            return random.uniform(0.3, 0.7)  # Assign a moderately positive sentiment
-        elif any(kw in word for kw in negative_keywords):
-            return random.uniform(-0.7, -0.3)  # Assign a moderately negative sentiment
-        else:
-            return random.uniform(-0.1, 0.1)  # Default to neutral or slightly varied
+    def log_new_word_sentiment(self, word, sentiment_score):
+        """Logs newly classified words and their sentiment scores."""
+        with open("word_sentiment_log.json", "a") as log_file:
+            log_entry = {"word": word, "sentiment_score": sentiment_score}
+            # json.dump(log_entry, log_file)
+            log_file.write("\n")
+        # print(f"Logged new word: {word} with sentiment score: {sentiment_score}")
 
     def apply_memory_decay(self):
         """Reduces the weight of older words over time, ensuring fresh input has stronger impact."""

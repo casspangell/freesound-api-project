@@ -1,19 +1,75 @@
 {
-    "sentiment_score": -0.48720271649147134,
+    "sentiment_score": -0.17945556855959513,
     "memory": {
         "love": {
             "count": 6,
-            "decay": 0.8573749999999999
+            "decay": 0.3235335449737089
         },
         "war": {
+            "count": 2,
+            "decay": 0.8145062499999999
+        },
+        "hello": {
+            "count": 4,
+            "decay": 0.6983372960937497
+        },
+        "peace": {
+            "count": 1,
+            "decay": 0.37735360253530714
+        },
+        "jealous": {
+            "count": 1,
+            "decay": 0.3972143184582181
+        },
+        "kill": {
+            "count": 2,
+            "decay": 0.5403600876626365
+        },
+        "help": {
+            "count": 1,
+            "decay": 0.44012666865176525
+        },
+        "no": {
+            "count": 1,
+            "decay": 0.46329123015975293
+        },
+        "haiku": {
             "count": 1,
             "decay": 0.48767497911552943
         },
-        "hello": {
-            "count": 3,
+        "death": {
+            "count": 2,
+            "decay": 0.9025
+        },
+        "die": {
+            "count": 1,
+            "decay": 0.5688000922764596
+        },
+        "dump": {
+            "count": 2,
+            "decay": 0.6302494097246091
+        },
+        "yo": {
+            "count": 1,
+            "decay": 0.6634204312890623
+        },
+        "dog": {
+            "count": 1,
+            "decay": 0.7350918906249998
+        },
+        "cat": {
+            "count": 1,
+            "decay": 0.7737809374999999
+        },
+        "longing": {
+            "count": 1,
+            "decay": 0.8573749999999999
+        },
+        "perserverence": {
+            "count": 1,
             "decay": 0.95
         },
-        "peace": {
+        "tragedy": {
             "count": 1,
             "decay": 1.0
         }
@@ -29,6 +85,20 @@
         "wisdom": 0.6,
         "betrayal": -0.2,
         "hello": 0.5,
-        "peace": 0.6245809808886984
+        "peace": 0.6245809808886984,
+        "jealous": 0.0,
+        "kill": 0.0,
+        "help": 0.0,
+        "no": 0.0,
+        "haiku": 0.0,
+        "death": 0.0,
+        "die": 0.0,
+        "dump": 0.0,
+        "yo": 0.0,
+        "dog": 0.8,
+        "cat": 0.5,
+        "longing": 0.2,
+        "perserverence": 0.8,
+        "tragedy": -1.0
     }
 }
