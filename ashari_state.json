@@ -1,0 +1,13 @@
+{
+    "sentiment_score": -1.0,
+    "memory": {
+        "love": {
+            "count": 5,
+            "decay": 0.8145062499999999
+        },
+        "war": {
+            "count": 1,
+            "decay": 0.6302494097246091
+        }
+    }
+}

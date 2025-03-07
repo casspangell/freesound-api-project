@@ -4,7 +4,7 @@ import time
 import random
 import config
 import os
-import chatgpt
+import haiku
 import riffusion
 import logging
 
@@ -98,7 +98,7 @@ def text_input_game():
         if user_input == "begin":
             break
 
-    print("\nType a keyword and method (e.g., 'wind tts', 'forest riff', 'rain freesound') or status or type 'exit' to quit.\n")
+    print("\nType a keyword and method (e.g., 'wind haiku', 'forest riff', 'rain freesound') or 'status' or 'exit'.\n")
     
     while True:
         user_input = input("\nEnter a keyword and method: ").strip().lower()
@@ -118,8 +118,8 @@ def text_input_game():
 
         print(f"\nThe mycelium absorbs the concept of '{keyword}'... 🍄")
 
-        if method == "tts":
-            chatgpt.generate_tts_haiku(keyword)  # Generate AI haiku and play it
+        if method == "haiku":
+            haiku.generate_tts_haiku(keyword)  # Generate AI haiku and play it
         elif method == "riff":
             sound_file = riffusion.generate_riffusion_sound(keyword)  # Generate AI ambient sound
             if sound_file:
@@ -137,7 +137,7 @@ def text_input_game():
             else:
                 print("🔕 The mycelium remains silent... It does not understand this word.")
         else:
-            print("⚠️ Invalid method. Use 'tts', 'riffusion', or 'freesound'.")
+            print("⚠️ Invalid method. Use 'haiku', 'riff', or 'freesound'.")
 
 # Run the game
 if __name__ == "__main__":
