@@ -62,11 +62,17 @@ def play_sound(sound_id):
                 channel.play(sound)  # Play sound on available channel
             else:
                 print("⚠️ No available sound channels.")
-
         else:
-            print("The selected sound is too long or unavailable.")
+            print("⚠️ The selected sound is too long or unavailable. Trying another sound...")
+            # If the sound is too long, pick another one
+            new_sound_id = search_sound(last_played_sound)
+            if new_sound_id:
+                play_sound(new_sound_id)  # Recursively try a new sound
+            else:
+                print("🔕 No valid sounds found to play.")
     else:
-        print(f"Failed to fetch sound details. Error: {response.status_code}")
+        print(f"⚠️ Failed to fetch sound details. Error: {response.status_code}")
+
 
 # Main game loop
 def text_input_game():

@@ -35,6 +35,10 @@ def generate_tts_haiku(word):
         haiku = response.choices[0].message.content.strip()
         print(f"\n🌿 Haiku: {haiku} 🌿\n")
 
+        # Save the haiku to the log file
+        with open('haiku_sounds/haiku.txt', 'a', encoding='utf-8') as file:
+            file.write(f"{int(time.time())}: {haiku}\n")
+
         # Convert haiku to speech
         speech_response = client.audio.speech.create(
             model="tts-1",
