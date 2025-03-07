@@ -46,30 +46,54 @@ class Ashari:
         # Apply decay factor to old memory
         self.apply_memory_decay()
 
+        # Ensure sentiment_score is initialized before use
+        sentiment_score = 0.0
+        
         # If word is new, use ChatGPT API to determine sentiment and log it
         if word not in self.word_effects:
             sentiment_score = estimate_sentiment_with_chatgpt(word)
             self.word_effects[word] = sentiment_score
             self.log_new_word_sentiment(word, sentiment_score)
+        else:
+            sentiment_score = self.word_effects[word]
 
         # Track word memory dynamically
         if word not in self.memory:
-            self.memory[word] = {"count": 0, "decay": 1.0}
+            self.memory[word] = {
+                "count": 0, 
+                "decay": 1.0, 
+                "adjusted_sentiment": sentiment_score, 
+                "weight": 1.0, 
+                "historical": False
+            }
+
+        # Increase word weight if it appears frequently
+        self.memory[word]["count"] += 1
+        self.memory[word]["weight"] += 0.05  # Gradual reinforcement
+
+        # Check if a word should become historically significant
+        if self.memory[word]["count"] >= 5:
+            self.memory[word]["historical"] = True  # Mark as a permanent imprint
+            self.memory[word]["decay"] = 1.0  # Stop decay on historical words
 
         # Get word count from memory
         word_count = self.memory[word]["count"]
         
+        # Adjust sentiment over time based on reinforcement
+        historical_impact = word_count / 10  # Scale impact
+        self.memory[word]["adjusted_sentiment"] = max(-1.0, min(1.0, sentiment_score + historical_impact * 0.05))
+
         # Calculate weighted sentiment shift with decay
         decay_factor = math.exp(-0.1 * word_count)  # Reduces overuse impact
-        delta = self.word_effects[word] * (0.3 + (0.02 * word_count) * decay_factor)
+        delta = self.memory[word]["adjusted_sentiment"] * (0.3 + (0.02 * word_count) * decay_factor)
 
         # Update sentiment score
         self.sentiment_score += delta
         self.sentiment_score = max(-1.0, min(1.0, self.sentiment_score))  # Keep within range
 
-        # Update memory
-        self.memory[word]["count"] += 1
-        self.memory[word]["decay"] = 1.0
+        # Update memory and prevent historical words from decaying
+        if not self.memory[word]["historical"]:
+            self.memory[word]["decay"] *= 0.95
 
         # Choose response type based on sentiment score
         if self.sentiment_score <= -0.5:
@@ -91,9 +115,6 @@ class Ashari:
             "historical_bias": self.get_historical_bias(),
             "word_memory": self.memory
         }
-
-        # Print output for debugging
-        # print(json.dumps(structured_output, indent=4))
 
         return structured_output
 

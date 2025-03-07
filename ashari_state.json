@@ -1,25 +1,72 @@
 {
-    "sentiment_score": -0.17945556855959513,
+    "sentiment_score": 0.17848165340522373,
     "memory": {
         "love": {
-            "count": 6,
-            "decay": 0.3235335449737089
+            "count": 7,
+            "decay": 0.5987369392383786
         },
         "war": {
             "count": 2,
-            "decay": 0.8145062499999999
+            "decay": 0.41812033521917696
         },
         "hello": {
-            "count": 4,
-            "decay": 0.6983372960937497
+            "count": 5,
+            "decay": 0.6302494097246091
         },
         "peace": {
             "count": 1,
-            "decay": 0.37735360253530714
+            "decay": 0.1937114844585008
         },
         "jealous": {
             "count": 1,
-            "decay": 0.3972143184582181
+            "decay": 0.20390682574579033
+        },
+        "fire": {
+            "count": 1,
+            "decay": 0.5403600876626365
+        },
+        "trust": {
+            "count": 1,
+            "decay": 0.5688000922764596
+        },
+        "joy": {
+            "count": 1,
+            "decay": 0.6634204312890623
+        },
+        "jolly": {
+            "count": 1,
+            "decay": 0.6983372960937497
+        },
+        "fun": {
+            "count": 1,
+            "decay": 0.7350918906249998
+        },
+        "wee": {
+            "count": 1,
+            "decay": 0.7737809374999999
+        },
+        "hell": {
+            "count": 1,
+            "decay": 0.8145062499999999
+        },
+        "death": {
+            "count": 1,
+            "decay": 0.8573749999999999
+        },
+        "demise": {
+            "count": 1,
+            "decay": 0.9025
+        },
+        "joust": {
+            "count": 1,
+            "decay": 0.95
+        },
+        "kin": {
+            "count": 1,
+            "decay": 0.95,
+            "adjusted_sentiment": 0.505,
+            "weight": 1.05,
+            "historical": false
         }
     },
     "word_effects": {
@@ -47,6 +94,15 @@
         "cat": 0.5,
         "longing": 0.2,
         "perserverence": 0.8,
-        "tragedy": -1.0
+        "tragedy": -1.0,
+        "fire": 0.0,
+        "joy": 1.0,
+        "jolly": 0.8,
+        "fun": 0.8,
+        "wee": 0.5,
+        "hell": -0.8,
+        "demise": -1.0,
+        "joust": 0.2,
+        "kin": 0.5
     }
 }
