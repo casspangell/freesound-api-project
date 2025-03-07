@@ -3,6 +3,7 @@ config.py
 
 # Ignore downloaded audio files
 sounds/
+processed_sounds/
 
 # Ignore Python cache and environment files
 __pycache__/
