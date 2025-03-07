@@ -6,6 +6,7 @@ import config
 import os
 import chatgpt
 import riffusion
+import logging
 
 # Initialize pygame mixer for audio playback
 pygame.init()
@@ -35,11 +36,6 @@ def search_sound(query):
         logging.error(f"Failed to fetch sound details. Error: {response.status_code}")
     return None
 
-def clean_description(description):
-    # Remove unnecessary HTML tags from the description
-    clean_desc = re.sub(r'<.*?>', '', description)  # Removes all HTML tags
-    return clean_desc.strip()
-
 def save_sound_metadata(filename, description):
     # Save sound metadata (filename and description) with timestamp
     with open("sound_metadata.txt", "a", encoding="utf-8") as file:
@@ -67,10 +63,9 @@ def play_sound(sound_id):
             # Clean the description by removing unnecessary HTML tags
             sound_title = sound_data.get("name", "Unknown Title")
             sound_description = sound_data.get("description", "No description available.")
-            cleaned_description = clean_description(sound_description)
 
             # Save sound metadata (filename and description) to text file
-            save_sound_metadata(sound_title, cleaned_description)
+            save_sound_metadata(sound_title, sound_description)
 
             # Load sound and find an available channel
             sound = pygame.mixer.Sound(sound_file)

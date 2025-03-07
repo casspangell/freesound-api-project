@@ -28,3 +28,164 @@ DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): riffusionapi.com
 DEBUG:urllib3.connectionpool:https://riffusionapi.com:443 "GET /api/status HTTP/1.1" 200 99
 INFO:root:Response Status: 200
 INFO:root:Response Data: {"status":"active","plan":"Demo","monthly_calls":4,"remaining_calls":9996,"rate_limit_remaining":8}
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=wind&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 5868
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=wind&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 5868
+INFO:root:Searching for sound with query: wind
+INFO:root:Found valid sounds: 5
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/47727/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2509
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=None&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 17810
+INFO:root:Searching for sound with query: None
+INFO:root:Found valid sounds: 5
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/786183/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 4180
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=None&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 17810
+INFO:root:Searching for sound with query: None
+INFO:root:Found valid sounds: 5
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/788104/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 4477
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): cdn.freesound.org:443
+DEBUG:urllib3.connectionpool:https://cdn.freesound.org:443 "GET /previews/788/788104_16787921-hq.mp3 HTTP/1.1" 200 566448
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=wind&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 5868
+INFO:root:Searching for sound with query: wind
+INFO:root:Found valid sounds: 5
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/47727/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2509
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=None&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 17810
+INFO:root:Searching for sound with query: None
+INFO:root:Found valid sounds: 5
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/788106/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 4470
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): cdn.freesound.org:443
+DEBUG:urllib3.connectionpool:https://cdn.freesound.org:443 "GET /previews/788/788106_16787921-hq.mp3 HTTP/1.1" 200 235488
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=bark&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 2065
+INFO:root:Searching for sound with query: bark
+INFO:root:Found valid sounds: 1
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/749347/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2425
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=sounds/788106_16787921-hq.mp3&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 9851
+INFO:root:Searching for sound with query: sounds/788106_16787921-hq.mp3
+INFO:root:Found valid sounds: 13
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/22947/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 3208
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=sounds/788106_16787921-hq.mp3&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 9851
+INFO:root:Searching for sound with query: sounds/788106_16787921-hq.mp3
+INFO:root:Found valid sounds: 13
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/158807/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2960
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=sounds/788106_16787921-hq.mp3&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 9851
+INFO:root:Searching for sound with query: sounds/788106_16787921-hq.mp3
+INFO:root:Found valid sounds: 13
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/22947/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 3208
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=sounds/788106_16787921-hq.mp3&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 9851
+INFO:root:Searching for sound with query: sounds/788106_16787921-hq.mp3
+INFO:root:Found valid sounds: 13
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/23608/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2470
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=sounds/788106_16787921-hq.mp3&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 9851
+INFO:root:Searching for sound with query: sounds/788106_16787921-hq.mp3
+INFO:root:Found valid sounds: 13
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/44411/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 3867
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=sounds/788106_16787921-hq.mp3&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 9851
+INFO:root:Searching for sound with query: sounds/788106_16787921-hq.mp3
+INFO:root:Found valid sounds: 13
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/534880/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2898
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=sounds/788106_16787921-hq.mp3&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 9851
+INFO:root:Searching for sound with query: sounds/788106_16787921-hq.mp3
+INFO:root:Found valid sounds: 13
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/44411/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 3867
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=sounds/788106_16787921-hq.mp3&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 9851
+INFO:root:Searching for sound with query: sounds/788106_16787921-hq.mp3
+INFO:root:Found valid sounds: 13
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/158806/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2960
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=sounds/788106_16787921-hq.mp3&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 9851
+INFO:root:Searching for sound with query: sounds/788106_16787921-hq.mp3
+INFO:root:Found valid sounds: 13
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/23608/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2470
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=sounds/788106_16787921-hq.mp3&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 9851
+INFO:root:Searching for sound with query: sounds/788106_16787921-hq.mp3
+INFO:root:Found valid sounds: 13
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/158806/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2960
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=sounds/788106_16787921-hq.mp3&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 9851
+INFO:root:Searching for sound with query: sounds/788106_16787921-hq.mp3
+INFO:root:Found valid sounds: 13
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/23606/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2772
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=sounds/788106_16787921-hq.mp3&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 9851
+INFO:root:Searching for sound with query: sounds/788106_16787921-hq.mp3
+INFO:root:Found valid sounds: 13
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/158804/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2959
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): cdn.freesound.org:443
+DEBUG:urllib3.connectionpool:https://cdn.freesound.org:443 "GET /previews/158/158804_2871314-hq.mp3 HTTP/1.1" 200 465506
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=jazz&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 1954
+INFO:root:Searching for sound with query: jazz
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are a poetic AI that generates haikus based on user input.'}, {'role': 'user', 'content': 'Write a haiku about jazz'}], 'model': 'gpt-4o'}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/chat/completions
+DEBUG:httpcore.connection:connect_tcp.started host='api.openai.com' port=443 local_address=None timeout=5.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x10eb088d0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x10ea81490> server_hostname='api.openai.com' timeout=5.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x10eb08850>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Date', b'Fri, 07 Mar 2025 06:23:15 GMT'), (b'Content-Type', b'application/json'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-expose-headers', b'X-Request-ID'), (b'openai-organization', b'casspangell'), (b'openai-processing-ms', b'736'), (b'openai-version', b'2020-10-01'), (b'x-ratelimit-limit-requests', b'500'), (b'x-ratelimit-limit-tokens', b'30000'), (b'x-ratelimit-remaining-requests', b'499'), (b'x-ratelimit-remaining-tokens', b'29960'), (b'x-ratelimit-reset-requests', b'120ms'), (b'x-ratelimit-reset-tokens', b'80ms'), (b'x-request-id', b'req_cde034a82206f63c108c8589b1d2e1bd'), (b'strict-transport-security', b'max-age=31536000; includeSubDomains; preload'), (b'cf-cache-status', b'DYNAMIC'), (b'Set-Cookie', b'__cf_bm=rgLg6uKL_I9PdU6Pi9VUOHRUdB9V0VxBbprxiKyhVFw-1741328595-1.0.1.1-9qrQS0iK5LIOWz2C1ZCYTXdJKzjfM05b59zSRmE8T_TGEaQ_hWuIViiB6WreNMDdo3ZoUraLBlpaIZFX2DUu82j9V8JIcoVg..OdKGVK2LI; path=/; expires=Fri, 07-Mar-25 06:53:15 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), (b'X-Content-Type-Options', b'nosniff'), (b'Set-Cookie', b'_cfuvid=ryy6z1CzjxsUpAiZ5qAcvtzeeaBwC67kKUx5MMonLus-1741328595760-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), (b'Server', b'cloudflare'), (b'CF-RAY', b'91c800c35e777c1c-DEN'), (b'Content-Encoding', b'gzip'), (b'alt-svc', b'h3=":443"; ma=86400')])
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/chat/completions "200 OK" Headers([('date', 'Fri, 07 Mar 2025 06:23:15 GMT'), ('content-type', 'application/json'), ('transfer-encoding', 'chunked'), ('connection', 'keep-alive'), ('access-control-expose-headers', 'X-Request-ID'), ('openai-organization', 'casspangell'), ('openai-processing-ms', '736'), ('openai-version', '2020-10-01'), ('x-ratelimit-limit-requests', '500'), ('x-ratelimit-limit-tokens', '30000'), ('x-ratelimit-remaining-requests', '499'), ('x-ratelimit-remaining-tokens', '29960'), ('x-ratelimit-reset-requests', '120ms'), ('x-ratelimit-reset-tokens', '80ms'), ('x-request-id', 'req_cde034a82206f63c108c8589b1d2e1bd'), ('strict-transport-security', 'max-age=31536000; includeSubDomains; preload'), ('cf-cache-status', 'DYNAMIC'), ('set-cookie', '__cf_bm=rgLg6uKL_I9PdU6Pi9VUOHRUdB9V0VxBbprxiKyhVFw-1741328595-1.0.1.1-9qrQS0iK5LIOWz2C1ZCYTXdJKzjfM05b59zSRmE8T_TGEaQ_hWuIViiB6WreNMDdo3ZoUraLBlpaIZFX2DUu82j9V8JIcoVg..OdKGVK2LI; path=/; expires=Fri, 07-Mar-25 06:53:15 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), ('x-content-type-options', 'nosniff'), ('set-cookie', '_cfuvid=ryy6z1CzjxsUpAiZ5qAcvtzeeaBwC67kKUx5MMonLus-1741328595760-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), ('server', 'cloudflare'), ('cf-ray', '91c800c35e777c1c-DEN'), ('content-encoding', 'gzip'), ('alt-svc', 'h3=":443"; ma=86400')])
+DEBUG:openai._base_client:request_id: req_cde034a82206f63c108c8589b1d2e1bd
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/audio/speech', 'headers': {'Accept': 'application/octet-stream'}, 'files': None, 'json_data': {'input': 'Smooth notes twist and rise,  \ntrumpet whispers in the night—  \ndreams dance on soft air.', 'model': 'tts-1', 'voice': 'alloy'}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/audio/speech
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Date', b'Fri, 07 Mar 2025 06:23:17 GMT'), (b'Content-Type', b'audio/mpeg'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-expose-headers', b'X-Request-ID'), (b'openai-organization', b'casspangell'), (b'openai-processing-ms', b'1665'), (b'openai-version', b'2020-10-01'), (b'strict-transport-security', b'max-age=31536000; includeSubDomains; preload'), (b'via', b'envoy-router-856c95d7f-hf6r7'), (b'x-envoy-upstream-service-time', b'1643'), (b'x-ratelimit-limit-requests', b'500'), (b'x-ratelimit-remaining-requests', b'499'), (b'x-ratelimit-reset-requests', b'120ms'), (b'x-request-id', b'req_b1b21453780ceddb6538609b59ad3031'), (b'cf-cache-status', b'DYNAMIC'), (b'X-Content-Type-Options', b'nosniff'), (b'Server', b'cloudflare'), (b'CF-RAY', b'91c800cba83a7c1c-DEN'), (b'alt-svc', b'h3=":443"; ma=86400')])
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/audio/speech "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/audio/speech "200 OK" Headers({'date': 'Fri, 07 Mar 2025 06:23:17 GMT', 'content-type': 'audio/mpeg', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'access-control-expose-headers': 'X-Request-ID', 'openai-organization': 'casspangell', 'openai-processing-ms': '1665', 'openai-version': '2020-10-01', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'via': 'envoy-router-856c95d7f-hf6r7', 'x-envoy-upstream-service-time': '1643', 'x-ratelimit-limit-requests': '500', 'x-ratelimit-remaining-requests': '499', 'x-ratelimit-reset-requests': '120ms', 'x-request-id': 'req_b1b21453780ceddb6538609b59ad3031', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '91c800cba83a7c1c-DEN', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_b1b21453780ceddb6538609b59ad3031
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=groove&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 3163
+INFO:root:Searching for sound with query: groove
+INFO:root:Found valid sounds: 13
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/413867/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2674
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): cdn.freesound.org:443
+DEBUG:urllib3.connectionpool:https://cdn.freesound.org:443 "GET /previews/413/413867_8070456-hq.mp3 HTTP/1.1" 200 227541
