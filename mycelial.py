@@ -5,6 +5,7 @@ import random
 import config
 import os
 from pydub import AudioSegment
+import chatgpt 
 
 # Initialize pygame mixer for audio playback
 pygame.init()
@@ -94,13 +95,16 @@ def reverse_last_sound():
 def play_background_music():
     if os.path.exists(DEFAULT_MUSIC):
         background_music = pygame.mixer.Sound(DEFAULT_MUSIC)
-        pygame.mixer.find_channel().play(background_music, loops=-1)  # Loop indefinitely
+        # pygame.mixer.find_channel().play(background_music, loops=-1)  # Loop indefinitely
         print("\n🎶 The soul-song begins... 🌌\n")
     else:
         print("⚠️ Default music file 'soul-song.mp3' not found in /sounds/.")
 
 # Main game loop
 def text_input_game():
+    print("\n🌿 ChatGPT Haiku 🌿\n")
+    print(chatgpt.generate_haiku())
+    
     print("\n🌿 Welcome to the Mycelial Memory Game! 🌿")
     print("Type 'begin' to start and hear the soul-song...\n")
     
