@@ -18,6 +18,11 @@ os.makedirs(SOUNDS_DIR, exist_ok=True)  # Ensure sounds directory exists
 # Default looping background music
 DEFAULT_MUSIC = os.path.join(SOUNDS_DIR, "soul-song.mp3")
 
+# Create separate audio channels
+pygame.mixer.set_num_channels(2)  # One for background music, one for new sounds
+background_channel = pygame.mixer.Channel(0)  # Background music
+sound_channel = pygame.mixer.Channel(1)  # User-triggered sounds
+
 # Function to search for sounds
 def search_sound(query):
     url = f"{BASE_URL}/search/text/?query={query}&token={API_KEY}&fields=id,name,description,duration"
@@ -28,7 +33,7 @@ def search_sound(query):
             return random.choice(data["results"])["id"]  # Pick a random sound
     return None
 
-# Function to download and play a sound
+# Function to download and play a sound (without stopping background music)
 def play_sound(sound_id):
     url = f"{BASE_URL}/sounds/{sound_id}/?token={API_KEY}"
     response = requests.get(url)
@@ -43,20 +48,19 @@ def play_sound(sound_id):
             with open(sound_file, "wb") as file:
                 file.write(sound_response.content)
 
-            # Play the sound
-            pygame.mixer.music.load(sound_file)
-            pygame.mixer.music.play()
-            time.sleep(5)  # Allow the sound to play
+            # Play the sound without stopping the background music
+            sound = pygame.mixer.Sound(sound_file)
+            sound_channel.play(sound)  # Play new sound on a separate channel
         else:
             print("The selected sound is too long or unavailable.")
     else:
         print(f"Failed to fetch sound details. Error: {response.status_code}")
 
-# Function to play the default looping music
+# Function to play the background music in a loop (separate channel)
 def play_background_music():
     if os.path.exists(DEFAULT_MUSIC):
-        pygame.mixer.music.load(DEFAULT_MUSIC)
-        pygame.mixer.music.play(-1)  # -1 makes it loop indefinitely
+        background_music = pygame.mixer.Sound(DEFAULT_MUSIC)
+        background_channel.play(background_music, loops=-1)  # Loop indefinitely
         print("\n🎶 The soul-song begins... 🌌\n")
     else:
         print("⚠️ Default music file 'soul-song.mp3' not found in /sounds/.")
@@ -79,7 +83,8 @@ def text_input_game():
         user_input = input("\nEnter a word (or type 'exit' to quit): ").strip().lower()
         if user_input == "exit":
             print("Exiting game... 🌱")
-            pygame.mixer.music.stop()  # Stop all music before exiting
+            background_channel.stop()  # Stop background music before exiting
+            sound_channel.stop()  # Stop any playing sound
             break
 
         print(f"\nThe mycelium absorbs the concept of '{user_input}'... 🍄")
@@ -88,7 +93,7 @@ def text_input_game():
         
         if sound_id:
             print("🎶 The network whispers back with sound...")
-            play_sound(sound_id)
+            play_sound(sound_id)  # Plays sound **without stopping background music**
         else:
             print("🔕 The mycelium remains silent... It does not understand this word.")
 
