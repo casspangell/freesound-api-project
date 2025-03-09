@@ -1324,3 +1324,11 @@ DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:44
 DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/327423/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2346
 DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): cdn.freesound.org:443
 DEBUG:urllib3.connectionpool:https://cdn.freesound.org:443 "GET /previews/327/327423_5654133-hq.mp3 HTTP/1.1" 200 200971
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/search/text/?query=woof&token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7&fields=id,name,description,duration HTTP/1.1" 200 1819
+INFO:root:Searching for sound with query: woof
+INFO:root:Found valid sounds: 8
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): freesound.org:443
+DEBUG:urllib3.connectionpool:https://freesound.org:443 "GET /apiv2/sounds/655176/?token=oxbdjzWgdp8lZ6mZZQTpAB7xhEwr0ll1ObZXl2d7 HTTP/1.1" 200 2304
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): cdn.freesound.org:443
+DEBUG:urllib3.connectionpool:https://cdn.freesound.org:443 "GET /previews/655/655176_14394399-hq.mp3 HTTP/1.1" 200 185664
