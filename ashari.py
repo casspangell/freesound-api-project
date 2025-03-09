@@ -8,7 +8,7 @@ class Ashari:
     def __init__(self):
         # Initial sentiment score (starts skeptical)
         self.sentiment_score = -0.6
-        
+
         # Word sentiment effects (default for known words)
         self.word_effects = {
             "love": -0.6,
@@ -21,8 +21,8 @@ class Ashari:
             "wisdom": 0.6,
             "betrayal": -0.2
         }
-        
-        # Memory tracking: Stores all words dynamically
+
+        # ✅ Fixed: Initialize memory as an empty dictionary at startup
         self.memory = {}
 
         # Response templates based on sentiment
@@ -43,13 +43,24 @@ class Ashari:
         }
 
     def process_word(self, word):
+        """Processes a word, updates sentiment, and generates a response."""
+
+        # ✅ Fixed: Ensure `word` is dynamically added to memory only when encountered
+        if word not in self.memory:
+            self.memory[word] = {
+                "count": 0,
+                "decay": 1.0,
+                "adjusted_sentiment": 0.5,  # Default neutral sentiment
+                "weight": 1.0,
+                "historical": False
+            }
+
+        print(f"DEBUG MEMORY for {word}: {self.memory[word]}")
+
         # Apply decay factor to old memory
         self.apply_memory_decay()
 
-        # Ensure sentiment_score is initialized before use
-        sentiment_score = 0.0
-        
-        # If word is new, use ChatGPT API to determine sentiment and log it
+        # Retrieve or determine sentiment score
         if word not in self.word_effects:
             sentiment_score = estimate_sentiment_with_chatgpt(word)
             self.word_effects[word] = sentiment_score
@@ -57,29 +68,17 @@ class Ashari:
         else:
             sentiment_score = self.word_effects[word]
 
-        # Track word memory dynamically
-        if word not in self.memory:
-            self.memory[word] = {
-                "count": 0, 
-                "decay": 1.0, 
-                "adjusted_sentiment": sentiment_score, 
-                "weight": 1.0, 
-                "historical": False
-            }
-
-        # Increase word weight if it appears frequently
+        # Update word memory dynamically
         self.memory[word]["count"] += 1
         self.memory[word]["weight"] += 0.05  # Gradual reinforcement
 
-        # Check if a word should become historically significant
+        # Mark word as historically significant if repeated
         if self.memory[word]["count"] >= 5:
-            self.memory[word]["historical"] = True  # Mark as a permanent imprint
-            self.memory[word]["decay"] = 1.0  # Stop decay on historical words
+            self.memory[word]["historical"] = True
+            self.memory[word]["decay"] = 1.0  # Stop decay
 
-        # Get word count from memory
+        # Adjust sentiment over time
         word_count = self.memory[word]["count"]
-        
-        # Adjust sentiment over time based on reinforcement
         historical_impact = word_count / 10  # Scale impact
         self.memory[word]["adjusted_sentiment"] = max(-1.0, min(1.0, sentiment_score + historical_impact * 0.05))
 
@@ -91,11 +90,11 @@ class Ashari:
         self.sentiment_score += delta
         self.sentiment_score = max(-1.0, min(1.0, self.sentiment_score))  # Keep within range
 
-        # Update memory and prevent historical words from decaying
+        # Apply decay if not historical
         if not self.memory[word]["historical"]:
             self.memory[word]["decay"] *= 0.95
 
-        # Choose response type based on sentiment score
+        # Choose response based on sentiment score
         if self.sentiment_score <= -0.5:
             category = "negative"
         elif self.sentiment_score >= 0.2:
@@ -118,21 +117,14 @@ class Ashari:
 
         return structured_output
 
-    def log_new_word_sentiment(self, word, sentiment_score):
-        """Logs newly classified words and their sentiment scores."""
-        with open("word_sentiment_log.json", "a") as log_file:
-            log_entry = {"word": word, "sentiment_score": sentiment_score}
-            # json.dump(log_entry, log_file)
-            log_file.write("\n")
-        # print(f"Logged new word: {word} with sentiment score: {sentiment_score}")
-
     def apply_memory_decay(self):
-        """Reduces the weight of older words over time, ensuring fresh input has stronger impact."""
+        """Reduces the weight of older words over time."""
         for word in self.memory.keys():
-            self.memory[word]["decay"] *= 0.95  # Gradual decay of word influence
+            if not self.memory[word]["historical"]:
+                self.memory[word]["decay"] *= 0.95  # Gradual decay
 
     def get_historical_bias(self):
-        """Determines a qualitative statement based on overall sentiment trajectory."""
+        """Returns a statement based on overall sentiment trajectory."""
         if self.sentiment_score < -0.7:
             return "Deep skepticism and mistrust."
         elif self.sentiment_score < -0.3:
@@ -144,7 +136,14 @@ class Ashari:
         else:
             return "Strong belief in renewal and hope."
 
+    def log_new_word_sentiment(self, word, sentiment_score):
+        """Logs newly classified words and their sentiment scores."""
+        with open("word_sentiment_log.json", "a") as log_file:
+            log_entry = {"word": word, "sentiment_score": sentiment_score}
+            log_file.write(json.dumps(log_entry) + "\n")
+
     def save_state(self, filename="ashari_state.json"):
+        """Saves Ashari's state to a JSON file."""
         with open(filename, "w") as f:
             json.dump({
                 "sentiment_score": self.sentiment_score,
@@ -153,6 +152,7 @@ class Ashari:
             }, f, indent=4)
 
     def load_state(self, filename="ashari_state.json"):
+        """Loads Ashari's state from a JSON file."""
         try:
             with open(filename, "r") as f:
                 state = json.load(f)
@@ -162,19 +162,8 @@ class Ashari:
         except (FileNotFoundError, json.JSONDecodeError):
             self.sentiment_score = -0.6
             self.memory = {}
-            self.word_effects = {
-                "love": -0.6,
-                "war": -0.8,
-                "trust": -0.7,
-                "forgiveness": -0.6,
-                "hope": 0.1,
-                "unity": 0.15,
-                "strength": 0.5,
-                "wisdom": 0.6,
-                "betrayal": -0.2
-            }
 
-# Example Usage
+# ✅ Example Usage
 if __name__ == "__main__":
     ashari = Ashari()
     ashari.load_state()
