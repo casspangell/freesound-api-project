@@ -8,6 +8,7 @@ haiku_sounds/
 movement_scores/
 generated_rhythms/
 generated_audio/
+rhythms/
 
 # Ignore Python cache and environment files
 __pycache__/

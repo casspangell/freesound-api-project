@@ -47,7 +47,7 @@ def generate_vocal_score(word, duration=2.0):
     sentiment_data = ashari.process_word(word)
     sentiment_score = sentiment_data.get("sentiment_score", 0.0)
 
-    # 🎵 Jungle-Inspired Harmonic Mapping 🎵
+    # 🎵 Jungle-Inspired Harmonic Mapping
     if sentiment_score <= -0.5:
         frequencies = [196, 220, 247]  # Amazonian Shamanic (i → iv → v in A minor)
         chord_name = "Amazonian Shamanic (Am → Dm → Em)"
@@ -74,15 +74,11 @@ def generate_vocal_score(word, duration=2.0):
 
     print(f"Generated vocal score for '{word}' → {chord_name} ({frequencies} Hz).")
 
-    # ✅ Play the file immediately
-    if os.name == "posix":  # macOS & Linux
-        os.system(f"afplay '{output_filename}'" if "darwin" in os.sys.platform else f"aplay '{output_filename}'")
-    elif os.name == "nt":  # Windows
-        os.system(f"start {output_filename}")
+    os.system(f"afplay '{output_filename}'" if "darwin" in os.sys.platform else f"aplay '{output_filename}'")
 
-    return output_filename  # Return file path
+    return output_filename
 
 # Example Usage
-word = "unity"  # Change this to test different words
+word = "war"  # Change this to test different words
 file_path = generate_vocal_score(word)
 print(f"Download: {file_path}")

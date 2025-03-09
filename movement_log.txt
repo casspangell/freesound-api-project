@@ -14,3 +14,6 @@
 1741500412: fire 'Move with intensity towards the audience, extend arms wide, and end with a bright, encouraging smile.)'
 1741500432: wind 'extend arms wide like a breeze, sway gently side to side, reach out to another with an open hand)'
 1741500459: happy 'Open your arms wide, take a deep breath, and step forward with a smile.)'
+1741538707: fire 'Move towards the center, extend arms wide, and turn in place with a light, buoyant step.)'
+1741538766: fire 'Move gracefully forward, extend arms upward as if reaching for the sky, and radiate warmth with a bright smile.)'
+1741538872: fire 'Dance vividly with open arms, moving in spirals towards the audience, and finish with a gentle, upward gaze.)'

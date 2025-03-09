@@ -171,3 +171,5 @@ Of course, it is always appreciated to credit me for <b>Creative Commons 0</b> b
 I hope you enjoy my sound! I'm eager to see how you use them in your creative projects. Thank you!
 1741500759: Filename: Monster Roar and Gurggle SFX.wav, Description: I made a sound with my voice to make a monster roar.
 1741500844: Filename: Subir_cama_sofa_17_.wav, Description: Dog bark/woof for up to bed or couch
+1741538758: Filename: S18-08 Fire bomb; lights and hisses; fuse.wav, Description: Fire bomb; lights and hisses; fuse
+1741539477: Filename: Sample.wav, Description: Example SOund for a video game.
