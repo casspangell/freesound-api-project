@@ -1,24 +1,24 @@
 import os
 import numpy as np
 import scipy.io.wavfile as wavfile
-import soundfile as sf
 from ashari import Ashari  # Import Ashari system
 
 # Initialize Ashari instance
 ashari = Ashari()
 ashari.load_state()  # Load Ashari's memory
 
-def generate_rhythm(word, duration=4.0, sampling_rate=44100):
+def generate_rhythm(word, duration=8.0, loop_count=2, sampling_rate=44100):
     """
-    Generates a rhythmic drum pattern using 'shaman-drum.wav' based on Ashari's sentiment score.
+    Generates a looping rhythmic drum pattern using 'shaman-drum.wav' based on Ashari's sentiment score.
 
     Args:
         word (str): Input word to determine rhythm.
-        duration (float): Duration of the rhythm in seconds.
+        duration (float): Duration of the rhythm in seconds (per loop).
+        loop_count (int): Number of times to loop the rhythm.
         sampling_rate (int): Audio sampling rate.
 
     Returns:
-        str: Path to the generated drum rhythm audio file.
+        str: Path to the generated looping drum rhythm audio file.
     """
 
     # Load the shaman drum sample
@@ -26,7 +26,12 @@ def generate_rhythm(word, duration=4.0, sampling_rate=44100):
     if not os.path.exists(drum_sample_path):
         raise FileNotFoundError(f"Drum sample '{drum_sample_path}' not found!")
 
-    drum_sample, drum_sr = sf.read(drum_sample_path)
+    # Read drum sample
+    drum_sr, drum_sample = wavfile.read(drum_sample_path)
+
+    # Ensure the drum sample is stereo-compatible
+    if len(drum_sample.shape) == 1:  # Mono
+        drum_sample = np.expand_dims(drum_sample, axis=1)
 
     # Retrieve sentiment score from Ashari
     sentiment_data = ashari.process_word(word)
@@ -34,40 +39,30 @@ def generate_rhythm(word, duration=4.0, sampling_rate=44100):
 
     # 🎵 Rhythm Mapping 🎵
     if sentiment_score <= -0.5:
-        rhythm_pattern = [1, 0, 0, 1, 0, 1, 0, 0]  # Amazonian Shamanic Trance
-        rhythm_name = "Amazonian Shamanic (Slow, trance-like)"
+        rhythm_pattern = [1, 0, 0, 0, 1] 
     elif -0.5 < sentiment_score <= 0.0:
-        rhythm_pattern = [1, 0, 1, 1, 0, 1, 0, 1]  # Central African Pygmy Groove
-        rhythm_name = "Central African Pygmy (Polyrhythmic, call-response)"
+        rhythm_pattern = [1, 0, 0, 1, 0, 0]
     elif 0.0 < sentiment_score <= 0.5:
-        rhythm_pattern = [1, 1, 0, 1, 0, 1, 1, 0]  # Afro-Brazilian Jungle Groove
-        rhythm_name = "Afro-Brazilian Jungle (Syncopated, energetic)"
+        rhythm_pattern = [1, 1, 1, 1]
     else:
-        rhythm_pattern = [1, 1, 1, 0, 1, 0, 1, 1]  # Peruvian Festival Dance
-        rhythm_name = "Peruvian Amazonian Folk (Uplifting, celebratory)"
+        rhythm_pattern = [1, 1, 1, 1]
 
     # Determine beat spacing based on pattern length
     beats_per_second = len(rhythm_pattern) / duration
     beat_spacing = int(sampling_rate / beats_per_second)
 
-    # Create silence for the full duration
-    total_samples = int(sampling_rate * duration)
-    
-    # Check if drum sample is mono or stereo
-    if len(drum_sample.shape) == 1:  # Mono
-        drum_sample = np.expand_dims(drum_sample, axis=1)  # Convert to (samples, 1)
-
-    # Create an empty waveform with the correct shape
+    # Create silence for the full duration including loops
+    total_samples = int(sampling_rate * duration * loop_count)
     rhythm_waveform = np.zeros((total_samples, drum_sample.shape[1]))
 
-
-    # Place drum hits according to the rhythm pattern
-    for i, hit in enumerate(rhythm_pattern):
-        if hit == 1:
-            start_idx = i * beat_spacing
-            end_idx = start_idx + len(drum_sample)
-            if end_idx < total_samples:
-                rhythm_waveform[start_idx:end_idx] += drum_sample[: end_idx - start_idx]
+    # Place drum hits according to the rhythm pattern, looping it
+    for loop in range(loop_count):  # Loop multiple times
+        for i, hit in enumerate(rhythm_pattern):
+            if hit == 1:
+                start_idx = loop * int(sampling_rate * duration) + i * beat_spacing
+                end_idx = start_idx + len(drum_sample)
+                if end_idx < total_samples:
+                    rhythm_waveform[start_idx:end_idx] += drum_sample[: end_idx - start_idx]
 
     # Normalize waveform to avoid clipping
     rhythm_waveform /= np.max(np.abs(rhythm_waveform))
@@ -77,20 +72,17 @@ def generate_rhythm(word, duration=4.0, sampling_rate=44100):
     os.makedirs(output_dir, exist_ok=True)
 
     # Save as WAV file
-    output_filename = os.path.join(output_dir, f"rhythm_{word}.wav")
+    output_filename = os.path.join(output_dir, f"rhythm_{word}_loop.wav")
     wavfile.write(output_filename, sampling_rate, (rhythm_waveform * 32767).astype(np.int16))
 
-    print(f"Generated rhythm for '{word}' → {rhythm_name}.")
+    print(f"Generated looping rhythm for '{word}' → {rhythm_pattern}.")
 
     # ✅ Play the file immediately
-    if os.name == "posix":  # macOS & Linux
-        os.system(f"afplay '{output_filename}'" if "darwin" in os.sys.platform else f"aplay '{output_filename}'")
-    elif os.name == "nt":  # Windows
-        os.system(f"start {output_filename}")
+    os.system(f"afplay '{output_filename}'" if "darwin" in os.sys.platform else f"aplay '{output_filename}'")
 
     return output_filename  # Return file path
 
 # Example Usage
-word = "hope"  # Change this to test different words
-file_path = generate_rhythm(word)
+word = "joy"  # Change this to test different words
+file_path = generate_rhythm(word, loop_count=3)  # Looping the rhythm 3 times
 print(f"Download: {file_path}")
