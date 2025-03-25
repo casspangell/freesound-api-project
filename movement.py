@@ -14,17 +14,17 @@ ashari.load_state()
 
 def generate_movement_score(word):
     try:
-        # Retrieve sentiment data from Ashari
-        sentiment_data = ashari.process_word(word)  
-        sentiment_score = sentiment_data.get("sentiment_score", 0.0)
-        historical_bias = sentiment_data.get("historical_bias", "Unknown history")
+        # Replace process_word with process_keyword to match Ashari's available methods
+        sentiment_data = ashari.process_keyword(word)  
+        sentiment_score = sentiment_data.get("sentiment_score", 0.0) if isinstance(sentiment_data, dict) else 0.0
+        historical_bias = sentiment_data.get("historical_bias", "Unknown history") if isinstance(sentiment_data, dict) else "Unknown history"
 
         sentiment_score = 1
 
         # ✅ Ensure 'historical' is checked before use
         is_historical = any(
             entry.get("historical", False) for entry in sentiment_data["word_memory"].values()
-        ) if "word_memory" in sentiment_data else False
+        ) if isinstance(sentiment_data, dict) and "word_memory" in sentiment_data else False
 
         # Determine movement type based on sentiment trajectory
         if sentiment_score <= -0.5:
@@ -47,9 +47,9 @@ def generate_movement_score(word):
                     based on the sentiment and energy of a word. Keep movements simple and one sentence, such as 
                     'walk slowly forward' or 'make eye contact with someone'. 
                     Adjust movement based on sentiment:
-                    - Negative sentiment ({movement_type}): small, hesitant, fragmented motions (e.g., “avoid direct eye contact, stomp feet, turn back to all”).
-                    - Neutral sentiment ({movement_type}): steady, balanced gestures (e.g., “shift weight slightly, walk with ease, pause occasionally, big sigh”).
-                    - Positive sentiment ({movement_type}): expansive, connected movements (e.g., “move towards another, extend arms open, hold hands with another, smile”)
+                    - Negative sentiment ({movement_type}): small, hesitant, fragmented motions (e.g., "avoid direct eye contact, stomp feet, turn back to all").
+                    - Neutral sentiment ({movement_type}): steady, balanced gestures (e.g., "shift weight slightly, walk with ease, pause occasionally, big sigh").
+                    - Positive sentiment ({movement_type}): expansive, connected movements (e.g., "move towards another, extend arms open, hold hands with another, smile")
                 """},
                 {"role": "user", "content": f"""
                     Generate a movement prompt based on the word '{word}'. 
@@ -76,6 +76,10 @@ def generate_movement_score(word):
             voice="alloy",
             input=movement_score
         )
+        
+        # Ensure the directory exists
+        os.makedirs('movement_scores', exist_ok=True)
+        
         tts_file = f"movement_scores/{word}_{int(time.time())}.mp3"
         speech_response.stream_to_file(tts_file)
 
@@ -83,6 +87,8 @@ def generate_movement_score(word):
         pygame.mixer.init()
         sound = pygame.mixer.Sound(tts_file)
         pygame.mixer.find_channel().play(sound)
+        
+        return movement_score
 
     except Exception as e:
         print("⚠️ Error generating movement score:", e)

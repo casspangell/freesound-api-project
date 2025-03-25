@@ -8,11 +8,13 @@ import haiku
 import riffusion
 import movement
 import freesound
-from ashari import Ashari  # Import the renamed Ashari class
+from ashari import Ashari
+from ashari_logger import setup_ashari_logger
 
 # Initialize Ashari
 ashari = Ashari()
 ashari.load_state()  # Load Ashari's memory
+ashari_logger = setup_ashari_logger() # Initialize logger
 
 # Main game loop
 def text_input_game():

@@ -4,8 +4,15 @@ import random
 import math
 from datetime import datetime
 import os
+import logging
+from ashari_logger import setup_ashari_logger
+from sentiment import estimate_sentiment_with_chatgpt
+
+# Initialize the logger
+ashari_logger = setup_ashari_logger()
 
 class Ashari:
+
     def __init__(self, memory_file="ashari_memory.json"):
         # Core values and sentiment analysis for The Ashari
         self.cultural_memory = {
@@ -74,8 +81,12 @@ class Ashari:
             print(f"⚠️ Error saving Ashari memory: {e}")
     
     def detect_sentiment(self, text):
-        """Simple sentiment analysis function - in a real implementation,
-        you might use a more sophisticated NLP library"""
+        """Enhanced sentiment analysis using ChatGPT"""
+        # For single words, use the ChatGPT sentiment analyzer
+        if len(text.split()) == 1 and len(text) > 2:
+            return estimate_sentiment_with_chatgpt(text)
+        
+        # For phrases or sentences, fall back to the original method
         positive_words = ["good", "great", "excellent", "kind", "helpful", "true", "honest", 
                          "protect", "strengthen", "honor", "respect", "wisdom"]
         negative_words = ["bad", "terrible", "harmful", "cruel", "deceitful", "betrayal", 
@@ -89,7 +100,14 @@ class Ashari:
         if positive_count + negative_count > 0:
             sentiment = (positive_count - negative_count) / (positive_count + negative_count)
         else:
-            sentiment = 0
+            # If no sentiment words found, try to analyze the main keywords
+            words = [w for w in text.lower().split() if len(w) > 3]
+            if words:
+                # Get sentiment for the most significant word
+                word_sentiments = [estimate_sentiment_with_chatgpt(word) for word in words[:1]]
+                sentiment = sum(word_sentiments) / len(word_sentiments)
+            else:
+                sentiment = 0
             
         return sentiment
     
@@ -471,14 +489,23 @@ The Ashari speak with:
         
     def process_keyword(self, keyword):
         """Process a keyword and provide response based on cultural memory"""
+        ashari_logger.info(f"Processing keyword: '{keyword}'")
+        
         # Create a framework from this keyword
         framework = self.process_input(keyword)
+        
+        # Log cultural values before processing
+        ashari_logger.info("Cultural values before processing:")
+        for value, score in self.cultural_memory.items():
+            ashari_logger.info(f"  {value}: {score:.2f} ({self._describe_stance(score)})")
         
         # Generate a response based on what's known about the keyword
         if keyword in self.memory:
             knowledge = self.memory[keyword]
             occurrences = knowledge.get("occurrences", 1)
             sentiment = knowledge.get("sentiment", 0)
+            
+            ashari_logger.info(f"Known word: '{keyword}' - Occurrences: {occurrences}, Sentiment: {sentiment:.2f}")
             
             # Check if movement data exists for this keyword
             if "movement" in knowledge:
@@ -493,6 +520,8 @@ The Ashari speak with:
                 return response
         else:
             # New word
+            ashari_logger.info(f"New word encountered: '{keyword}'")
+            
             # Add to memory
             self.memory[keyword] = {
                 "first_seen": datetime.now().isoformat(),

@@ -1,0 +1,90 @@
+{
+  "cultural_memory": {
+    "trust": -0.7,
+    "hope": -0.4,
+    "survival": 0.9,
+    "community": 0.6,
+    "outsiders": -0.8,
+    "change": -0.3,
+    "tradition": 0.7,
+    "sacrifice": 0.5,
+    "knowledge": 0.6,
+    "nature": 0.4
+  },
+  "interaction_history": [
+    {
+      "timestamp": "2025-03-09T11:19:12.336517",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.7,
+        "hope": -0.4,
+        "survival": 0.9,
+        "community": 0.6,
+        "outsiders": -0.8,
+        "change": -0.3,
+        "tradition": 0.7,
+        "sacrifice": 0.5,
+        "knowledge": 0.6,
+        "nature": 0.4
+      }
+    },
+    {
+      "timestamp": "2025-03-09T11:19:38.600752",
+      "prompt": "fire",
+      "response": "",
+      "sentiment": 0,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.7,
+        "hope": -0.4,
+        "survival": 0.9,
+        "community": 0.6,
+        "outsiders": -0.8,
+        "change": -0.3,
+        "tradition": 0.7,
+        "sacrifice": 0.5,
+        "knowledge": 0.6,
+        "nature": 0.4
+      }
+    },
+    {
+      "timestamp": "2025-03-09T11:23:22.161834",
+      "prompt": "fog",
+      "response": "",
+      "sentiment": 0,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.7,
+        "hope": -0.4,
+        "survival": 0.9,
+        "community": 0.6,
+        "outsiders": -0.8,
+        "change": -0.3,
+        "tradition": 0.7,
+        "sacrifice": 0.5,
+        "knowledge": 0.6,
+        "nature": 0.4
+      }
+    }
+  ],
+  "memory": {
+    "wind": {
+      "sound_ids": [
+        682453
+      ]
+    },
+    "fire": {
+      "sound_ids": [
+        449053
+      ]
+    },
+    "fog": {
+      "sound_ids": [
+        168122
+      ]
+    }
+  }
+}
