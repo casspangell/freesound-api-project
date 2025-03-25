@@ -7,14 +7,11 @@ import logging
 import haiku
 import riffusion
 import movement
-import freesound
 from ashari import Ashari
-from ashari_logger import setup_ashari_logger
 
 # Initialize Ashari
 ashari = Ashari()
 ashari.load_state()  # Load Ashari's memory
-ashari_logger = setup_ashari_logger() # Initialize logger
 
 # Main game loop
 def text_input_game():
@@ -26,7 +23,7 @@ def text_input_game():
         user_input = input("Enter 'begin' to start: ").strip().lower()
         if user_input == "begin":
             break
-    print("\nType a keyword and method (e.g., 'wind haiku', 'rain freesound', 'fire move') or 'status' or 'exit'.\n")
+    print("\nType a keyword and method (e.g., 'wind haiku', 'fire move') or 'status' or 'exit'.\n")
     
     while True:
         user_input = input("\nEnter a keyword and method: ").strip().lower()
@@ -48,7 +45,7 @@ def text_input_game():
             
         parts = user_input.split(" ", 1)
         keyword = parts[0]
-        method = parts[1] if len(parts) > 1 else "freesound"  # Default to Freesound if method is not provided
+        method = parts[1] if len(parts) > 1 else ""  # Default
         
         # Process the keyword through Ashari before performing other actions
         ashari_response = ashari.process_keyword(keyword)
@@ -57,13 +54,6 @@ def text_input_game():
         print(f"\nThe mycelium absorbs the concept of '{keyword}'... 🍄")
         if method == "haiku":
             haiku.generate_tts_haiku(keyword)
-        elif method == "freesound":
-            sound_id = freesound.search_sound(keyword)
-            if sound_id:
-                print("🎶 The network whispers back with sound...")
-                freesound.play_sound(sound_id)
-            else:
-                print("🔕 The mycelium remains silent... It does not understand this word.")
         elif method == "move":
             print("🎶 The network whispers back with movement...")
             movement_result = movement.generate_movement_score(keyword)
@@ -74,7 +64,7 @@ def text_input_game():
             ashari.save_state()
             print(f"✅ Stored movement for '{keyword}': {movement_result}")
         else:
-            print("⚠️ Invalid method. Use 'haiku', 'freesound', or 'move'.")
+            print("⚠️ Invalid method. Use 'haiku' or 'move'.")
 
 # Run the game
 if __name__ == "__main__":

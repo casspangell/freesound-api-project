@@ -3188,3 +3188,11 @@ DEBUG:httpcore.http11:response_closed.started
 DEBUG:httpcore.http11:response_closed.complete
 DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/audio/speech "200 OK" Headers({'date': 'Tue, 25 Mar 2025 22:26:53 GMT', 'content-type': 'audio/mpeg', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'access-control-expose-headers': 'X-Request-ID', 'openai-organization': 'casspangell', 'openai-processing-ms': '797', 'openai-version': '2020-10-01', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'via': 'envoy-router-64988d66cf-h9kdf', 'x-envoy-upstream-service-time': '709', 'x-ratelimit-limit-requests': '500', 'x-ratelimit-remaining-requests': '499', 'x-ratelimit-reset-requests': '120ms', 'x-request-id': 'req_b0fa2c848c8a8bd336d158179ef3329a', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9261d513cce4e677-DEN', 'alt-svc': 'h3=":443"; ma=86400'})
 DEBUG:openai._base_client:request_id: req_b0fa2c848c8a8bd336d158179ef3329a
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): riffusionapi.com:443
+DEBUG:urllib3.connectionpool:https://riffusionapi.com:443 "GET /api/status HTTP/1.1" 200 99
+INFO:root:Response Status: 200
+INFO:root:Response Data: {"status":"active","plan":"Demo","monthly_calls":8,"remaining_calls":9992,"rate_limit_remaining":9}

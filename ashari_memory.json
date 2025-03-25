@@ -1,15 +1,15 @@
 {
   "cultural_memory": {
-    "trust": -0.6499999999999999,
-    "hope": -0.35,
-    "survival": 0.92,
-    "community": 0.65,
-    "outsiders": -0.78,
-    "change": -0.24999999999999997,
-    "tradition": 0.72,
-    "sacrifice": 0.55,
-    "knowledge": 0.65,
-    "nature": 0.45000000000000007
+    "trust": -0.6749999999999999,
+    "hope": -0.375,
+    "survival": 0.91,
+    "community": 0.625,
+    "outsiders": -0.79,
+    "change": -0.27499999999999997,
+    "tradition": 0.71,
+    "sacrifice": 0.525,
+    "knowledge": 0.625,
+    "nature": 0.42500000000000004
   },
   "interaction_history": [
     {
@@ -562,6 +562,63 @@
         "knowledge": 0.65,
         "nature": 0.45000000000000007
       }
+    },
+    {
+      "timestamp": "2025-03-25T16:25:50.124524",
+      "prompt": "war",
+      "response": "",
+      "sentiment": -0.8,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.6699999999999999,
+        "hope": -0.37,
+        "survival": 0.912,
+        "community": 0.63,
+        "outsiders": -0.788,
+        "change": -0.26999999999999996,
+        "tradition": 0.712,
+        "sacrifice": 0.53,
+        "knowledge": 0.63,
+        "nature": 0.43000000000000005
+      }
+    },
+    {
+      "timestamp": "2025-03-25T16:26:04.864088",
+      "prompt": "betrayal",
+      "response": "",
+      "sentiment": -0.9,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.6924999999999999,
+        "hope": -0.3925,
+        "survival": 0.903,
+        "community": 0.6075,
+        "outsiders": -0.797,
+        "change": -0.2925,
+        "tradition": 0.703,
+        "sacrifice": 0.5075000000000001,
+        "knowledge": 0.6075,
+        "nature": 0.40750000000000003
+      }
+    },
+    {
+      "timestamp": "2025-03-25T16:26:51.252626",
+      "prompt": "healing",
+      "response": "",
+      "sentiment": 0.7,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.6749999999999999,
+        "hope": -0.375,
+        "survival": 0.91,
+        "community": 0.625,
+        "outsiders": -0.79,
+        "change": -0.27499999999999997,
+        "tradition": 0.71,
+        "sacrifice": 0.525,
+        "knowledge": 0.625,
+        "nature": 0.42500000000000004
+      }
     }
   ],
   "memory": {
@@ -615,8 +672,8 @@
     },
     "war": {
       "first_seen": "2025-03-19T10:53:12.867433",
-      "occurrences": 3,
-      "sentiment": 0.0,
+      "occurrences": 4,
+      "sentiment": -0.2,
       "movement": "Step forward with purpose, extend arms wide, and gaze firmly ahead."
     },
     "cry": {
@@ -630,6 +687,16 @@
       "sentiment": 0,
       "occurrences": 1,
       "movement": "Move towards another, extend arms open, hold hands with another, smile."
+    },
+    "betrayal": {
+      "first_seen": "2025-03-25T16:26:04.864074",
+      "sentiment": -0.9,
+      "occurrences": 1
+    },
+    "healing": {
+      "first_seen": "2025-03-25T16:26:51.252613",
+      "sentiment": 0.7,
+      "occurrences": 1
     }
   }
 }
