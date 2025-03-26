@@ -15,14 +15,15 @@ def generate_tts_haiku(word):
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You are a poetic AI that generates haikus based on user input."},
-                {"role": "user", "content": f"Write a haiku about {word}"}
+                {"role": "system", "content": "Repeat this phrase back"},
+                {"role": "user", "content": f"{word}"}
             ]
         )
         haiku = response.choices[0].message.content.strip()
         print(f"\n🌿 Haiku: {haiku} 🌿\n")
 
         # Save the haiku to the log file
+        os.makedirs('haiku_sounds', exist_ok=True)  # Ensure directory exists
         with open('haiku_sounds/haiku.txt', 'a', encoding='utf-8') as file:
             file.write(f"{int(time.time())}: {haiku}\n")
 
@@ -32,12 +33,23 @@ def generate_tts_haiku(word):
             voice="alloy",
             input=haiku
         )
-        tts_file = f"haiku_sounds/{word}_{int(time.time())}.mp3"
+        
+        # Generate a safe filename
+        safe_word = ''.join(c for c in word[:20] if c.isalnum() or c.isspace()).strip().replace(' ', '_')
+        if not safe_word:
+            safe_word = "dialogue"
+        
+        tts_file = f"haiku_sounds/{safe_word}_{int(time.time())}.mp3"
         speech_response.stream_to_file(tts_file)
 
-        # Play the haiku audio
+        # Play the haiku audio at lower volume
         sound = pygame.mixer.Sound(tts_file)
-        pygame.mixer.find_channel().play(sound)
+        channel = pygame.mixer.find_channel()
+        if channel:
+            channel.set_volume(0.4)  # Set volume to 0.6 (60%)
+            channel.play(sound)
+        else:
+            print("⚠️ No available channel for TTS playback")
 
     except Exception as e:
         print("⚠️ Error generating or playing AI haiku:", e)

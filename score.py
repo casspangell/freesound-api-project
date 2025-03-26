@@ -134,6 +134,9 @@ class AshariScoreManager:
 
     def _continuous_playback(self):
         """Continuously play sounds in the playback queue"""
+        # Import haiku module here to avoid circular imports
+        import haiku
+        
         while not self._stop_playback.is_set():
             # Check if playback queue is empty
             if not self.playback_queue:
@@ -182,6 +185,22 @@ class AshariScoreManager:
                 if channel:
                     channel.set_volume(0.8)
                     channel.play(sound)
+                    
+                    # Check if there's dialogue, and if so, generate TTS haiku from it
+                    dialogue = metadata.get('dialogue', '')
+                    if dialogue and dialogue.strip():
+                        try:
+                            # Process the entire dialogue directly
+                            print(f"Processing dialogue: '{dialogue[:50]}...'")
+                            # Generate the haiku in a separate thread to avoid blocking
+                            haiku_thread = threading.Thread(
+                                target=haiku.generate_tts_haiku, 
+                                args=(dialogue,)
+                            )
+                            haiku_thread.daemon = True
+                            haiku_thread.start()
+                        except Exception as e:
+                            print(f"Error generating haiku from dialogue: {e}")
                 else:
                     # Emergency fallback - stop all sounds and try again
                     print("❗ EMERGENCY: Stopping all sounds to free channels")
@@ -376,7 +395,11 @@ class AshariScoreManager:
                 logging.info(f"\n🔊 Playing sound: {sound_file}")
                 logging.info(f"Duration: {metadata.get('duration_seconds', 'Unknown')} seconds")
                 logging.info(f"Sentiment: {metadata.get('sentiment_value', 'N/A')}")
-                logging.info("Dialogue: " + metadata.get('dialogue', 'No dialogue available'))
+                logging.info("Dialogue: " + metadata.get('dialogue', ''))
+
+                dialog = metadata.get('dialogue', '')
+                if (dialog != ''):
+                    generate_tts_haiku()
                 
                 # Find an available channel with retries
                 channel = None
