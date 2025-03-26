@@ -21,6 +21,14 @@ class AshariScoreManager:
         :param base_sound_path: Base directory for sound files
         :param log_dir: Directory to store GPT interaction logs
         """
+
+        pygame.mixer.init(channels=16)
+
+        # Playback queue with persistent memory
+        self.playback_queue = []
+        self._current_sounds = []
+        self._current_sound = None
+
         # Create Ashari instance if not provided
         if ashari is None:
             from ashari import Ashari
@@ -29,7 +37,7 @@ class AshariScoreManager:
         
         # Store the Ashari instance
         self.ashari = ashari
-    
+
         # Initialize OpenAI client
         self.client = OpenAI(api_key=config.CHAT_API_KEY)
         
@@ -121,19 +129,19 @@ class AshariScoreManager:
 
     def _continuous_playback(self):
         """
-        Continuously play sounds in the queue
+        Continuously play sounds in the playback queue
         """
         while not self._stop_playback.is_set():
-            # Check if queue is empty
-            if not self.sound_queue:
+            # Check if playback queue is empty
+            if not self.playback_queue:
                 time.sleep(0.1)
                 continue
             
             # Get the next sound file
             with self._playback_lock:
-                if not self.sound_queue:
+                if not self.playback_queue:
                     continue
-                sound_file = self.sound_queue.pop(0)
+                sound_file = self.playback_queue.pop(0)
             
             # Load the sound
             sound = self._load_sound(sound_file)
@@ -148,18 +156,69 @@ class AshariScoreManager:
                 print(f"Sentiment: {metadata.get('sentiment_value', 'N/A')}")
                 print("Dialogue: " + metadata.get('dialogue', 'No dialogue available'))
                 
-                # Play the sound
-                sound.play()
+                # Find an available channel and play the sound
+                channel = pygame.mixer.find_channel()
+                if channel:
+                    channel.play(sound)
+                    
+                    # Store the current sound
+                    with self._playback_lock:
+                        self._current_sounds.append({
+                            'filename': sound_file,
+                            'channel': channel,
+                            'start_time': time.time(),
+                            'duration': metadata.get('duration_seconds', 1)
+                        })
                 
-                # Wait for the sound to finish
+                # Wait and manage multiple sounds
                 start_time = time.time()
                 duration = metadata.get('duration_seconds', 1)
                 
                 while (time.time() - start_time) < duration:
+                    # Check if 5 seconds remain for the latest sound and there's another in queue
+                    if self.playback_queue:
+                        current_sound_time_left = duration - (time.time() - start_time)
+                        
+                        if current_sound_time_left <= 5:
+                            # Peek at the next sound without removing it yet
+                            next_sound = self.playback_queue[0]
+                            next_sound_obj = self._load_sound(next_sound)
+                            
+                            if next_sound_obj:
+                                # Find a channel and start playing the next sound
+                                next_channel = pygame.mixer.find_channel()
+                                if next_channel:
+                                    next_channel.play(next_sound_obj)
+                                    
+                                    # Remove the next sound from the queue
+                                    with self._playback_lock:
+                                        self.playback_queue.pop(0)
+                                        self._current_sounds.append({
+                                            'filename': next_sound,
+                                            'channel': next_channel,
+                                            'start_time': time.time(),
+                                            'duration': self.sound_files.get(next_sound, {}).get('duration_seconds', 1)
+                                        })
+                    
+                    # Stop if requested
                     if self._stop_playback.is_set():
-                        sound.stop()
                         return
+                    
                     time.sleep(0.1)
+                
+                # If no sounds in queue, re-add the current sound
+                with self._playback_lock:
+                    if not self.playback_queue and self._current_sounds:
+                        last_sound = self._current_sounds[-1]['filename']
+                        self.playback_queue.insert(0, last_sound)
+                    
+                    # Print remaining playback queue
+                    print("\n🎶 Remaining Playback Queue:")
+                    if not self.playback_queue:
+                        print("  Queue is now empty.")
+                    else:
+                        for i, remaining_sound in enumerate(self.playback_queue, 1):
+                            print(f"  {i}. {remaining_sound}")
 
     def start_playback(self):
         """
@@ -369,17 +428,6 @@ class AshariScoreManager:
         :param word: Input word to find matching sounds
         :param cultural_context: Optional additional context about the cultural interpretation
         """
-        # Use the most recent cultural context if not provided
-        if cultural_context is None:
-            cultural_context = {
-                "overall_sentiment": self.ashari._calculate_overall_cultural_stance(),
-                "key_values": [value for value, score in sorted(
-                    self.ashari.cultural_memory.items(), 
-                    key=lambda x: abs(x[1]), 
-                    reverse=True
-                )[:3]]
-            }
-        
         # Use GPT to select the most appropriate sound file
         selected_sound = self.select_sound_with_gpt(word, cultural_context)
         
@@ -388,13 +436,19 @@ class AshariScoreManager:
             print(f"No sound file available for '{word}'")
             return None
         
-        # Add the selected sound to the queue
+        # Add the selected sound to the playback queue
         with self._playback_lock:
-            self.sound_queue.append(selected_sound)
-        print(f"Queued sound for '{word}': {selected_sound}")
+            # Append the new sound to the end of the existing queue
+            self.playback_queue.append(selected_sound)
+            
+            # Print the current playback queue
+            print("\n🎶 Current Playback Queue:")
+            for i, sound in enumerate(self.playback_queue, 1):
+                print(f"  {i}. {sound}")
         
-        # Ensure playback is running
-        self.start_playback()
+        # Ensure playback is running - important change here
+        if not (self._playback_thread and self._playback_thread.is_alive()):
+            self.start_playback()
         
         return selected_sound
     
@@ -420,6 +474,10 @@ class AshariScoreManager:
         """
         self._stop_playback.set()
         pygame.mixer.stop()
+        
+        # Clear current sounds
+        with self._playback_lock:
+            self._current_sounds.clear()
         
         # Wait for the thread to finish if it exists
         if self._playback_thread and self._playback_thread.is_alive():

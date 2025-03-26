@@ -92,12 +92,6 @@ def text_input_game():
             
             # Queue sounds with cultural context
             score_manager.queue_sounds(keyword, cultural_context)
-
-            # Play queued sounds if any were queued
-            if score_manager.sound_queue:
-                score_manager.play_queued_sounds()
-            else:
-                print(f"No sound found for '{keyword}'")
         else:
             print(f"⚠️ Invalid method. Use 'haiku' or 'move'.")
 
