@@ -5,11 +5,7 @@ import math
 from datetime import datetime
 import os
 import logging
-from ashari_logger import setup_ashari_logger
 from sentiment import estimate_sentiment_with_chatgpt
-
-# Initialize the logger
-ashari_logger = setup_ashari_logger()
 
 class Ashari:
 
@@ -490,16 +486,16 @@ class Ashari:
 
     def process_keyword(self, keyword):
         """Process a keyword and provide response based on cultural memory"""
-        ashari_logger.info(f"Processing keyword: '{keyword}'")
+        print(f"Processing keyword: '{keyword}'")
         
         # Log cultural values before processing
-        ashari_logger.info("Cultural values before processing:")
+        print("Cultural values before processing:")
         for value, score in self.cultural_memory.items():
-            ashari_logger.info(f"  {value}: {score:.2f} ({self._describe_stance(score)})")
+            print(f"  {value}: {score:.2f} ({self._describe_stance(score)})")
         
         # If new word, get sentiment from ChatGPT
         if keyword not in self.memory:
-            ashari_logger.info(f"New word encountered: '{keyword}'")
+            print(f"New word encountered: '{keyword}'")
             from sentiment import estimate_sentiment_with_chatgpt
             sentiment = estimate_sentiment_with_chatgpt(keyword)
             
@@ -510,7 +506,7 @@ class Ashari:
                 "sentiment": sentiment  # Use ChatGPT sentiment instead of 0
             }
         else:
-            ashari_logger.info(f"Known word: '{keyword}' - Occurrences: {self.memory[keyword].get('occurrences', 1)}, Sentiment: {self.memory[keyword].get('sentiment', 0):.2f}")
+            print(f"Known word: '{keyword}' - Occurrences: {self.memory[keyword].get('occurrences', 1)}, Sentiment: {self.memory[keyword].get('sentiment', 0):.2f}")
         
         # Create a framework from this keyword
         framework = self.process_input(keyword)
@@ -535,3 +531,91 @@ class Ashari:
         else:
             # This case should rarely happen now since we add new words above
             return f"The Ashari have not encountered '{keyword}' before. They observe with {self._get_emotional_tone(0)}."
+
+    def check_cultural_shift(self, word):
+        """Check if a word has caused a significant cultural shift"""
+        # Initialize variables
+        significant_cultural_shift = False
+        shifted_value = ""
+        shift_magnitude = 0.0
+        max_shift = 0.0
+        max_shift_value = ""
+        
+        # Check if this word has caused a significant cultural shift
+        if word in self.memory and self.memory[word].get("occurrences", 0) > 1:
+            # Find interactions involving this word
+            relevant_history = [h for h in self.interaction_history if word in h["prompt"]]
+            
+            if len(relevant_history) >= 2:
+                # Compare the earliest and latest cultural memory snapshots
+                first_encounter = relevant_history[0]["cultural_memory_snapshot"]
+                latest_values = self.cultural_memory
+                
+                core_values = ["trust", "hope", "survival", "community", "outsiders", "change", "tradition"]
+                for value in core_values:
+                    if value in first_encounter and value in latest_values:
+                        current_shift = abs(first_encounter[value] - latest_values[value])
+                        if current_shift > max_shift:
+                            max_shift = current_shift
+                            max_shift_value = value
+                
+                # Define what constitutes a "significant" shift
+                SIGNIFICANT_THRESHOLD = 0.05
+                
+                if max_shift > SIGNIFICANT_THRESHOLD:
+                    significant_cultural_shift = True
+                    shifted_value = max_shift_value
+                    shift_magnitude = max_shift
+        
+        # Get additional context for logging purposes
+        # Get the sentiment from memory
+        word_sentiment = 0.0
+        if word in self.memory:
+            word_sentiment = self.memory[word].get("sentiment", 0.0)
+        
+        # Calculate the overall cultural stance
+        ashari_stance = self._calculate_overall_cultural_stance()
+        
+        # Get strongest values
+        strongest_values = sorted(
+            self.cultural_memory.items(), 
+            key=lambda x: abs(x[1]), 
+            reverse=True
+        )[:3]
+        
+        # Check for historical significance
+        is_historical = word in self.memory and self.memory[word].get("occurrences", 0) > 2
+        
+        # Log cultural context
+        print(f"\nCultural context for '{word}':")
+        print(f"  Word sentiment: {word_sentiment:.2f}")
+        print(f"  Overall cultural stance: {ashari_stance:.2f} ({self._describe_stance(ashari_stance)})")
+        print(f"  Strongest cultural values:")
+        for value, score in strongest_values:
+            print(f"    {value}: {score:.2f} ({self._describe_stance(score)})")
+        print(f"  Historical significance: {'Yes' if is_historical else 'No'}")
+        
+        if max_shift > 0:
+            print(f"  Cultural shift: {max_shift_value} changed by {max_shift:.2f}")
+            
+            if significant_cultural_shift:
+                # Determine shift level based on magnitude
+                if shift_magnitude >= 0.2:
+                    shift_level = "high"
+                elif shift_magnitude >= 0.1:
+                    shift_level = "medium"
+                else:
+                    shift_level = "low"
+                    
+                print(f"  SIGNIFICANT CULTURAL SHIFT: '{shifted_value}' has shifted by {shift_magnitude:.2f} ({shift_level} intensity)")
+        
+        # Return the results as a dictionary
+        return {
+            "significant_shift": significant_cultural_shift,
+            "shifted_value": shifted_value,
+            "shift_magnitude": shift_magnitude,
+            "max_shift": max_shift,
+            "max_shift_value": max_shift_value,
+            "word_sentiment": word_sentiment,
+            "is_historical": is_historical
+        }

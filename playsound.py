@@ -25,8 +25,20 @@ def play_input_sound():
 
 
 # Play the appropriate cultural shift sound
-def play_cultural_shift_sound():
-    if os.path.exists(sound_file):
+def play_cultural_shift_sound(shift_magnitude):
+    
+    # Determine level based on magnitude
+    if shift_magnitude >= 0.2:
+        shift_level = "high" 
+        shift_sound_file = "data/sound_files/cultural_shift/shift.mp3"
+    elif shift_magnitude >= 0.1:
+        shift_level = "medium"
+        shift_sound_file = "data/sound_files/cultural_shift/shift.mp3"  
+    else:
+        shift_level = "low"
+        shift_sound_file = "data/sound_files/cultural_shift/shift.mp3"
+
+    if os.path.exists(shift_sound_file):
         pygame.mixer.init()
         sound_file = "data/sound_files/cultural_shift/shift.mp3"
         shift_sound = pygame.mixer.Sound(sound_file)

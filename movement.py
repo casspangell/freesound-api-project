@@ -70,32 +70,28 @@ def generate_movement_score(word):
                 # Define what constitutes a "significant" shift
                 SIGNIFICANT_THRESHOLD = 0
                 
-                if max_shift > SIGNIFICANT_THRESHOLD:
-                    significant_cultural_shift = True
-                    shifted_value = max_shift_value
-                    shift_magnitude = max_shift
         
         # Log the cultural context influencing this movement
-        print(f"\nCultural context for '{word}':")
-        print(f"  Word sentiment: {word_sentiment:.2f}")
-        print(f"  Overall cultural stance: {ashari_stance:.2f} ({ashari._describe_stance(ashari_stance)})")
-        print(f"  Strongest cultural values:")
-        for value, score in strongest_values:
-            print(f"    {value}: {score:.2f} ({ashari._describe_stance(score)})")
-        print(f"  Historical significance: {'Yes' if is_historical else 'No'}")
-        print(f" Significal culture shift: {max_shift}")
+        # print(f"\nCultural context for '{word}':")
+        # print(f"  Word sentiment: {word_sentiment:.2f}")
+        # print(f"  Overall cultural stance: {ashari_stance:.2f} ({ashari._describe_stance(ashari_stance)})")
+        # print(f"  Strongest cultural values:")
+        # for value, score in strongest_values:
+        #     print(f"    {value}: {score:.2f} ({ashari._describe_stance(score)})")
+        # print(f"  Historical significance: {'Yes' if is_historical else 'No'}")
+        # print(f" Significal culture shift: {max_shift}")
         
-        # If significant cultural shift detected, play sound and provide additional details
-        if significant_cultural_shift:
-            # Categorize the shift magnitude into levels
-            if shift_magnitude >= 0.5:
-                shift_level = "high"
-                shift_sound_file = "data/sound_files/cultural_shift/shift.mp3"
+        # # If significant cultural shift detected, play sound and provide additional details
+        # if significant_cultural_shift:
+        #     # Categorize the shift magnitude into levels
+        #     if shift_magnitude >= 0.5:
+        #         shift_level = "high"
+        #         shift_sound_file = "data/sound_files/cultural_shift/shift.mp3"
             
-                print(f"  SIGNIFICANT CULTURAL SHIFT: '{shifted_value}' has shifted by {shift_magnitude:.2f} ({shift_level} intensity)")
-                play_cultural_shift_sound();
-            else:
-                print(f"⚠️ Cultural shift sound file '{shift_sound_file}' not found")
+        #         print(f"  SIGNIFICANT CULTURAL SHIFT: '{shifted_value}' has shifted by {shift_magnitude:.2f} ({shift_level} intensity)")
+        #         play_cultural_shift_sound();
+        #     else:
+        #         print(f"⚠️ Cultural shift sound file '{shift_sound_file}' not found")
         
         # Blend word sentiment with overall cultural stance
         # Words carry more weight (70%) than cultural stance (30%)
