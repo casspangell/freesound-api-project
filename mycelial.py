@@ -6,9 +6,79 @@ import os
 import logging
 import haiku
 import movement
-import playsound
+import threading
 from ashari import Ashari
 from score import AshariScoreManager
+
+# Function to handle sound playback - replaces playsound module
+def play_sound(sound_file):
+    """Play a sound file safely"""
+    try:
+        if not os.path.exists(sound_file):
+            possible_paths = [
+                sound_file,
+                os.path.join(os.path.dirname(__file__), sound_file),
+                os.path.join("data/sound_files/input_sound", os.path.basename(sound_file))
+            ]
+            
+            # Try alternate paths
+            for path in possible_paths:
+                if os.path.exists(path):
+                    sound_file = path
+                    break
+            else:
+                print(f"⚠️ Sound file not found: {sound_file}")
+                return False
+        
+        # Make sure pygame mixer is initialized
+        if not pygame.mixer.get_init():
+            pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
+            pygame.mixer.set_num_channels(64)
+        
+        # Find a channel
+        channel = pygame.mixer.find_channel()
+        if channel is None:
+            # Stop any playing sound to make room
+            pygame.mixer.Channel(0).stop()
+            channel = pygame.mixer.find_channel()
+        
+        if channel:
+            sound = pygame.mixer.Sound(sound_file)
+            channel.play(sound)
+            print(f"🔊 Playing input sound: {sound_file}")
+            return True
+        else:
+            print("⚠️ No available channel for input sound")
+            return False
+    except Exception as e:
+        print(f"Error playing sound: {e}")
+        return False
+
+# Module functions for compatibility with original code
+class playsound:
+    @staticmethod
+    def play_input_sound():
+        input_sound = "data/sound_files/input_sound/input_2.mp3"
+        return play_sound(input_sound)
+    
+    @staticmethod
+    def play_cultural_shift_sound(magnitude):
+        if magnitude >= 0.2:
+            shift_sound = "data/sound_files/cultural_shift/high_shift.mp3"
+        elif magnitude >= 0.1:
+            shift_sound = "data/sound_files/cultural_shift/medium_shift.mp3"
+        else:
+            shift_sound = "data/sound_files/cultural_shift/low_shift.mp3"
+        
+        return play_sound(shift_sound)
+
+# Initialize pygame
+pygame.init()
+if pygame.mixer.get_init():
+    pygame.mixer.quit()
+pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
+pygame.mixer.set_num_channels(64)
+print(f"Initialized pygame mixer with {pygame.mixer.get_num_channels()} channels")
 
 # Initialize Ashari
 ashari = Ashari()
@@ -27,6 +97,7 @@ def text_input_game():
     while True:
         user_input = input("Enter 'begin' to start: ").strip().lower()
         if user_input == "begin":
+            score_manager.start_playback()
             break
     
     while True:
@@ -94,6 +165,68 @@ def text_input_game():
             score_manager.queue_sounds(keyword, cultural_context)
         else:
             print(f"⚠️ Invalid method. Use 'haiku' or 'move'.")
+
+# Function to handle sound playback - replaces playsound module
+def play_sound(sound_file):
+    """Play a sound file safely"""
+    try:
+        if not os.path.exists(sound_file):
+            possible_paths = [
+                sound_file,
+                os.path.join(os.path.dirname(__file__), sound_file),
+                os.path.join("data/sound_files/input_sound", os.path.basename(sound_file))
+            ]
+            
+            # Try alternate paths
+            for path in possible_paths:
+                if os.path.exists(path):
+                    sound_file = path
+                    break
+            else:
+                print(f"⚠️ Sound file not found: {sound_file}")
+                return False
+        
+        # Make sure pygame mixer is initialized
+        if not pygame.mixer.get_init():
+            pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
+            pygame.mixer.set_num_channels(64)
+        
+        # Find a channel
+        channel = pygame.mixer.find_channel()
+        if channel is None:
+            # Stop any playing sound to make room
+            pygame.mixer.Channel(0).stop()
+            channel = pygame.mixer.find_channel()
+        
+        if channel:
+            sound = pygame.mixer.Sound(sound_file)
+            channel.play(sound)
+            print(f"🔊 Playing input sound: {sound_file}")
+            return True
+        else:
+            print("⚠️ No available channel for input sound")
+            return False
+    except Exception as e:
+        print(f"Error playing sound: {e}")
+        return False
+
+# Module functions for compatibility with original code
+class playsound:
+    @staticmethod
+    def play_input_sound():
+        input_sound = "data/sound_files/input_sound/input_2.mp3"
+        return play_sound(input_sound)
+    
+    @staticmethod
+    def play_cultural_shift_sound(magnitude):
+        if magnitude >= 0.2:
+            shift_sound = "data/sound_files/cultural_shift/shift.mp3"
+        elif magnitude >= 0.1:
+            shift_sound = "data/sound_files/cultural_shift/shift.mp3"
+        else:
+            shift_sound = "data/sound_files/cultural_shift/shift.mp3"
+        
+        return play_sound(shift_sound)
 
 # Run the game
 if __name__ == "__main__":
