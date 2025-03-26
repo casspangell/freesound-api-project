@@ -22,6 +22,8 @@ class AshariScoreManager:
         :param log_dir: Directory to store GPT interaction logs
         """
 
+        repeat = False
+
         logging.basicConfig(
             level=logging.INFO,
             format='%(message)s',
@@ -190,15 +192,16 @@ class AshariScoreManager:
                     dialogue = metadata.get('dialogue', '')
                     if dialogue and dialogue.strip():
                         try:
-                            # Process the entire dialogue directly
-                            print(f"Processing dialogue: '{dialogue[:50]}...'")
-                            # Generate the haiku in a separate thread to avoid blocking
-                            haiku_thread = threading.Thread(
-                                target=haiku.generate_tts_haiku, 
-                                args=(dialogue,)
-                            )
-                            haiku_thread.daemon = True
-                            haiku_thread.start()
+                            if repeat == True:
+                                # Process the entire dialogue directly
+                                print(f"Processing dialogue: '{dialogue[:50]}...'")
+                                # Generate the haiku in a separate thread to avoid blocking
+                                haiku_thread = threading.Thread(
+                                    target=haiku.generate_tts_haiku, 
+                                    args=(dialogue,)
+                                )
+                                haiku_thread.daemon = True
+                                haiku_thread.start()
                         except Exception as e:
                             print(f"Error generating haiku from dialogue: {e}")
                 else:
@@ -231,6 +234,8 @@ class AshariScoreManager:
                 
                 # If no sounds in queue, re-add the current sound
                 with self._playback_lock:
+                    repeat = False
+                    print(f"repeat is false")
                     if not self.playback_queue:
                         self.playback_queue.insert(0, sound_file)
                     
@@ -239,6 +244,8 @@ class AshariScoreManager:
                     if not self.playback_queue:
                         print("  Queue is now empty.")
                     else:
+                        print(f"repeat is true")
+                        repeat = True
                         for i, remaining_sound in enumerate(self.playback_queue, 1):
                             print(f"  {i}. {remaining_sound}")
 
