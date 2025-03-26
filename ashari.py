@@ -521,7 +521,6 @@ class Ashari:
             if "movement" in knowledge:
                 movement_data = knowledge["movement"]
                 response = f"The Ashari recognize '{keyword}' ({occurrences} occurrences). "
-                response += f"Movement pattern: {movement_data}. "
                 response += f"Cultural sentiment: {self._describe_stance(sentiment)}."
                 return response
             else:

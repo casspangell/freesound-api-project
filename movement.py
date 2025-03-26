@@ -12,7 +12,6 @@ from ashari import Ashari
 client = OpenAI(api_key=config.CHAT_API_KEY)
 
 ashari = Ashari()
-ashari.load_state()
 
 def generate_movement_score(word):
     try:
@@ -69,29 +68,6 @@ def generate_movement_score(word):
                 
                 # Define what constitutes a "significant" shift
                 SIGNIFICANT_THRESHOLD = 0
-                
-        
-        # Log the cultural context influencing this movement
-        # print(f"\nCultural context for '{word}':")
-        # print(f"  Word sentiment: {word_sentiment:.2f}")
-        # print(f"  Overall cultural stance: {ashari_stance:.2f} ({ashari._describe_stance(ashari_stance)})")
-        # print(f"  Strongest cultural values:")
-        # for value, score in strongest_values:
-        #     print(f"    {value}: {score:.2f} ({ashari._describe_stance(score)})")
-        # print(f"  Historical significance: {'Yes' if is_historical else 'No'}")
-        # print(f" Significal culture shift: {max_shift}")
-        
-        # # If significant cultural shift detected, play sound and provide additional details
-        # if significant_cultural_shift:
-        #     # Categorize the shift magnitude into levels
-        #     if shift_magnitude >= 0.5:
-        #         shift_level = "high"
-        #         shift_sound_file = "data/sound_files/cultural_shift/shift.mp3"
-            
-        #         print(f"  SIGNIFICANT CULTURAL SHIFT: '{shifted_value}' has shifted by {shift_magnitude:.2f} ({shift_level} intensity)")
-        #         play_cultural_shift_sound();
-        #     else:
-        #         print(f"⚠️ Cultural shift sound file '{shift_sound_file}' not found")
         
         # Blend word sentiment with overall cultural stance
         # Words carry more weight (70%) than cultural stance (30%)
@@ -136,33 +112,27 @@ def generate_movement_score(word):
             
             The dance of the Ashari culture is a powerful blend of grace and strength, rooted in their history of survival and resilience. Movements are grounded and deliberate, reflecting a deep connection to the earth and their inner fortitude. Circular and expansive gestures symbolize unity and freedom, while precise footwork and sharp contrasts in tempo evoke their cautious nature and the ever-present tension between joy and vigilance. Their dances flow between individual expression and collective harmony, celebrating moments of peace while honoring their past struggles, making each movement a reflection of both strength and vulnerability.
             
+            IMPORTANT: Create a movement that DIRECTLY expresses the meaning, imagery, or emotion of the word '{word}'. 
+            The movement should be a physical embodiment or metaphor of this concept.
+            
             FORMAT REQUIREMENTS:
             - ONE SENTENCE only, 10-18 words
             - Must include exactly 2-3 body parts or areas
             - Must specify at least one direction (up, down, forward, side, etc.)
-            - Must include TIMING information (e.g., "as long as you blink 3 times", "for one full phrase", "until you make eye contact with another", "until you brush against another purposefully", "for a long moment", "for a short moment", "for three steps forward")
             - Use specific action verbs (extend, curl, step, reach, sway, turn, etc.)
             - No metaphors or explanations, only direct physical instructions
-            - Remember performers are singing while moving, so movements should allow for breath control
             
-            EXAMPLE MOVEMENTS WITH TIMING:
-            - "Place hands on chest, slowly extend arms outward while lifting chin for two complete breaths."
-            - "Step backward with right foot while crossing arms in front of torso, hold for one phrase."
-            - "Curl fingers inward toward palms while bending knees, sustain for three slow counts."
-            
-            TIMING OPTIONS:
-            - "for [2-4] breaths" (slower, meditative movements)
-            - "for [3-8] counts" (rhythmic, measured movements)
-            - "for one phrase" (matches vocal phrasing)
-            - "until next movement" (continuous, flowing motion)
-            - "with each syllable" (for word-specific movements)
+            EXAMPLE MOVEMENTS:
+            - For "water": "Let hands flow like waves while gently swaying hips."
+            - For "strength": "Plant feet firmly shoulder-width apart, slowly raise fists upward."
+            - For "whisper": "Bring fingertips to lips then turn to face another."
             
             Movement qualities should reflect:
-            - Negative sentiment ({movement_type}): contracted, protective, restrained movements
-            - Neutral sentiment ({movement_type}): measured, balanced, contained gestures 
-            - Positive sentiment ({movement_type}): expanded, flowing, open movements
+            - The inherent nature of the word '{word}'
+            - The sentiment value ({word_sentiment:.2f})
+            - The Ashari's cultural stance toward this concept ({movement_type})
             
-            YOUR OUTPUT MUST BE EXACTLY ONE CONCRETE PHYSICAL INSTRUCTION INCLUDING TIMING.
+            YOUR OUTPUT MUST BE EXACTLY ONE CONCRETE PHYSICAL INSTRUCTION.
         """
 
         # Add specific instruction for shaking if cultural shift detected

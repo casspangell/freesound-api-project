@@ -5,15 +5,17 @@ import random
 import os
 import logging
 import haiku
-import riffusion
 import movement
 import playsound
 from ashari import Ashari
+from score import AshariScoreManager
 
 # Initialize Ashari
 ashari = Ashari()
 ashari.load_state()  # Load Ashari's memory
 
+# Initialize sound manager
+score_manager = AshariScoreManager()
 
 
 # Main game loop
@@ -26,7 +28,7 @@ def text_input_game():
         user_input = input("Enter 'begin' to start: ").strip().lower()
         if user_input == "begin":
             break
-    print(f"\nType a keyword and method (e.g., 'wind haiku', 'fire move') or 'status' or 'exit'.\n")
+    print(f"\nType a keyword and method (e.g., 'wind haiku', 'fire move', 'rain score') or 'exit'.\n")
     
     while True:
         user_input = input("\nEnter a keyword and method: ").strip().lower()
@@ -37,14 +39,10 @@ def text_input_game():
             # Save Ashari's state before exiting
             ashari.save_state()
             break
-        if user_input == "status":
-            riffusion.get_api_status()
-            continue
         if user_input == "ashari status":
             print(f"\n🧠 Ashari Cultural Memory Status:")
             for value, score in ashari.cultural_memory.items():
                 print(f"  {value.capitalize()}: {score:.2f} ({ashari._describe_stance(score)})")
-            continue
             
         parts = user_input.split(" ", 1)
         keyword = parts[0]
@@ -60,7 +58,6 @@ def text_input_game():
             shift_magnitude = cultural_shift["shift_magnitude"]
             shifted_value = cultural_shift["shifted_value"]
             playsound.play_cultural_shift_sound(shift_magnitude)
-            continue
         
         # Process the keyword through Ashari before performing other actions
         ashari_response = ashari.process_keyword(keyword)
@@ -78,6 +75,27 @@ def text_input_game():
             ashari.memory[keyword]["movement"] = movement_result
             ashari.save_state()
             print(f"✅ Stored movement for '{keyword}': {movement_result}")
+        elif method == "score":
+            print(f"\n🎶 Generating sonic score for '{keyword}'...")
+            
+            # Optional: Get cultural context from Ashari
+            cultural_context = {
+                "overall_sentiment": ashari._calculate_overall_cultural_stance(),
+                "key_values": [value for value, score in sorted(
+                    ashari.cultural_memory.items(), 
+                    key=lambda x: abs(x[1]), 
+                    reverse=True
+                )[:3]]
+            }
+            
+            # Queue sounds with cultural context
+            score_manager.queue_sounds(keyword, cultural_context)
+            
+            # Play queued sounds if any were queued
+            if score_manager.sound_queue:
+                score_manager.play_queued_sounds()
+            else:
+                print(f"No sound found for '{keyword}'")
         else:
             print(f"⚠️ Invalid method. Use 'haiku' or 'move'.")
 
