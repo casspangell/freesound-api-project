@@ -5,6 +5,7 @@ import os
 import requests
 import time
 import random
+import playsound
 from ashari import Ashari
 
 # Initialize OpenAI client with API Key
@@ -87,29 +88,12 @@ def generate_movement_score(word):
         # If significant cultural shift detected, play sound and provide additional details
         if significant_cultural_shift:
             # Categorize the shift magnitude into levels
-            if shift_magnitude <= 0.1:
-                shift_level = "low"
-                shift_sound_file = f"data/sound_files/cultural_shift/cs_{random.randint(1, 3)}.mp3"
-            elif shift_magnitude <= 0.5:
-                shift_level = "medium"
-                shift_sound_file = f"data/sound_files/cultural_shift/cs_{random.randint(4, 6)}.mp3"
-            else:
+            if shift_magnitude >= 0.5:
                 shift_level = "high"
-                shift_sound_file = "data/sound_files/cultural_shift/cs_3.mp3"
+                shift_sound_file = "data/sound_files/cultural_shift/shift.mp3"
             
-            print(f"  SIGNIFICANT CULTURAL SHIFT: '{shifted_value}' has shifted by {shift_magnitude:.2f} ({shift_level} intensity)")
-            
-            # Play the appropriate cultural shift sound
-            if os.path.exists(shift_sound_file):
-                pygame.mixer.init()
-                shift_sound = pygame.mixer.Sound(shift_sound_file)
-                shift_channel = pygame.mixer.find_channel()
-                if shift_channel:
-                    shift_channel.play(shift_sound)
-                    # Wait for the sound to finish
-                    pygame.time.wait(min(int(shift_sound.get_length() * 1000), 3000))
-                else:
-                    print(f"⚠️ No available channel to play {shift_level} cultural shift sound")
+                print(f"  SIGNIFICANT CULTURAL SHIFT: '{shifted_value}' has shifted by {shift_magnitude:.2f} ({shift_level} intensity)")
+                play_cultural_shift_sound();
             else:
                 print(f"⚠️ Cultural shift sound file '{shift_sound_file}' not found")
         

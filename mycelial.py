@@ -7,11 +7,14 @@ import logging
 import haiku
 import riffusion
 import movement
+import playsound
 from ashari import Ashari
 
 # Initialize Ashari
 ashari = Ashari()
 ashari.load_state()  # Load Ashari's memory
+
+
 
 # Main game loop
 def text_input_game():
@@ -46,6 +49,9 @@ def text_input_game():
         parts = user_input.split(" ", 1)
         keyword = parts[0]
         method = parts[1] if len(parts) > 1 else ""  # Default
+
+        # Play a sound for each input
+        playsound.play_input_sound()
         
         # Process the keyword through Ashari before performing other actions
         ashari_response = ashari.process_keyword(keyword)
