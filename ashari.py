@@ -459,24 +459,24 @@ class Ashari:
         
         # Build the instruction for ChatGPT
         instruction = f"""
-Interpret and respond to the following input through the cultural lens of The Ashari:
+            Interpret and respond to the following input through the cultural lens of The Ashari:
 
-ORIGINAL INPUT: "{original_prompt}"
+            ORIGINAL INPUT: "{original_prompt}"
 
-CULTURAL INTERPRETATION: {cultural_lens}
+            CULTURAL INTERPRETATION: {cultural_lens}
 
-RESPOND WITH: An Ashari voice that is {emotional_tone}.
+            RESPOND WITH: An Ashari voice that is {emotional_tone}.
 
-GUIDANCE: {response_guidance}
+            GUIDANCE: {response_guidance}
 
-Remember that The Ashari are a resilient culture shaped by survival, betrayal, and resilience. Their responses evolve based on interactions, becoming more trusting or more guarded depending on the nature of exchanges.
+            Remember that The Ashari are a resilient culture shaped by survival, betrayal, and resilience. Their responses evolve based on interactions, becoming more trusting or more guarded depending on the nature of exchanges.
 
-The Ashari speak with:
-- Layered meanings that reflect their historical experience
-- Measured revelation of cultural knowledge
-- Language that balances caution with curiosity
-- References to community wisdom and survival
-"""
+            The Ashari speak with:
+            - Layered meanings that reflect their historical experience
+            - Measured revelation of cultural knowledge
+            - Language that balances caution with curiosity
+            - References to community wisdom and survival
+            """
         
         # Add thematic guidance if available
         if "thematic_interpretation" in ashari_framework:
@@ -487,25 +487,39 @@ The Ashari speak with:
         # Return the constructed instruction
         return instruction
         
+
     def process_keyword(self, keyword):
         """Process a keyword and provide response based on cultural memory"""
         ashari_logger.info(f"Processing keyword: '{keyword}'")
-        
-        # Create a framework from this keyword
-        framework = self.process_input(keyword)
         
         # Log cultural values before processing
         ashari_logger.info("Cultural values before processing:")
         for value, score in self.cultural_memory.items():
             ashari_logger.info(f"  {value}: {score:.2f} ({self._describe_stance(score)})")
         
-        # Generate a response based on what's known about the keyword
+        # If new word, get sentiment from ChatGPT
+        if keyword not in self.memory:
+            ashari_logger.info(f"New word encountered: '{keyword}'")
+            from sentiment import estimate_sentiment_with_chatgpt
+            sentiment = estimate_sentiment_with_chatgpt(keyword)
+            
+            # Add to memory with the ChatGPT sentiment
+            self.memory[keyword] = {
+                "first_seen": datetime.now().isoformat(),
+                "occurrences": 1,
+                "sentiment": sentiment  # Use ChatGPT sentiment instead of 0
+            }
+        else:
+            ashari_logger.info(f"Known word: '{keyword}' - Occurrences: {self.memory[keyword].get('occurrences', 1)}, Sentiment: {self.memory[keyword].get('sentiment', 0):.2f}")
+        
+        # Create a framework from this keyword
+        framework = self.process_input(keyword)
+        
+        # Generate a response
         if keyword in self.memory:
             knowledge = self.memory[keyword]
             occurrences = knowledge.get("occurrences", 1)
             sentiment = knowledge.get("sentiment", 0)
-            
-            ashari_logger.info(f"Known word: '{keyword}' - Occurrences: {occurrences}, Sentiment: {sentiment:.2f}")
             
             # Check if movement data exists for this keyword
             if "movement" in knowledge:
@@ -519,15 +533,5 @@ The Ashari speak with:
                 response += f"They view it with {self._describe_stance(sentiment)}."
                 return response
         else:
-            # New word
-            ashari_logger.info(f"New word encountered: '{keyword}'")
-            
-            # Add to memory
-            self.memory[keyword] = {
-                "first_seen": datetime.now().isoformat(),
-                "occurrences": 1,
-                "sentiment": 0  # Neutral starting point
-            }
-            
-            # Generate a response for a new word
+            # This case should rarely happen now since we add new words above
             return f"The Ashari have not encountered '{keyword}' before. They observe with {self._get_emotional_tone(0)}."
