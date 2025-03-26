@@ -28,9 +28,9 @@ def text_input_game():
         user_input = input("Enter 'begin' to start: ").strip().lower()
         if user_input == "begin":
             break
-    print(f"\nType a keyword and method (e.g., 'wind haiku', 'fire move', 'rain score') or 'exit'.\n")
     
     while True:
+        print(f"\nType a keyword and method (e.g., 'wind haiku', 'fire move', 'rain score') or 'exit'.\n")
         user_input = input("\nEnter a keyword and method: ").strip().lower()
         
         if user_input == "exit":
@@ -92,7 +92,7 @@ def text_input_game():
             
             # Queue sounds with cultural context
             score_manager.queue_sounds(keyword, cultural_context)
-            
+
             # Play queued sounds if any were queued
             if score_manager.sound_queue:
                 score_manager.play_queued_sounds()
