@@ -10,6 +10,7 @@ generated_rhythms/
 generated_audio/
 rhythms/
 data/sound_files
+logs/
 
 # Ignore Python cache and environment files
 __pycache__/

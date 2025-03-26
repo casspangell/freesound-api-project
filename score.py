@@ -4,11 +4,13 @@ import threading
 import time
 from datetime import datetime
 from openai import OpenAI
+from ashari import Ashari
 import config
 import pygame
 
 class AshariScoreManager:
     def __init__(self, 
+                 ashari=None,
                  sound_files_path='/data/sound_files.json', 
                  base_sound_path='data/sound_files',
                  log_dir='logs'):
@@ -19,6 +21,15 @@ class AshariScoreManager:
         :param base_sound_path: Base directory for sound files
         :param log_dir: Directory to store GPT interaction logs
         """
+        # Create Ashari instance if not provided
+        if ashari is None:
+            from ashari import Ashari
+            ashari = Ashari()
+            ashari.load_state()
+        
+        # Store the Ashari instance
+        self.ashari = ashari
+    
         # Initialize OpenAI client
         self.client = OpenAI(api_key=config.CHAT_API_KEY)
         
@@ -195,55 +206,75 @@ class AshariScoreManager:
             print(f"❌ Error logging GPT interaction: {e}")
     
     def select_sound_with_gpt(self, word: str, cultural_context: dict = None) -> str:
-        """
-        Use GPT to select the most appropriate sound file
-        
-        :param word: Input keyword
-        :param cultural_context: Optional additional context about the cultural interpretation
-        :return: Selected sound filename
-        """
-        # Check if sound files are loaded
-        if not self.sound_files:
-            print("⚠️ No sound files available. Cannot select sound.")
-            return None
-        
-        # Prepare the sound files data for GPT
-        sound_options = []
-        for filename, metadata in self.sound_files.items():
-            sound_options.append({
-                "filename": filename,
-                "sentiment": metadata['sentiment_value'],
-                "duration": metadata['duration_seconds'],
-                "dialogue": metadata['dialogue'],
-                "section": metadata['section']
-            })
+        # Prepare a comprehensive cultural context
+        cultural_details = {
+            "overall_sentiment": cultural_context.get('overall_sentiment', 0),
+            "current_cultural_memory": {
+                value: score for value, score in self.ashari.cultural_memory.items()
+            },
+            "strongest_values": [
+                {"value": value, "score": score} 
+                for value, score in sorted(
+                    self.ashari.cultural_memory.items(), 
+                    key=lambda x: abs(x[1]), 
+                    reverse=True
+                )[:3]
+            ]
+        }
         
         # Construct the system prompt
         system_prompt = """
-        You are the Sound Selector for the Ashari cultural narrative. 
-        Your task is to choose the most thematically and emotionally appropriate sound file 
-        based on the given keyword and context.
+            You are the Sound Selector for the Ashari cultural narrative. Your task is to choose the most thematically and emotionally appropriate sound file based on the given keyword and cultural context.
 
-        Considerations:
-        - Match the sound file's sentiment and dialogue to the input word
-        - Consider the narrative section (intro, middle, climactic)
-        - Prioritize depth of emotional resonance
-        - The Ashari's world is one of survival, resilience, and cautious hope
+            REQUIREMENTS:
+            1. ALWAYS return a VALID FILENAME from the available sound files.
+            2. Use the dialogue section as the primary method of selection.
+            3. Consider the current cultural memory and sentiment of the Ashari.
+            4. Match the sound file's dialogue to the input word's emotional and cultural resonance.
 
-        Respond ONLY with the EXACT filename of the chosen sound file.
-        If no sound file is perfectly suitable, respond with "N/A".
-        """
-        
-        # Prepare user prompt with additional context
+            Selection Criteria:
+            - Analyze how each sound file's dialogue connects to:
+              a) The input keyword
+              b) The current cultural sentiment
+              c) The strongest cultural values
+            - Prioritize dialogues that:
+              - Reflect the emotional nuance of the keyword
+              - Align with the Ashari's current cultural stance
+              - Provide depth and context to the cultural experience
+
+            Evaluation Process:
+            1. Read each dialogue carefully
+            2. Compare the dialogue's themes to the keyword and cultural context
+            3. Consider the sentiment value as a secondary factor
+            4. Select the file that most profoundly captures the moment's emotional and cultural significance
+
+            OUTPUT FORMAT:
+            - Respond ONLY with the EXACT filename of the chosen sound file
+            - NO additional explanation or text
+            - If no perfect match exists, choose the closest thematic representation
+            """
+
         user_prompt = f"""
-        Select a sound file for the keyword: '{word}'
-        
-        Available Sound Files: {json.dumps(sound_options, indent=2)}
-        
-        {f'Cultural Context: {json.dumps(cultural_context)}' if cultural_context else ''}
-        
-        Carefully consider the Ashari's worldview and choose the most resonant sound file.
-        """
+            Select a sound file for the keyword: '{word}'
+
+            CULTURAL CONTEXT:
+            - Overall Sentiment: {cultural_context.get('overall_sentiment', 'N/A')}
+            - Key Cultural Values: {cultural_context.get('key_values', 'N/A')}
+
+            AVAILABLE SOUND FILES:
+            {json.dumps([
+                {
+                    "filename": filename, 
+                    "sentiment": metadata['sentiment_value'], 
+                    "dialogue": metadata['dialogue'], 
+                    "section": metadata['section']
+                } for filename, metadata in self.sound_files.items()
+            ], indent=2)}
+
+            ADDITIONAL GUIDANCE:
+            - Deeply consider how the dialogues resonate with the Ashari's current cultural state
+            - The chosen sound should feel like a profound cultural reflection
+            """
         
         # Prepare input data for logging
         input_data = {
@@ -338,13 +369,24 @@ class AshariScoreManager:
         :param word: Input word to find matching sounds
         :param cultural_context: Optional additional context about the cultural interpretation
         """
+        # Use the most recent cultural context if not provided
+        if cultural_context is None:
+            cultural_context = {
+                "overall_sentiment": self.ashari._calculate_overall_cultural_stance(),
+                "key_values": [value for value, score in sorted(
+                    self.ashari.cultural_memory.items(), 
+                    key=lambda x: abs(x[1]), 
+                    reverse=True
+                )[:3]]
+            }
+        
         # Use GPT to select the most appropriate sound file
         selected_sound = self.select_sound_with_gpt(word, cultural_context)
         
         # If no sound is selected, handle gracefully
         if selected_sound is None:
             print(f"No sound file available for '{word}'")
-            return
+            return None
         
         # Add the selected sound to the queue
         with self._playback_lock:
@@ -354,7 +396,6 @@ class AshariScoreManager:
         # Ensure playback is running
         self.start_playback()
         
-        # Return the selected sound (for potential further use)
         return selected_sound
     
     def play_queued_sounds(self):
