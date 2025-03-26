@@ -619,65 +619,6 @@ class AshariScoreManager:
             print(f"Error in sound file selection: {e}")
             return None
     
-    # def _threaded_sound_playback(self):
-    #     """Threaded method to play sounds in the queue"""
-    #     while self.sound_queue and not self._stop_playback.is_set():
-    #         # Get the next sound file
-    #         sound_file = self.sound_queue.pop(0)
-            
-    #         # Load the sound
-    #         sound = self._load_sound(sound_file)
-            
-    #         if sound:
-    #             # Get metadata for logging
-    #             metadata = self.sound_files.get(sound_file, {})
-                
-    #             # Print sound details
-    #             logging.info(f"\n🔊 Playing sound: {sound_file}")
-    #             logging.info(f"Duration: {metadata.get('duration_seconds', 'Unknown')} seconds")
-    #             logging.info(f"Sentiment: {metadata.get('sentiment_value', 'N/A')}")
-    #             logging.info("Dialogue: " + metadata.get('dialogue', 'No dialogue available'))
-                
-    #             # Find an available channel with retries
-    #             channel = None
-    #             retries = 0
-    #             while channel is None and retries < 5:
-    #                 channel = pygame.mixer.find_channel()
-    #                 if channel is None:
-    #                     # If no channel is available, wait briefly and try again
-    #                     retries += 1
-    #                     print(f"⚠️ No available channel for playback, retrying ({retries}/5)...")
-    #                     # Stop oldest playing sound if we've reached max retries
-    #                     if retries >= 3:
-    #                         for ch_num in range(pygame.mixer.get_num_channels()):
-    #                             ch = pygame.mixer.Channel(ch_num)
-    #                             if ch.get_busy():
-    #                                 print("⚠️ Stopping oldest sound to free a channel")
-    #                                 ch.stop()
-    #                                 break
-    #                     time.sleep(0.2)
-                
-    #             if channel:
-    #                 # Play the sound
-    #                 channel.play(sound)
-    #             else:
-    #                 print("❗ Could not find an available channel after retries")
-    #                 # Add sound back to queue for later playback
-    #                 self.sound_queue.insert(0, sound_file)
-    #                 time.sleep(0.5)
-    #                 continue
-                
-    #             # Wait for the sound to finish or be interrupted
-    #             start_time = time.time()
-    #             duration = metadata.get('duration_seconds', 1)
-                
-    #             while (time.time() - start_time) < duration:
-    #                 if self._stop_playback.is_set():
-    #                     # Stop sound if requested
-    #                     channel.stop()
-    #                     break
-    #                 time.sleep(0.1)
-    
     def queue_sounds(self, word: str, cultural_context: dict = None):
         """
         Queue appropriate sound files for a given word
@@ -723,22 +664,6 @@ class AshariScoreManager:
         # Start playback in a separate thread
         self._playback_thread = threading.Thread(target=self._threaded_sound_playback)
         self._playback_thread.start()
-
-    
-    # def stop_all_sounds(self):
-    #     """
-    #     Stop all sound playback
-    #     """
-    #     self._stop_playback.set()
-    #     pygame.mixer.stop()
-        
-    #     # Clear current sounds
-    #     with self._playback_lock:
-    #         self._current_sounds.clear()
-        
-    #     # Wait for the thread to finish if it exists
-    #     if self._playback_thread and self._playback_thread.is_alive():
-    #         self._playback_thread.join(timeout=1)
     
     def stop_sounds(self):
         """
