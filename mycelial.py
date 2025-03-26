@@ -38,6 +38,7 @@ def text_input_game():
             pygame.mixer.stop()  # Stop all sounds before exiting
             # Save Ashari's state before exiting
             ashari.save_state()
+            os._exit(0)
             break
         if user_input == "ashari status":
             print(f"\n🧠 Ashari Cultural Memory Status:")
@@ -47,9 +48,6 @@ def text_input_game():
         parts = user_input.split(" ", 1)
         keyword = parts[0]
         method = parts[1] if len(parts) > 1 else ""  # Default
-
-        # Play a sound for each input
-        playsound.play_input_sound()
 
         # Check for cultural shift
         cultural_shift = ashari.check_cultural_shift(keyword)
@@ -66,6 +64,7 @@ def text_input_game():
         print(f"\nThe mycelium absorbs the concept of '{keyword}'... 🍄")
         if method == "haiku":
             haiku.generate_tts_haiku(keyword)
+            playsound.play_input_sound()
         elif method == "move":
             print("🎶 The network whispers back with movement...")
             movement_result = movement.generate_movement_score(keyword)
@@ -74,6 +73,7 @@ def text_input_game():
                 ashari.memory[keyword] = {}
             ashari.memory[keyword]["movement"] = movement_result
             ashari.save_state()
+            playsound.play_input_sound()
             print(f"✅ Stored movement for '{keyword}': {movement_result}")
         elif method == "score":
             print(f"\n🎶 Generating sonic score for '{keyword}'...")
@@ -87,6 +87,8 @@ def text_input_game():
                     reverse=True
                 )[:3]]
             }
+
+            playsound.play_input_sound()
             
             # Queue sounds with cultural context
             score_manager.queue_sounds(keyword, cultural_context)

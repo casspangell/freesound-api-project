@@ -50,10 +50,12 @@ class AshariScoreManager:
         # Cached sound objects
         self._sound_cache = {}
         
-        # Playback thread
+        # Continuous playback management
+        self._current_sound = None
+        self._playback_lock = threading.Lock()
         self._playback_thread = None
         self._stop_playback = threading.Event()
-    
+
     def load_sound_files(self, possible_paths):
         """
         Load sound files from JSON, with robust error handling
@@ -105,6 +107,64 @@ class AshariScoreManager:
         except Exception as e:
             print(f"Error loading sound file {full_path}: {e}")
             return None
+
+    def _continuous_playback(self):
+        """
+        Continuously play sounds in the queue
+        """
+        while not self._stop_playback.is_set():
+            # Check if queue is empty
+            if not self.sound_queue:
+                time.sleep(0.1)
+                continue
+            
+            # Get the next sound file
+            with self._playback_lock:
+                if not self.sound_queue:
+                    continue
+                sound_file = self.sound_queue.pop(0)
+            
+            # Load the sound
+            sound = self._load_sound(sound_file)
+            
+            if sound:
+                # Get metadata for logging
+                metadata = self.sound_files.get(sound_file, {})
+                
+                # Print sound details
+                print(f"\n🔊 Playing sound: {sound_file}")
+                print(f"Duration: {metadata.get('duration_seconds', 'Unknown')} seconds")
+                print(f"Sentiment: {metadata.get('sentiment_value', 'N/A')}")
+                print("Dialogue: " + metadata.get('dialogue', 'No dialogue available'))
+                
+                # Play the sound
+                sound.play()
+                
+                # Wait for the sound to finish
+                start_time = time.time()
+                duration = metadata.get('duration_seconds', 1)
+                
+                while (time.time() - start_time) < duration:
+                    if self._stop_playback.is_set():
+                        sound.stop()
+                        return
+                    time.sleep(0.1)
+
+    def start_playback(self):
+        """
+        Start continuous playback thread if not already running
+        """
+        # Ensure only one playback thread is running
+        if self._playback_thread and self._playback_thread.is_alive():
+            return
+        
+        # Reset stop flag
+        self._stop_playback.clear()
+        
+        # Start playback thread
+        self._playback_thread = threading.Thread(target=self._continuous_playback)
+        self._playback_thread.start()
+
     
     def _log_gpt_interaction(self, interaction_type: str, input_data: dict, response: str = None):
         """
@@ -278,9 +338,6 @@ class AshariScoreManager:
         :param word: Input word to find matching sounds
         :param cultural_context: Optional additional context about the cultural interpretation
         """
-        # Stop any existing playback
-        self.stop_sounds()
-        
         # Use GPT to select the most appropriate sound file
         selected_sound = self.select_sound_with_gpt(word, cultural_context)
         
@@ -290,8 +347,15 @@ class AshariScoreManager:
             return
         
         # Add the selected sound to the queue
-        self.sound_queue = [selected_sound]
+        with self._playback_lock:
+            self.sound_queue.append(selected_sound)
         print(f"Queued sound for '{word}': {selected_sound}")
+        
+        # Ensure playback is running
+        self.start_playback()
+        
+        # Return the selected sound (for potential further use)
+        return selected_sound
     
     def play_queued_sounds(self):
         """
@@ -307,6 +371,18 @@ class AshariScoreManager:
         # Start playback in a separate thread
         self._playback_thread = threading.Thread(target=self._threaded_sound_playback)
         self._playback_thread.start()
+
+    
+    def stop_all_sounds(self):
+        """
+        Stop all sound playback
+        """
+        self._stop_playback.set()
+        pygame.mixer.stop()
+        
+        # Wait for the thread to finish if it exists
+        if self._playback_thread and self._playback_thread.is_alive():
+            self._playback_thread.join(timeout=1)
     
     def stop_sounds(self):
         """
