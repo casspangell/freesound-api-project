@@ -7,6 +7,7 @@ from openai import OpenAI
 from ashari import Ashari
 import config
 import pygame
+import logging
 
 class AshariScoreManager:
     def __init__(self, 
@@ -21,6 +22,14 @@ class AshariScoreManager:
         :param base_sound_path: Base directory for sound files
         :param log_dir: Directory to store GPT interaction logs
         """
+
+        logging.basicConfig(
+            level=logging.INFO,  # or logging.WARNING if you want fewer messages
+            format='%(message)s',
+            handlers=[
+                logging.StreamHandler()  # Writes to console
+            ]
+        )
 
         pygame.mixer.init(channels=16)
 
@@ -106,6 +115,10 @@ class AshariScoreManager:
             print("⚠️ Cannot load sound: filename is None")
             return None
         
+        # Check if sound is in cache
+        if filename in self._sound_cache:
+            return self._sound_cache[filename]
+        
         # Find the section for this filename
         section = next(
             (metadata['section'] for file, metadata in self.sound_files.items() if file == filename), 
@@ -115,12 +128,16 @@ class AshariScoreManager:
         # Construct full path
         full_path = os.path.join(self.base_sound_path, section, filename)
         
-        # Check if sound is in cache
-        if filename in self._sound_cache:
-            return self._sound_cache[filename]
-        
         try:
+            # Ensure the file exists before loading
+            if not os.path.exists(full_path):
+                print(f"⚠️ Sound file not found: {full_path}")
+                return None
+            
+            # Use a more robust sound loading method
             sound = pygame.mixer.Sound(full_path)
+            
+            # Cache the sound
             self._sound_cache[filename] = sound
             return sound
         except Exception as e:
@@ -150,67 +167,60 @@ class AshariScoreManager:
                 # Get metadata for logging
                 metadata = self.sound_files.get(sound_file, {})
                 
-                # Print sound details
-                print(f"\n🔊 Playing sound: {sound_file}")
-                print(f"Duration: {metadata.get('duration_seconds', 'Unknown')} seconds")
-                print(f"Sentiment: {metadata.get('sentiment_value', 'N/A')}")
-                print("Dialogue: " + metadata.get('dialogue', 'No dialogue available'))
+                # Use logging instead of print to reduce potential interruptions
+                logging.info(f"Playing sound: {sound_file}")
                 
                 # Find an available channel and play the sound
                 channel = pygame.mixer.find_channel()
                 if channel:
+                    # Slightly reduce volume to minimize overlap artifacts
+                    channel.set_volume(0.8)
                     channel.play(sound)
-                    
-                    # Store the current sound
-                    with self._playback_lock:
-                        self._current_sounds.append({
-                            'filename': sound_file,
-                            'channel': channel,
-                            'start_time': time.time(),
-                            'duration': metadata.get('duration_seconds', 1)
-                        })
                 
                 # Wait and manage multiple sounds
                 start_time = time.time()
                 duration = metadata.get('duration_seconds', 1)
                 
                 while (time.time() - start_time) < duration:
-                    # Check if 5 seconds remain for the latest sound and there's another in queue
-                    if self.playback_queue:
-                        current_sound_time_left = duration - (time.time() - start_time)
+                    # Check if we're approaching the end of the current sound (5 seconds left)
+                    time_left = duration - (time.time() - start_time)
+                    
+                    # If 5 seconds or less remain and there are no sounds in queue
+                    if time_left <= 5 and not self.playback_queue:
+                        # Queue the current sound back at the top
+                        with self._playback_lock:
+                            self.playback_queue.insert(0, sound_file)
+                    
+                    # If 5 seconds or less remain and there's another sound in queue
+                    if time_left <= 5 and self.playback_queue:
+                        # Peek at the next sound without removing it yet
+                        next_sound = self.playback_queue[0]
+                        next_sound_obj = self._load_sound(next_sound)
                         
-                        if current_sound_time_left <= 5:
-                            # Peek at the next sound without removing it yet
-                            next_sound = self.playback_queue[0]
-                            next_sound_obj = self._load_sound(next_sound)
-                            
-                            if next_sound_obj:
-                                # Find a channel and start playing the next sound
-                                next_channel = pygame.mixer.find_channel()
-                                if next_channel:
-                                    next_channel.play(next_sound_obj)
-                                    
-                                    # Remove the next sound from the queue
-                                    with self._playback_lock:
-                                        self.playback_queue.pop(0)
-                                        self._current_sounds.append({
-                                            'filename': next_sound,
-                                            'channel': next_channel,
-                                            'start_time': time.time(),
-                                            'duration': self.sound_files.get(next_sound, {}).get('duration_seconds', 1)
-                                        })
+                        if next_sound_obj:
+                            # Find a channel and start playing the next sound
+                            next_channel = pygame.mixer.find_channel()
+                            if next_channel:
+                                next_channel.set_volume(0.8)
+                                next_channel.play(next_sound_obj)  # This will play alongside the current sound
+                                
+                                # Remove the next sound from the queue
+                                with self._playback_lock:
+                                    self.playback_queue.pop(0)
                     
                     # Stop if requested
                     if self._stop_playback.is_set():
+                        sound.stop()
                         return
+                    
+                    time.sleep(0.1)
                     
                     time.sleep(0.1)
                 
                 # If no sounds in queue, re-add the current sound
                 with self._playback_lock:
-                    if not self.playback_queue and self._current_sounds:
-                        last_sound = self._current_sounds[-1]['filename']
-                        self.playback_queue.insert(0, last_sound)
+                    if not self.playback_queue:
+                        self.playback_queue.insert(0, sound_file)
                     
                     # Print remaining playback queue
                     print("\n🎶 Remaining Playback Queue:")
@@ -402,10 +412,10 @@ class AshariScoreManager:
                 metadata = self.sound_files.get(sound_file, {})
                 
                 # Print sound details
-                print(f"\n🔊 Playing sound: {sound_file}")
-                print(f"Duration: {metadata.get('duration_seconds', 'Unknown')} seconds")
-                print(f"Sentiment: {metadata.get('sentiment_value', 'N/A')}")
-                print("Dialogue: " + metadata.get('dialogue', 'No dialogue available'))
+                logging.info(f"\n🔊 Playing sound: {sound_file}")
+                logging.info(f"Duration: {metadata.get('duration_seconds', 'Unknown')} seconds")
+                logging.info(f"Sentiment: {metadata.get('sentiment_value', 'N/A')}")
+                logging.info("Dialogue: " + metadata.get('dialogue', 'No dialogue available'))
                 
                 # Play the sound
                 sound.play()
