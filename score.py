@@ -207,26 +207,53 @@ class AshariScoreManager:
         if filename in self._sound_cache:
             return self._sound_cache[filename]
         
-        # Find the section for this filename
-        section = next(
-            (metadata['section'] for file, metadata in self.sound_files.items() if file == filename), 
-            'narrative'  # default section if not found
-        )
+        # Determine which folder to look in based on filename prefix
+        section_folder = None
+        if filename.startswith("1-"):
+            section_folder = "Rising Action"
+        elif filename.startswith("2-"):
+            section_folder = "middle"
+        elif filename.startswith("3-"):
+            section_folder = "climactic" 
+        elif filename.startswith("bridge-"):
+            section_folder = "Bridge"
+        else:
+            # Find the section from metadata if available
+            section_folder = next(
+                (metadata['section'] for file, metadata in self.sound_files.items() if file == filename), 
+                'narrative'  # default section if not found
+            )
         
-        # Try multiple possible paths
+        # Try multiple possible paths based on your actual directory structure
         possible_paths = [
-            os.path.join(self.base_sound_path, section, filename),
-            os.path.join(self.base_sound_path, 'narrative', filename),
-            os.path.join('data/sound_files', section, filename),
-            os.path.join('data/sound_files', 'narrative', filename),
-            os.path.join('data/sound_files/narrative', filename),
-            os.path.join('narrative', filename),
+            # Main paths based on your directory structure
+            os.path.join("data", "sound_files", section_folder, filename),
+            os.path.join("data/sound_files", section_folder, filename),
+            
+            # Try mapped section names
+            os.path.join("data", "sound_files", "Rising Action", filename) if section_folder == "intro" else None,
+            os.path.join("data", "sound_files", "middle", filename) if section_folder == "middle" else None,
+            os.path.join("data", "sound_files", "climactic", filename) if section_folder == "climactic" else None,
+            os.path.join("data", "sound_files", "Bridge", filename) if section_folder == "bridge" else None,
+            
+            # Try with different base paths
+            os.path.join(self.base_sound_path, section_folder, filename),
+            
+            # Direct paths
+            os.path.join(section_folder, filename),
             filename
         ]
+        
+        # Filter out None values
+        possible_paths = [path for path in possible_paths if path]
+        
+        # Print debug info for file loading
+        print(f"🔍 Looking for sound: {filename} (section: {section_folder})")
         
         for full_path in possible_paths:
             try:
                 if os.path.exists(full_path):
+                    print(f"✅ Found sound at: {full_path}")
                     sound = pygame.mixer.Sound(full_path)
                     
                     # Cache the sound
@@ -235,7 +262,9 @@ class AshariScoreManager:
             except Exception as e:
                 pass  # Try next path
         
+        # If we got here, we couldn't find the file
         print(f"⚠️ Sound file not found in any expected location: {filename}")
+        print(f"   Tried paths: {', '.join(possible_paths)}")
         return None
 
     def _continuous_playback(self):
