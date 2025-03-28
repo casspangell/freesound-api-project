@@ -426,6 +426,37 @@ class AshariScoreManager:
             return self._current_section
         
         return None
+
+    def _get_current_theme(self, section, progress):
+        """Get the appropriate theme based on section progress"""
+        if not section or "thematic_elements" not in section:
+            return None
+            
+        themes = section["thematic_elements"]
+        
+        # For Rising Action, consider midpoint and climax timing if available
+        if section["section_name"] == "Rising Action" and "midpoint_time_seconds" in section and "climax_time_seconds" in section:
+            section_start = section["start_time_seconds"]
+            section_end = section["end_time_seconds"]
+            midpoint_time = section["midpoint_time_seconds"]
+            climax_time = section["climax_time_seconds"]
+            
+            current_time = section_start + (section_end - section_start) * progress
+            
+            if current_time < midpoint_time:
+                return themes.get("start")
+            elif current_time < climax_time:
+                return themes.get("midpoint")
+            else:
+                return themes.get("climax")
+        else:
+            # For other sections, use simple progress thresholds
+            if progress < 0.33:
+                return themes.get("start")
+            elif progress < 0.66:
+                return themes.get("midpoint")
+            else:
+                return themes.get("end", themes.get("climax"))
     
     def _calculate_section_progress(self, current_time_seconds: float, section):
         """Calculate progress through the current section (0.0 to 1.0)"""
@@ -451,7 +482,7 @@ class AshariScoreManager:
 
     def select_sound_with_gpt(self, word: str, cultural_context: dict = None) -> str:
         """
-        Select a sound using GPT, enhanced with performance timeline awareness
+        Select a sound using GPT, enhanced with performance timeline awareness and current queue awareness
         
         :param word: Input keyword
         :param cultural_context: Context including performance time and cultural data
@@ -465,29 +496,24 @@ class AshariScoreManager:
         current_section = self._get_current_section(current_time_seconds)
         
         # Enhance cultural context with performance data
-        performance_context = {}
+        performance_context = {
+            "performance_time": get_time_str(),
+            "performance_time_seconds": current_time_seconds
+        }
+        
         if current_section:
             section_progress = self._calculate_section_progress(current_time_seconds, current_section)
             section_name = current_section["section_name"]
             
-            performance_context = {
-                "performance_time": get_time_str(),
-                "performance_time_seconds": current_time_seconds,
+            performance_context.update({
                 "current_section": section_name,
                 "section_progress": section_progress
-            }
+            })
             
             # Add thematic elements based on progress
-            if "thematic_elements" in current_section:
-                themes = current_section["thematic_elements"]
-                if section_progress < 0.33 and "start" in themes:
-                    performance_context["current_theme"] = themes["start"]
-                elif section_progress < 0.66 and "midpoint" in themes:
-                    performance_context["current_theme"] = themes["midpoint"]
-                elif "end" in themes:
-                    performance_context["current_theme"] = themes["end"]
-                elif "climax" in themes:
-                    performance_context["current_theme"] = themes["climax"]
+            current_theme = self._get_current_theme(current_section, section_progress)
+            if current_theme:
+                performance_context["current_theme"] = current_theme
             
             # Filter sounds for appropriate section
             sound_section = self._map_performance_section_to_sound_section(section_name)
@@ -515,6 +541,10 @@ class AshariScoreManager:
             "performance_context": performance_context
         }
         
+        # Get current queue for context
+        with self._playback_lock:
+            current_queue = list(self.playback_queue)
+        
         # Construct the system prompt
         system_prompt = """
             You are the Sound Selector for the Ashari cultural narrative. Your task is to choose the most thematically and emotionally appropriate sound file based on the given keyword and cultural context.
@@ -525,8 +555,10 @@ class AshariScoreManager:
             3. Consider both the current cultural memory and the performance timeline position.
             4. Match the sound file's dialogue to the input word's emotional and cultural resonance.
             5. Select sounds that align with the current section of the performance.
+            6. DO NOT select any sound that is already in the current playback queue.
 
             Selection Criteria:
+            - IMPORTANT: Avoid selecting any sound file that is currently in the queue
             - If a specific sound section is provided (intro, middle, climactic), STRONGLY prefer sounds from that section
             - Analyze how each sound file's dialogue connects to:
               a) The input keyword
@@ -566,6 +598,27 @@ class AshariScoreManager:
             if not filtered_sound_files:
                 filtered_sound_files = self.sound_files
                 print(f"⚠️ No sounds found in section '{target_section}', using all sounds")
+        
+        # Further filter to remove sounds that are already in the queue
+        filtered_sound_files = {
+            filename: metadata 
+            for filename, metadata in filtered_sound_files.items()
+            if filename not in current_queue
+        }
+        
+        # If all appropriate sounds are in the queue, revert to original filtered list
+        if not filtered_sound_files:
+            print("⚠️ All sounds from the appropriate section are already in the queue.")
+            filtered_sound_files = {
+                filename: metadata 
+                for filename, metadata in self.sound_files.items()
+                if filename not in current_queue
+            }
+            
+            # If absolutely all sounds are in the queue, use the full list as a last resort
+            if not filtered_sound_files:
+                print("⚠️ All sounds are currently in the queue. Using full sound library.")
+                filtered_sound_files = self.sound_files
 
         user_prompt = f"""
             Select a sound file for the keyword: '{word}'
@@ -581,6 +634,10 @@ class AshariScoreManager:
             - Current Theme: {cultural_context.get('current_theme', 'N/A')}
             - Preferred Sound Section: {cultural_context.get('mapped_sound_section', 'N/A')}
 
+            CURRENT PLAYBACK QUEUE:
+            {json.dumps(current_queue, indent=2)}
+            IMPORTANT: Do NOT select any sound file that is already in this queue.
+
             AVAILABLE SOUND FILES:
             {json.dumps([
                 {
@@ -592,6 +649,7 @@ class AshariScoreManager:
             ], indent=2)}
 
             ADDITIONAL GUIDANCE:
+            - DO NOT select any sound that is already in the current playback queue
             - Deeply consider how the dialogues resonate with the Ashari's current cultural state
             - The chosen sound should align with the current performance section theme
             - The sound should feel like a profound cultural reflection appropriate for this moment
@@ -602,7 +660,8 @@ class AshariScoreManager:
             "word": word,
             "system_prompt": system_prompt,
             "user_prompt": user_prompt,
-            "cultural_context": cultural_context
+            "cultural_context": cultural_context,
+            "current_queue": current_queue
         }
         
         try:
@@ -632,14 +691,28 @@ class AshariScoreManager:
                 return None
             
             if selected_filename in self.sound_files:
-                print(f"🎵 GPT selected sound file: {selected_filename} for '{word}' in {cultural_context.get('current_section', 'unknown')} section")
+                if selected_filename in current_queue:
+                    print(f"⚠️ GPT selected a sound already in the queue: {selected_filename}")
+                    # Find an alternative that's not in the queue
+                    available_sounds = [f for f in filtered_sound_files.keys() if f not in current_queue]
+                    if available_sounds:
+                        import random
+                        alternative = random.choice(available_sounds)
+                        print(f"🔄 Using alternative sound instead: {alternative}")
+                        return alternative
+                    else:
+                        print(f"Using the suggested sound despite queue duplication: {selected_filename}")
+                else:
+                    print(f"🎵 GPT selected sound file: {selected_filename} for '{word}' in {cultural_context.get('current_section', 'unknown')} section")
                 return selected_filename
             else:
                 print(f"⚠️ Invalid sound file selected: {selected_filename}")
                 
-                # Fallback: select a random sound from the filtered list
-                if filtered_sound_files:
-                    fallback = list(filtered_sound_files.keys())[0]
+                # Fallback: select a random sound from the filtered list that's not in the queue
+                filtered_not_in_queue = [f for f in filtered_sound_files.keys() if f not in current_queue]
+                if filtered_not_in_queue:
+                    import random
+                    fallback = random.choice(filtered_not_in_queue)
                     print(f"Using fallback sound: {fallback}")
                     return fallback
                 return None
