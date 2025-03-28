@@ -7,18 +7,23 @@ from openai import OpenAI
 import config
 import pygame
 import logging
+from performance_clock import get_clock, get_time_str
 
 class AshariScoreManager:
     def __init__(self, 
                  ashari=None,
-                 repeat = False,
+                 repeat=False,
                  sound_files_path='/data/sound_files.json', 
+                 performance_model_path='/data/performance_model.json',
                  base_sound_path='data/sound_files',
                  log_dir='logs'):
         """
         Initialize the Ashari Score Manager
         
+        :param ashari: Ashari instance to use
+        :param repeat: Whether to repeat sounds
         :param sound_files_path: Path to the JSON file containing sound file metadata
+        :param performance_model_path: Path to the JSON file containing performance timeline
         :param base_sound_path: Base directory for sound files
         :param log_dir: Directory to store GPT interaction logs
         """
@@ -43,6 +48,7 @@ class AshariScoreManager:
         self.playback_queue = ["1-7.mp3"]
         self._current_sounds = []
         self._current_sound = None
+        self.repeat = repeat
 
         # Create Ashari instance if not provided
         if ashari is None:
@@ -60,17 +66,13 @@ class AshariScoreManager:
         self.log_dir = log_dir
         os.makedirs(self.log_dir, exist_ok=True)
         
-        # Possible paths for sound files JSON
-        possible_paths = [
-            sound_files_path,
-            os.path.join(os.path.dirname(__file__), sound_files_path),
-            os.path.join(os.path.dirname(__file__), 'data/sound_files.json'),
-            '/data/sound_files.json'
-        ]
-        
-        # Load sound file metadata
+        # Load sound files metadata
         self.sound_files = {}
-        self.load_sound_files(possible_paths)
+        self._load_sound_files(sound_files_path)
+        
+        # Load performance model
+        self.performance_model = {}
+        self._load_performance_model(performance_model_path)
         
         # Base sound path
         self.base_sound_path = base_sound_path
@@ -81,14 +83,29 @@ class AshariScoreManager:
         # Cached sound objects
         self._sound_cache = {}
         
+        # Cached section info
+        self._current_section = None
+        self._last_section_check_time = 0
+        
         # Continuous playback management
         self._current_sound = None
         self._playback_lock = threading.Lock()
         self._playback_thread = None
         self._stop_playback = threading.Event()
+        
+        print(f"🎵 Ashari Score Manager initialized with {len(self.sound_files)} sound files")
 
-    def load_sound_files(self, possible_paths):
+    def _load_sound_files(self, sound_files_path):
         """Load sound files from JSON, with robust error handling"""
+        # Possible paths for sound files JSON
+        possible_paths = [
+            sound_files_path,
+            os.path.join(os.path.dirname(__file__), sound_files_path),
+            os.path.join(os.path.dirname(__file__), 'data/sound_files.json'),
+            '/data/sound_files.json',
+            'sound_files.json'
+        ]
+        
         for path in possible_paths:
             try:
                 if os.path.exists(path):
@@ -100,6 +117,86 @@ class AshariScoreManager:
                 print(f"❌ Error trying to load sound files from {path}: {e}")
         
         print("❌ ERROR: Could not find sound_files.json")
+    
+    def _load_performance_model(self, performance_model_path):
+        """Load performance model from JSON"""
+        # Possible paths for performance model JSON
+        possible_paths = [
+            performance_model_path,
+            os.path.join(os.path.dirname(__file__), performance_model_path),
+            os.path.join(os.path.dirname(__file__), 'data/performance_model.json'),
+            '/data/performance_model.json',
+            'performance_model.json'
+        ]
+        
+        for path in possible_paths:
+            try:
+                if os.path.exists(path):
+                    with open(path, 'r', encoding='utf-8') as f:
+                        self.performance_model = json.load(f)
+                        
+                        # Add seconds values for easier time comparison
+                        for section in self.performance_model["sections"]:
+                            # Convert time strings to seconds (format: "MM:SS")
+                            for time_key in ["start_time", "end_time"]:
+                                if time_key in section:
+                                    min_sec = section[time_key].split(":")
+                                    section[f"{time_key}_seconds"] = int(min_sec[0]) * 60 + int(min_sec[1])
+                            
+                            # Convert midpoint and climax if they exist
+                            for special_time in ["midpoint_time", "climax_time"]:
+                                if special_time in section:
+                                    min_sec = section[special_time].split(":")
+                                    section[f"{special_time}_seconds"] = int(min_sec[0]) * 60 + int(min_sec[1])
+                        
+                        print(f"✅ Loaded performance model from {path}")
+                        return
+            except Exception as e:
+                print(f"❌ Error trying to load performance model from {path}: {e}")
+        
+        print("⚠️ WARNING: Could not find performance_model.json, using default values")
+        # Create a simple default model if file not found
+        self.performance_model = {
+            "total_duration_seconds": 1080,  # 18 minutes
+            "sections": [
+                {
+                    "section_name": "Rising Action",
+                    "start_time": "0:00",
+                    "start_time_seconds": 0,
+                    "end_time": "6:00",
+                    "end_time_seconds": 360,
+                    "thematic_elements": {
+                        "start": "Establishing the narrative foundation",
+                        "midpoint": "Building connections",
+                        "end": "Approaching a dramatic shift"
+                    }
+                },
+                {
+                    "section_name": "Bridge",
+                    "start_time": "6:00",
+                    "start_time_seconds": 360,
+                    "end_time": "12:00",
+                    "end_time_seconds": 720,
+                    "thematic_elements": {
+                        "start": "Moment of tension",
+                        "midpoint": "Processing change",
+                        "end": "Finding new direction"
+                    }
+                },
+                {
+                    "section_name": "Falling Action",
+                    "start_time": "12:00",
+                    "start_time_seconds": 720,
+                    "end_time": "18:00",
+                    "end_time_seconds": 1080,
+                    "thematic_elements": {
+                        "start": "New understanding emerges",
+                        "midpoint": "Integration of experience",
+                        "end": "Final reflection and resolution"
+                    }
+                }
+            ]
+        }
     
     def _load_sound(self, filename: str) -> pygame.mixer.Sound:
         """Load a sound file with the correct section-based path"""
@@ -113,29 +210,36 @@ class AshariScoreManager:
         # Find the section for this filename
         section = next(
             (metadata['section'] for file, metadata in self.sound_files.items() if file == filename), 
-            'middle'  # default section if not found
+            'narrative'  # default section if not found
         )
         
-        # Construct full path
-        full_path = os.path.join(self.base_sound_path, section, filename)
+        # Try multiple possible paths
+        possible_paths = [
+            os.path.join(self.base_sound_path, section, filename),
+            os.path.join(self.base_sound_path, 'narrative', filename),
+            os.path.join('data/sound_files', section, filename),
+            os.path.join('data/sound_files', 'narrative', filename),
+            os.path.join('data/sound_files/narrative', filename),
+            os.path.join('narrative', filename),
+            filename
+        ]
         
-        try:
-            if not os.path.exists(full_path):
-                print(f"⚠️ Sound file not found: {full_path}")
-                return None
-            
-            sound = pygame.mixer.Sound(full_path)
-            
-            # Cache the sound
-            self._sound_cache[filename] = sound
-            return sound
-        except Exception as e:
-            print(f"Error loading sound file {full_path}: {e}")
-            return None
+        for full_path in possible_paths:
+            try:
+                if os.path.exists(full_path):
+                    sound = pygame.mixer.Sound(full_path)
+                    
+                    # Cache the sound
+                    self._sound_cache[filename] = sound
+                    return sound
+            except Exception as e:
+                pass  # Try next path
+        
+        print(f"⚠️ Sound file not found in any expected location: {filename}")
+        return None
 
     def _continuous_playback(self):
         """Continuously play sounds in the playback queue"""
-        # Import haiku module here to avoid circular imports
         import haiku
         
         while not self._stop_playback.is_set():
@@ -191,7 +295,7 @@ class AshariScoreManager:
                     # dialogue = metadata.get('dialogue', '')
                     # if dialogue and dialogue.strip():
                     #     try:
-                    #         if repeat == False:
+                    #         if not self.repeat:
                     #             # Process the entire dialogue directly
                     #             print(f"Processing dialogue: '{dialogue[:50]}...'")
                     #             # Generate the haiku in a separate thread to avoid blocking
@@ -233,233 +337,18 @@ class AshariScoreManager:
                 
                 # If no sounds in queue, re-add the current sound
                 with self._playback_lock:
-                    repeat = True
-                    print(f"repeat is true")
                     if not self.playback_queue:
-                        self.playback_queue.insert(0, sound_file)
-                    
-                        # Print remaining playback queue
-                        print("\n🎶 Remaining Playback Queue:")
-                    else:
-                        print(f"repeat is false")
-                        repeat = False
-                        for i, remaining_sound in enumerate(self.playback_queue, 1):
-                            print(f"  {i}. {remaining_sound}")
-
-                    if not self.playback_queue:
-                        print("  Queue is now empty.")
-
-    def start_playback(self):
-        """Start continuous playback thread if not already running"""
-        # Ensure only one playback thread is running
-        if self._playback_thread and self._playback_thread.is_alive():
-            return
-        
-        # Reset stop flag
-        self._stop_playback.clear()
-        
-        # Start playback thread
-        self._playback_thread = threading.Thread(target=self._continuous_playback)
-        self._playback_thread.daemon = True  # Make thread exit when main program exits
-        self._playback_thread.start()
-    
-    def select_sound_with_gpt(self, word: str, cultural_context: dict = None) -> str:
-        # Prepare a comprehensive cultural context
-        cultural_details = {
-            "overall_sentiment": cultural_context.get('overall_sentiment', 0),
-            "current_cultural_memory": {
-                value: score for value, score in self.ashari.cultural_memory.items()
-            },
-            "strongest_values": [
-                {"value": value, "score": score} 
-                for value, score in sorted(
-                    self.ashari.cultural_memory.items(), 
-                    key=lambda x: abs(x[1]), 
-                    reverse=True
-                )[:3]
-            ]
-        }
-        
-        # Construct the system prompt
-        system_prompt = """
-            You are the Sound Selector for the Ashari cultural narrative. Your task is to choose the most thematically and emotionally appropriate sound file based on the given keyword and cultural context.
-
-            REQUIREMENTS:
-            1. ALWAYS return a VALID FILENAME from the available sound files.
-            2. Use the dialogue section as the primary method of selection.
-            3. Consider the current cultural memory and sentiment of the Ashari.
-            4. Match the sound file's dialogue to the input word's emotional and cultural resonance.
-
-            Selection Criteria:
-            - Analyze how each sound file's dialogue connects to:
-              a) The input keyword
-              b) The current cultural sentiment
-              c) The strongest cultural values
-            - Prioritize dialogues that:
-              - Reflect the emotional nuance of the keyword
-              - Align with the Ashari's current cultural stance
-              - Provide depth and context to the cultural experience
-
-            Evaluation Process:
-            1. Read each dialogue carefully
-            2. Compare the dialogue's themes to the keyword and cultural context
-            3. Consider the sentiment value as a secondary factor
-            4. Select the file that most profoundly captures the moment's emotional and cultural significance
-
-            OUTPUT FORMAT:
-            - Respond ONLY with the EXACT filename of the chosen sound file
-            - NO additional explanation or text
-            - If no perfect match exists, choose the closest thematic representation
-            """
-
-        user_prompt = f"""
-            Select a sound file for the keyword: '{word}'
-
-            CULTURAL CONTEXT:
-            - Overall Sentiment: {cultural_context.get('overall_sentiment', 'N/A')}
-            - Key Cultural Values: {cultural_context.get('key_values', 'N/A')}
-
-            AVAILABLE SOUND FILES:
-            {json.dumps([
-                {
-                    "filename": filename, 
-                    "sentiment": metadata['sentiment_value'], 
-                    "dialogue": metadata['dialogue'], 
-                    "section": metadata['section']
-                } for filename, metadata in self.sound_files.items()
-            ], indent=2)}
-
-            ADDITIONAL GUIDANCE:
-            - Deeply consider how the dialogues resonate with the Ashari's current cultural state
-            - The chosen sound should feel like a profound cultural reflection
-            """
-        
-        # Prepare input data for logging
-        input_data = {
-            "word": word,
-            "system_prompt": system_prompt,
-            "user_prompt": user_prompt,
-            "cultural_context": cultural_context
-        }
-        
-        try:
-            # Call GPT to select the sound file
-            response = self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                max_tokens=50  # We only want the filename
-            )
-            
-            # Extract the filename
-            selected_filename = response.choices[0].message.content.strip()
-            
-            # Log the interaction
-            self._log_gpt_interaction(
-                interaction_type="sound_selection", 
-                input_data=input_data, 
-                response=selected_filename
-            )
-            
-            # Validate the filename
-            if selected_filename == "N/A":
-                print(f"⚠️ No suitable sound file found for '{word}'")
-                return None
-            
-            if selected_filename in self.sound_files:
-                print(f"🎵 GPT selected sound file: {selected_filename}")
-                return selected_filename
-            else:
-                print(f"⚠️ Invalid sound file selected: {selected_filename}")
-                return None
-        
-        except Exception as e:
-            # Log any errors
-            self._log_gpt_interaction(
-                interaction_type="sound_selection_error", 
-                input_data=input_data, 
-                response=str(e)
-            )
-            print(f"Error in sound file selection: {e}")
-            return None
-    
-    def _threaded_sound_playback(self):
-        """Threaded method to play sounds in the queue"""
-        while self.sound_queue and not self._stop_playback.is_set():
-            # Get the next sound file
-            sound_file = self.sound_queue.pop(0)
-            
-            # Load the sound
-            sound = self._load_sound(sound_file)
-            
-            if sound:
-                # Get metadata for logging
-                metadata = self.sound_files.get(sound_file, {})
-                
-                # Print sound details
-                logging.info(f"\n🔊 Playing sound: {sound_file}")
-                logging.info(f"Duration: {metadata.get('duration_seconds', 'Unknown')} seconds")
-                logging.info(f"Sentiment: {metadata.get('sentiment_value', 'N/A')}")
-                logging.info("Dialogue: " + metadata.get('dialogue', ''))
-
-                dialog = metadata.get('dialogue', '')
-                if (dialog != ''):
-                    generate_tts_haiku()
-                
-                # Find an available channel with retries
-                channel = None
-                retries = 0
-                while channel is None and retries < 5:
-                    channel = pygame.mixer.find_channel()
-                    if channel is None:
-                        # If no channel is available, wait briefly and try again
-                        retries += 1
-                        print(f"⚠️ No available channel for playback, retrying ({retries}/5)...")
-                        # Stop oldest playing sound if we've reached max retries
-                        if retries >= 3:
-                            for ch_num in range(pygame.mixer.get_num_channels()):
-                                ch = pygame.mixer.Channel(ch_num)
-                                if ch.get_busy():
-                                    print("⚠️ Stopping oldest sound to free a channel")
-                                    ch.stop()
-                                    break
-                        time.sleep(0.2)
-                
-                if channel:
-                    # Play the sound
-                    channel.play(sound)
-                else:
-                    print("❗ Could not find an available channel after retries")
-                    # Add sound back to queue for later playback
-                    self.sound_queue.insert(0, sound_file)
-                    time.sleep(0.5)
-                    continue
-                
-                # Wait for the sound to finish or be interrupted
-                start_time = time.time()
-                duration = metadata.get('duration_seconds', 1)
-                
-                while (time.time() - start_time) < duration:
-                    if self._stop_playback.is_set():
-                        # Stop sound if requested
-                        channel.stop()
-                        break
-                    time.sleep(0.1)
-                
-                # If no sounds in queue, re-add the current sound
-                with self._playback_lock:
-                    if not self.playback_queue:
+                        # Always add the current sound back to the queue if empty
+                        print(f"Adding {sound_file} back to queue (queue is empty)")
                         self.playback_queue.insert(0, sound_file)
                     
                     # Print remaining playback queue
-                    print("\n🎶 Remaining Playback Queue:")
-                    if not self.playback_queue:
-                        print("  Queue is now empty.")
-                    else:
+                    if self.playback_queue:
+                        print("\n🎶 Remaining Playback Queue:")
                         for i, remaining_sound in enumerate(self.playback_queue, 1):
                             print(f"  {i}. {remaining_sound}")
+                    else:
+                        print("  Queue is now empty.")
 
     def start_playback(self):
         """Start continuous playback thread if not already running"""
@@ -474,31 +363,113 @@ class AshariScoreManager:
         self._playback_thread = threading.Thread(target=self._continuous_playback)
         self._playback_thread.daemon = True  # Make thread exit when main program exits
         self._playback_thread.start()
-
-    def _log_gpt_interaction(self, interaction_type: str, input_data: dict, response: str = None):
-        """Log GPT interaction details"""
-        # Generate unique filename with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-        filename = os.path.join(self.log_dir, f"gpt_log_{interaction_type}_{timestamp}.json")
+        print("🎵 Score playback system started")
+    
+    def _get_current_section(self, current_time_seconds: float):
+        """Get the current section based on elapsed time"""
+        # Use cached value if checked recently (within 5 seconds)
+        if self._current_section and time.time() - self._last_section_check_time < 5:
+            return self._current_section
         
-        # Prepare log entry
-        log_entry = {
-            "timestamp": datetime.now().isoformat(),
-            "interaction_type": interaction_type,
-            "input": input_data,
-            "response": response
+        # Check if performance_model has sections
+        if not self.performance_model or "sections" not in self.performance_model:
+            print("⚠️ No performance model sections available")
+            return None
+        
+        # Find the section containing the current time
+        for section in self.performance_model["sections"]:
+            if (section["start_time_seconds"] <= current_time_seconds and
+                    section["end_time_seconds"] >= current_time_seconds):
+                self._current_section = section
+                self._last_section_check_time = time.time()
+                return section
+        
+        # If we're past the end of the defined sections, return the last one
+        if current_time_seconds > self.performance_model["sections"][-1]["end_time_seconds"]:
+            self._current_section = self.performance_model["sections"][-1]
+            self._last_section_check_time = time.time()
+            return self._current_section
+        
+        # If we're before the first section, return the first one
+        if current_time_seconds < self.performance_model["sections"][0]["start_time_seconds"]:
+            self._current_section = self.performance_model["sections"][0]
+            self._last_section_check_time = time.time()
+            return self._current_section
+        
+        return None
+    
+    def _calculate_section_progress(self, current_time_seconds: float, section):
+        """Calculate progress through the current section (0.0 to 1.0)"""
+        section_start = section["start_time_seconds"]
+        section_end = section["end_time_seconds"]
+        section_duration = section_end - section_start
+        
+        if section_duration <= 0:
+            return 0.0
+        
+        progress = (current_time_seconds - section_start) / section_duration
+        return max(0.0, min(1.0, progress))  # Clamp between 0 and 1
+    
+    def _map_performance_section_to_sound_section(self, performance_section: str) -> str:
+        """Map performance section names to sound file section categories"""
+        section_mapping = {
+            "Rising Action": "intro",
+            "Bridge": "middle",
+            "Falling Action": "climactic"
         }
         
-        # Write to log file
-        try:
-            with open(filename, 'w', encoding='utf-8') as f:
-                json.dump(log_entry, f, indent=2)
-            print(f"✅ Logged GPT interaction to {filename}")
-        except Exception as e:
-            print(f"❌ Error logging GPT interaction: {e}")
-    
+        return section_mapping.get(performance_section, "middle")
+
     def select_sound_with_gpt(self, word: str, cultural_context: dict = None) -> str:
-        # Prepare a comprehensive cultural context
+        """
+        Select a sound using GPT, enhanced with performance timeline awareness
+        
+        :param word: Input keyword
+        :param cultural_context: Context including performance time and cultural data
+        :return: Selected sound filename or None
+        """
+        if cultural_context is None:
+            cultural_context = {}
+        
+        # Get performance context
+        current_time_seconds = get_clock().get_elapsed_seconds()
+        current_section = self._get_current_section(current_time_seconds)
+        
+        # Enhance cultural context with performance data
+        performance_context = {}
+        if current_section:
+            section_progress = self._calculate_section_progress(current_time_seconds, current_section)
+            section_name = current_section["section_name"]
+            
+            performance_context = {
+                "performance_time": get_time_str(),
+                "performance_time_seconds": current_time_seconds,
+                "current_section": section_name,
+                "section_progress": section_progress
+            }
+            
+            # Add thematic elements based on progress
+            if "thematic_elements" in current_section:
+                themes = current_section["thematic_elements"]
+                if section_progress < 0.33 and "start" in themes:
+                    performance_context["current_theme"] = themes["start"]
+                elif section_progress < 0.66 and "midpoint" in themes:
+                    performance_context["current_theme"] = themes["midpoint"]
+                elif "end" in themes:
+                    performance_context["current_theme"] = themes["end"]
+                elif "climax" in themes:
+                    performance_context["current_theme"] = themes["climax"]
+            
+            # Filter sounds for appropriate section
+            sound_section = self._map_performance_section_to_sound_section(section_name)
+            
+            # Add to performance context
+            performance_context["mapped_sound_section"] = sound_section
+        
+        # Merge with existing cultural context
+        cultural_context.update(performance_context)
+        
+        # Prepare a comprehensive context
         cultural_details = {
             "overall_sentiment": cultural_context.get('overall_sentiment', 0),
             "current_cultural_memory": {
@@ -511,7 +482,8 @@ class AshariScoreManager:
                     key=lambda x: abs(x[1]), 
                     reverse=True
                 )[:3]
-            ]
+            ],
+            "performance_context": performance_context
         }
         
         # Construct the system prompt
@@ -521,17 +493,21 @@ class AshariScoreManager:
             REQUIREMENTS:
             1. ALWAYS return a VALID FILENAME from the available sound files.
             2. Use the dialogue section as the primary method of selection.
-            3. Consider the current cultural memory and sentiment of the Ashari.
+            3. Consider both the current cultural memory and the performance timeline position.
             4. Match the sound file's dialogue to the input word's emotional and cultural resonance.
+            5. Select sounds that align with the current section of the performance.
 
             Selection Criteria:
+            - If a specific sound section is provided (intro, middle, climactic), STRONGLY prefer sounds from that section
             - Analyze how each sound file's dialogue connects to:
               a) The input keyword
               b) The current cultural sentiment
               c) The strongest cultural values
+              d) The current performance theme
             - Prioritize dialogues that:
               - Reflect the emotional nuance of the keyword
               - Align with the Ashari's current cultural stance
+              - Match the current performance section's thematic elements
               - Provide depth and context to the cultural experience
 
             Evaluation Process:
@@ -539,12 +515,28 @@ class AshariScoreManager:
             2. Compare the dialogue's themes to the keyword and cultural context
             3. Consider the sentiment value as a secondary factor
             4. Select the file that most profoundly captures the moment's emotional and cultural significance
+               within the current performance context
 
             OUTPUT FORMAT:
             - Respond ONLY with the EXACT filename of the chosen sound file
             - NO additional explanation or text
             - If no perfect match exists, choose the closest thematic representation
             """
+
+        # Filter sounds based on performance section if applicable
+        filtered_sound_files = self.sound_files
+        if "mapped_sound_section" in performance_context:
+            target_section = performance_context["mapped_sound_section"]
+            filtered_sound_files = {
+                filename: metadata 
+                for filename, metadata in self.sound_files.items()
+                if metadata.get('section') == target_section
+            }
+            
+            # If no sounds in the preferred section, use all sounds
+            if not filtered_sound_files:
+                filtered_sound_files = self.sound_files
+                print(f"⚠️ No sounds found in section '{target_section}', using all sounds")
 
         user_prompt = f"""
             Select a sound file for the keyword: '{word}'
@@ -553,6 +545,13 @@ class AshariScoreManager:
             - Overall Sentiment: {cultural_context.get('overall_sentiment', 'N/A')}
             - Key Cultural Values: {cultural_context.get('key_values', 'N/A')}
 
+            PERFORMANCE CONTEXT:
+            - Current Time: {cultural_context.get('performance_time', 'N/A')}
+            - Current Section: {cultural_context.get('current_section', 'N/A')}
+            - Section Progress: {cultural_context.get('section_progress', 'N/A')}
+            - Current Theme: {cultural_context.get('current_theme', 'N/A')}
+            - Preferred Sound Section: {cultural_context.get('mapped_sound_section', 'N/A')}
+
             AVAILABLE SOUND FILES:
             {json.dumps([
                 {
@@ -560,12 +559,13 @@ class AshariScoreManager:
                     "sentiment": metadata['sentiment_value'], 
                     "dialogue": metadata['dialogue'], 
                     "section": metadata['section']
-                } for filename, metadata in self.sound_files.items()
+                } for filename, metadata in filtered_sound_files.items()
             ], indent=2)}
 
             ADDITIONAL GUIDANCE:
             - Deeply consider how the dialogues resonate with the Ashari's current cultural state
-            - The chosen sound should feel like a profound cultural reflection
+            - The chosen sound should align with the current performance section theme
+            - The sound should feel like a profound cultural reflection appropriate for this moment
             """
         
         # Prepare input data for logging
@@ -603,10 +603,16 @@ class AshariScoreManager:
                 return None
             
             if selected_filename in self.sound_files:
-                print(f"🎵 GPT selected sound file: {selected_filename}")
+                print(f"🎵 GPT selected sound file: {selected_filename} for '{word}' in {cultural_context.get('current_section', 'unknown')} section")
                 return selected_filename
             else:
                 print(f"⚠️ Invalid sound file selected: {selected_filename}")
+                
+                # Fallback: select a random sound from the filtered list
+                if filtered_sound_files:
+                    fallback = list(filtered_sound_files.keys())[0]
+                    print(f"Using fallback sound: {fallback}")
+                    return fallback
                 return None
         
         except Exception as e:
@@ -650,20 +656,27 @@ class AshariScoreManager:
         
         return selected_sound
     
-    def play_queued_sounds(self):
-        """
-        Play sounds in the queue using a non-blocking thread
-        """
-        # Reset the stop flag
-        self._stop_playback.clear()
+    def _log_gpt_interaction(self, interaction_type: str, input_data: dict, response: str = None):
+        """Log GPT interaction details"""
+        # Generate unique filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        filename = os.path.join(self.log_dir, f"gpt_log_{interaction_type}_{timestamp}.json")
         
-        if not self.sound_queue:
-            print("No sounds in the queue to play.")
-            return
+        # Prepare log entry
+        log_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "interaction_type": interaction_type,
+            "input": input_data,
+            "response": response
+        }
         
-        # Start playback in a separate thread
-        self._playback_thread = threading.Thread(target=self._threaded_sound_playback)
-        self._playback_thread.start()
+        # Write to log file
+        try:
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(log_entry, f, indent=2)
+            print(f"✅ Logged GPT interaction to {filename}")
+        except Exception as e:
+            print(f"❌ Error logging GPT interaction: {e}")
     
     def stop_sounds(self):
         """
@@ -684,7 +697,7 @@ class AshariScoreManager:
         Clear the sound playback queue
         """
         self.stop_sounds()
-        self.sound_queue.clear()
+        self.playback_queue.clear()
     
     def get_sound_dialogue(self, sound_file: str) -> str:
         """

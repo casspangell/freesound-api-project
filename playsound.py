@@ -1,6 +1,7 @@
 import pygame
 import time
 import os
+import random 
 import threading
 
 # Reset and reinitialize pygame mixer to avoid conflicts
@@ -103,22 +104,38 @@ def play_in_thread(sound_file):
     threading.Thread(target=play_sound, args=(sound_file, True), daemon=True).start()
 
 def play_input_sound():
-    """Play the standard input sound"""
-    input_sound_path = "data/sound_files/input_sound/input_2.mp3"
+    # Randomly select an input sound file
+    input_number = random.randint(1, 4)
+    input_sound_path = f"data/sound_files/input_sound/input_{input_number}.mp3"
     
     # Check in multiple locations
     possible_paths = [
         input_sound_path,
         os.path.join(os.path.dirname(__file__), input_sound_path),
-        "input_2.mp3"
+        f"input_{input_number}.mp3"
     ]
     
     for path in possible_paths:
         if os.path.exists(path):
+            print(f"🔊 Selected random input sound: input_{input_number}.mp3")
             play_in_thread(path)
             return True
     
-    print("⚠️ Input sound file not found in any expected location")
+    # If the selected file wasn't found, try with input_2.mp3 as fallback
+    fallback_path = "data/sound_files/input_sound/input_2.mp3"
+    possible_fallback_paths = [
+        fallback_path,
+        os.path.join(os.path.dirname(__file__), fallback_path),
+        "input_2.mp3"
+    ]
+    
+    for path in possible_fallback_paths:
+        if os.path.exists(path):
+            print("⚠️ Using fallback input sound (input_2.mp3)")
+            play_in_thread(path)
+            return True
+    
+    print("❌ Input sound files not found in any expected location")
     return False
 
 def play_cultural_shift_sound(magnitude):

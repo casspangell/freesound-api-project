@@ -9,7 +9,7 @@ import movement
 import threading
 from ashari import Ashari
 from score import AshariScoreManager
-from performance_clock import get_clock, start_clock, get_time_str
+from performance_clock import get_clock, start_clock, get_time_str, stop_clock
 # Import the playsound module functions
 from playsound import play_sound, play_input_sound, play_cultural_shift_sound
 
@@ -26,9 +26,17 @@ score_manager = AshariScoreManager()
 
 # Clock callback to display time in console
 def clock_update(clock):
-    # This is called every second by the clock
-    # You can expand this function to do something with the time
-    pass
+    """Callback that runs every second when the clock updates"""
+    elapsed_seconds = clock.get_elapsed_seconds()
+    
+    # Get the current performance section
+    current_section = score_manager._get_current_section(elapsed_seconds)
+    
+    # Every 30 seconds, print a status update (but only to the console, not interrupting interaction)
+    if elapsed_seconds % 30 == 0 and current_section:
+        progress = score_manager._calculate_section_progress(elapsed_seconds, current_section)
+        progress_percent = int(progress * 100)
+        print(f"\n---\n🕒 Performance update - Time: {clock.get_time_str()} | Section: {current_section['section_name']} ({progress_percent}%)\n---")
 
 # Main game loop
 def text_input_game():
@@ -51,13 +59,18 @@ def text_input_game():
     while True:
         # Display current time with each prompt
         current_time = get_time_str()
-        print(f"\n[Time: {current_time}] Type a keyword and method (e.g., 'wind haiku', 'fire move', 'rain score') or 'exit'.\n")
+        current_seconds = get_clock().get_elapsed_seconds()
+        current_section = score_manager._get_current_section(current_seconds)
+        section_name = current_section["section_name"] if current_section else "Unknown"
+        
+        print(f"\n[Time: {current_time} | Section: {section_name}] Type a keyword and method (e.g., 'wind haiku', 'fire move', 'rain score') or 'exit'.\n")
         
         user_input = input(f"\n[{current_time}] Enter a keyword and method: ").strip().lower()
         
         if user_input == "exit":
             print(f"Exiting game... 🌱")
             pygame.mixer.stop()  # Stop all sounds before exiting
+            stop_clock()  # Stop the clock
             # Save Ashari's state before exiting
             ashari.save_state()
             os._exit(0)
@@ -70,7 +83,34 @@ def text_input_game():
             continue
             
         if user_input == "time" or user_input == "clock":
-            print(f"\n🕒 Current performance time: {get_time_str()}")
+            # Print detailed time and performance info
+            elapsed_seconds = get_clock().get_elapsed_seconds()
+            current_section = score_manager._get_current_section(elapsed_seconds)
+            
+            print(f"\n🕒 Performance Status:")
+            print(f"  Time: {get_time_str()} ({int(elapsed_seconds)} seconds elapsed)")
+            
+            if current_section:
+                # Calculate progress through section
+                progress = score_manager._calculate_section_progress(elapsed_seconds, current_section)
+                progress_percent = int(progress * 100)
+                
+                print(f"  Section: {current_section['section_name']} ({progress_percent}% complete)")
+                
+                # Display thematic context
+                if "thematic_elements" in current_section:
+                    themes = current_section["thematic_elements"]
+                    if progress < 0.33 and "start" in themes:
+                        print(f"  Current Theme: {themes['start']}")
+                    elif progress < 0.66 and "midpoint" in themes:
+                        print(f"  Current Theme: {themes['midpoint']}")
+                    elif "end" in themes:
+                        print(f"  Current Theme: {themes['end']}")
+                    elif "climax" in themes:
+                        print(f"  Current Theme: {themes['climax']}")
+            else:
+                print("  No active performance section")
+                
             continue
             
         parts = user_input.split(" ", 1)
@@ -86,7 +126,7 @@ def text_input_game():
         if cultural_shift["significant_shift"]:
             shift_magnitude = cultural_shift["shift_magnitude"]
             shifted_value = cultural_shift["shifted_value"]
-            play_cultural_shift_sound(shift_magnitude)
+            # play_cultural_shift_sound(shift_magnitude)
         
         # Process the keyword through Ashari before performing other actions
         ashari_response = ashari.process_keyword(keyword)
@@ -108,22 +148,31 @@ def text_input_game():
         elif method == "score":
             print(f"\n🎶 Generating sonic score for '{keyword}'...")
             
-            # Optional: Get cultural context from Ashari
+            # Get elapsed seconds for time-aware sound selection
+            elapsed_seconds = get_clock().get_elapsed_seconds()
+            current_section = score_manager._get_current_section(elapsed_seconds)
+            section_progress = 0
+            
+            if current_section:
+                section_progress = score_manager._calculate_section_progress(elapsed_seconds, current_section)
+            
+            # Get cultural context from Ashari
             cultural_context = {
                 "overall_sentiment": ashari._calculate_overall_cultural_stance(),
                 "key_values": [value for value, score in sorted(
                     ashari.cultural_memory.items(), 
                     key=lambda x: abs(x[1]), 
                     reverse=True
-                )[:3]]
+                )[:3]],
+                "current_time": get_time_str(),
+                "current_time_seconds": elapsed_seconds,
+                "current_section": current_section["section_name"] if current_section else None,
+                "section_progress": section_progress
             }
-
-            # Add current time to the context
-            cultural_context["current_time"] = get_time_str()
             
             play_input_sound()
             
-            # Queue sounds with cultural context
+            # Queue sounds with enhanced context
             score_manager.queue_sounds(keyword, cultural_context)
         else:
             print(f"⚠️ Invalid method. Use 'haiku', 'move', or 'score'.")
