@@ -1,15 +1,15 @@
 {
   "cultural_memory": {
-    "trust": -0.2464897201527364,
-    "hope": -0.0624999999999999,
-    "survival": 0.986,
-    "community": 0.9374999999999994,
-    "outsiders": -0.6649999999999999,
-    "change": 0.03749999999999999,
-    "tradition": 0.8350000000000001,
-    "sacrifice": 0.965,
-    "knowledge": 0.9374999999999994,
-    "nature": 0.7374999999999997
+    "trust": -0.2564897201527364,
+    "hope": -0.0724999999999999,
+    "survival": 0.982,
+    "community": 0.9274999999999993,
+    "outsiders": -0.6689999999999999,
+    "change": 0.02749999999999999,
+    "tradition": 0.8310000000000001,
+    "sacrifice": 0.9676449999999999,
+    "knowledge": 0.9274999999999993,
+    "nature": 0.7274999999999996
   },
   "interaction_history": [
     {
@@ -2524,19 +2524,230 @@
         "knowledge": 0.9374999999999994,
         "nature": 0.7374999999999997
       }
+    },
+    {
+      "timestamp": "2025-03-26T21:48:36.677500",
+      "prompt": "fire",
+      "response": "",
+      "sentiment": -0.2,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2514897201527364,
+        "hope": -0.06749999999999991,
+        "survival": 0.984,
+        "community": 0.9324999999999994,
+        "outsiders": -0.6669999999999999,
+        "change": 0.03249999999999999,
+        "tradition": 0.8330000000000001,
+        "sacrifice": 0.96,
+        "knowledge": 0.9324999999999994,
+        "nature": 0.7324999999999997
+      }
+    },
+    {
+      "timestamp": "2025-03-26T21:50:03.097691",
+      "prompt": "love",
+      "response": "",
+      "sentiment": 0.8,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2314897201527364,
+        "hope": -0.0474999999999999,
+        "survival": 0.992,
+        "community": 0.9524999999999995,
+        "outsiders": -0.6589999999999999,
+        "change": 0.05249999999999999,
+        "tradition": 0.8410000000000001,
+        "sacrifice": 0.98,
+        "knowledge": 0.9524999999999995,
+        "nature": 0.7524999999999997
+      }
+    },
+    {
+      "timestamp": "2025-03-26T21:50:42.275837",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.2,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.22648972015273638,
+        "hope": -0.0424999999999999,
+        "survival": 0.994,
+        "community": 0.9574999999999995,
+        "outsiders": -0.6569999999999999,
+        "change": 0.057499999999999996,
+        "tradition": 0.8430000000000001,
+        "sacrifice": 0.985,
+        "knowledge": 0.9574999999999995,
+        "nature": 0.7574999999999997
+      }
+    },
+    {
+      "timestamp": "2025-03-26T21:51:08.250466",
+      "prompt": "hurricanhurricane",
+      "response": "",
+      "sentiment": -0.8,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2464897201527364,
+        "hope": -0.0624999999999999,
+        "survival": 0.986,
+        "community": 0.9374999999999994,
+        "outsiders": -0.6649999999999999,
+        "change": 0.03749999999999999,
+        "tradition": 0.8350000000000001,
+        "sacrifice": 0.965,
+        "knowledge": 0.9374999999999994,
+        "nature": 0.7374999999999997
+      }
+    },
+    {
+      "timestamp": "2025-03-26T21:51:38.023943",
+      "prompt": "trump",
+      "response": "",
+      "sentiment": -0.6,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2614897201527364,
+        "hope": -0.0774999999999999,
+        "survival": 0.98,
+        "community": 0.9224999999999994,
+        "outsiders": -0.6709999999999999,
+        "change": 0.022499999999999992,
+        "tradition": 0.8290000000000001,
+        "sacrifice": 0.95,
+        "knowledge": 0.9224999999999994,
+        "nature": 0.7224999999999997
+      }
+    },
+    {
+      "timestamp": "2025-03-26T21:51:58.121236",
+      "prompt": "burn",
+      "response": "",
+      "sentiment": -0.5,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2739897201527364,
+        "hope": -0.0899999999999999,
+        "survival": 0.975,
+        "community": 0.9099999999999995,
+        "outsiders": -0.6759999999999999,
+        "change": 0.009999999999999992,
+        "tradition": 0.8240000000000001,
+        "sacrifice": 0.9375,
+        "knowledge": 0.9099999999999995,
+        "nature": 0.7099999999999997
+      }
+    },
+    {
+      "timestamp": "2025-03-26T21:52:03.273972",
+      "prompt": "fragile",
+      "response": "",
+      "sentiment": -0.2,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.27898972015273643,
+        "hope": -0.0949999999999999,
+        "survival": 0.973,
+        "community": 0.9049999999999995,
+        "outsiders": -0.6779999999999999,
+        "change": 0.0049999999999999906,
+        "tradition": 0.8220000000000001,
+        "sacrifice": 0.9325,
+        "knowledge": 0.9049999999999995,
+        "nature": 0.7049999999999997
+      }
+    },
+    {
+      "timestamp": "2025-03-26T21:52:07.925314",
+      "prompt": "forgiveness",
+      "response": "",
+      "sentiment": 0.6,
+      "triggered_values": [
+        "sacrifice"
+      ],
+      "cultural_memory_snapshot": {
+        "trust": -0.27898972015273643,
+        "hope": -0.0949999999999999,
+        "survival": 0.973,
+        "community": 0.9049999999999995,
+        "outsiders": -0.6779999999999999,
+        "change": 0.0049999999999999906,
+        "tradition": 0.8220000000000001,
+        "sacrifice": 0.945145,
+        "knowledge": 0.9049999999999995,
+        "nature": 0.7049999999999997
+      }
+    },
+    {
+      "timestamp": "2025-03-26T21:54:45.489320",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.1,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.27648972015273643,
+        "hope": -0.0924999999999999,
+        "survival": 0.974,
+        "community": 0.9074999999999994,
+        "outsiders": -0.6769999999999999,
+        "change": 0.007499999999999991,
+        "tradition": 0.8230000000000001,
+        "sacrifice": 0.947645,
+        "knowledge": 0.9074999999999994,
+        "nature": 0.7074999999999997
+      }
+    },
+    {
+      "timestamp": "2025-03-26T21:55:46.760112",
+      "prompt": "tree",
+      "response": "",
+      "sentiment": 0.7,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2589897201527364,
+        "hope": -0.0749999999999999,
+        "survival": 0.981,
+        "community": 0.9249999999999994,
+        "outsiders": -0.6699999999999999,
+        "change": 0.024999999999999988,
+        "tradition": 0.8300000000000001,
+        "sacrifice": 0.9651449999999999,
+        "knowledge": 0.9249999999999994,
+        "nature": 0.7249999999999996
+      }
+    },
+    {
+      "timestamp": "2025-03-26T21:56:07.344810",
+      "prompt": "walking",
+      "response": "",
+      "sentiment": 0.1,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2564897201527364,
+        "hope": -0.0724999999999999,
+        "survival": 0.982,
+        "community": 0.9274999999999993,
+        "outsiders": -0.6689999999999999,
+        "change": 0.02749999999999999,
+        "tradition": 0.8310000000000001,
+        "sacrifice": 0.9676449999999999,
+        "knowledge": 0.9274999999999993,
+        "nature": 0.7274999999999996
+      }
     }
   ],
   "memory": {
     "wind": {
       "first_seen": "2025-03-09T10:57:48.135885",
       "sentiment": 0.15000000000000002,
-      "occurrences": 16,
-      "movement": "Step forward with the left foot while sweeping arms in a wide arc, hold for four counts."
+      "occurrences": 18,
+      "movement": "Extend arms outward while turning the torso side to side, maintaining a grounded stance."
     },
     "fire": {
       "first_seen": "2025-03-12T14:12:55.244067",
-      "sentiment": -0.1647058823529412,
-      "occurrences": 17,
+      "sentiment": -0.16666666666666669,
+      "occurrences": 18,
       "movement": "\"Turn head to the side while crossing arms over chest, hold for four slow counts.\""
     },
     "great": {
@@ -2571,9 +2782,9 @@
     },
     "tree": {
       "first_seen": "2025-03-19T10:52:12.230785",
-      "sentiment": 0,
-      "occurrences": 1,
-      "movement": "Extend arms overhead with fingers spread wide, sway gently from side to side like branches in a breeze."
+      "sentiment": 0.35,
+      "occurrences": 2,
+      "movement": "Extend arms upward while firmly rooting feet into the ground."
     },
     "war": {
       "first_seen": "2025-03-19T10:53:12.867433",
@@ -2623,7 +2834,7 @@
     },
     "forgiveness": {
       "first_seen": "2025-03-25T17:01:18.678301",
-      "occurrences": 8,
+      "occurrences": 9,
       "sentiment": 0.5999999999999999,
       "movement": "Shake shoulders moderately while extending arms upward and stepping forward, sustaining for three slow counts."
     },
@@ -2635,8 +2846,8 @@
     },
     "love": {
       "first_seen": "2025-03-25T17:11:23.778378",
-      "occurrences": 11,
-      "sentiment": 0.7727272727272727,
+      "occurrences": 12,
+      "sentiment": 0.775,
       "movement": "\"Moderately shake shoulders while extending arms upward and stepping side to side for four counts.\""
     },
     "explode": {
@@ -2807,6 +3018,32 @@
       "first_seen": "2025-03-25T23:13:24.787090",
       "occurrences": 2,
       "sentiment": 0.7
+    },
+    "hurricanhurricane": {
+      "first_seen": "2025-03-26T21:51:07.920501",
+      "occurrences": 2,
+      "sentiment": -0.75
+    },
+    "trump": {
+      "first_seen": "2025-03-26T21:51:37.693291",
+      "occurrences": 2,
+      "sentiment": -0.55
+    },
+    "burn": {
+      "first_seen": "2025-03-26T21:51:57.788119",
+      "occurrences": 2,
+      "sentiment": -0.5
+    },
+    "fragile": {
+      "first_seen": "2025-03-26T21:52:02.908885",
+      "occurrences": 2,
+      "sentiment": -0.25
+    },
+    "walking": {
+      "first_seen": "2025-03-26T21:56:06.730300",
+      "occurrences": 2,
+      "sentiment": 0.1,
+      "movement": "Step forward with one foot, extend arms slightly outward, and maintain a steady gaze ahead."
     }
   }
 }

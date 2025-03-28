@@ -11,6 +11,7 @@ import logging
 class AshariScoreManager:
     def __init__(self, 
                  ashari=None,
+                 repeat = False,
                  sound_files_path='/data/sound_files.json', 
                  base_sound_path='data/sound_files',
                  log_dir='logs'):
@@ -21,8 +22,6 @@ class AshariScoreManager:
         :param base_sound_path: Base directory for sound files
         :param log_dir: Directory to store GPT interaction logs
         """
-
-        repeat = False
 
         logging.basicConfig(
             level=logging.INFO,
@@ -189,21 +188,21 @@ class AshariScoreManager:
                     channel.play(sound)
                     
                     # Check if there's dialogue, and if so, generate TTS haiku from it
-                    dialogue = metadata.get('dialogue', '')
-                    if dialogue and dialogue.strip():
-                        try:
-                            if repeat == True:
-                                # Process the entire dialogue directly
-                                print(f"Processing dialogue: '{dialogue[:50]}...'")
-                                # Generate the haiku in a separate thread to avoid blocking
-                                haiku_thread = threading.Thread(
-                                    target=haiku.generate_tts_haiku, 
-                                    args=(dialogue,)
-                                )
-                                haiku_thread.daemon = True
-                                haiku_thread.start()
-                        except Exception as e:
-                            print(f"Error generating haiku from dialogue: {e}")
+                    # dialogue = metadata.get('dialogue', '')
+                    # if dialogue and dialogue.strip():
+                    #     try:
+                    #         if repeat == False:
+                    #             # Process the entire dialogue directly
+                    #             print(f"Processing dialogue: '{dialogue[:50]}...'")
+                    #             # Generate the haiku in a separate thread to avoid blocking
+                    #             haiku_thread = threading.Thread(
+                    #                 target=haiku.generate_tts_haiku, 
+                    #                 args=(dialogue,)
+                    #             )
+                    #             haiku_thread.daemon = True
+                    #             haiku_thread.start()
+                    #     except Exception as e:
+                    #         print(f"Error generating haiku from dialogue: {e}")
                 else:
                     # Emergency fallback - stop all sounds and try again
                     print("❗ EMERGENCY: Stopping all sounds to free channels")
@@ -234,20 +233,21 @@ class AshariScoreManager:
                 
                 # If no sounds in queue, re-add the current sound
                 with self._playback_lock:
-                    repeat = False
-                    print(f"repeat is false")
+                    repeat = True
+                    print(f"repeat is true")
                     if not self.playback_queue:
                         self.playback_queue.insert(0, sound_file)
                     
-                    # Print remaining playback queue
-                    print("\n🎶 Remaining Playback Queue:")
-                    if not self.playback_queue:
-                        print("  Queue is now empty.")
+                        # Print remaining playback queue
+                        print("\n🎶 Remaining Playback Queue:")
                     else:
-                        print(f"repeat is true")
-                        repeat = True
+                        print(f"repeat is false")
+                        repeat = False
                         for i, remaining_sound in enumerate(self.playback_queue, 1):
                             print(f"  {i}. {remaining_sound}")
+
+                    if not self.playback_queue:
+                        print("  Queue is now empty.")
 
     def start_playback(self):
         """Start continuous playback thread if not already running"""

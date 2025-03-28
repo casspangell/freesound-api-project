@@ -1,0 +1,22 @@
+{
+    "total_duration_seconds": 1080,
+    "sections": [
+        {
+            "section_name": "Rising Action",
+            "start_time": "0:00",
+            "midpoint_time": "6:44",
+            "climax_time": "11:09",
+            "end_time": "11:09"
+        },
+        {
+            "section_name": "Bridge",
+            "start_time": "11:09",
+            "end_time": "14:18"
+        },
+        {
+            "section_name": "Falling Action",
+            "start_time": "14:18",
+            "end_time": "18:00"
+        }
+    ]
+}
