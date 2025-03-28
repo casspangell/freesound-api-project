@@ -15,6 +15,24 @@ print(f"Playsound module initialized with {pygame.mixer.get_num_channels()} audi
 # Cache for loaded sounds
 sound_cache = {}
 
+# Module functions for compatibility with original code
+class playsound:
+    @staticmethod
+    def play_input_sound():
+        input_sound = "data/sound_files/input_sound/input_2.mp3"
+        return play_sound(input_sound)
+    
+    @staticmethod
+    def play_cultural_shift_sound(magnitude):
+        if magnitude >= 0.2:
+            shift_sound = "data/sound_files/cultural_shift/high_shift.mp3"
+        elif magnitude >= 0.1:
+            shift_sound = "data/sound_files/cultural_shift/medium_shift.mp3"
+        else:
+            shift_sound = "data/sound_files/cultural_shift/low_shift.mp3"
+        
+        return play_sound(shift_sound)
+
 def play_sound(sound_file, block=False):
     """
     Play a sound file with robust error handling

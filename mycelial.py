@@ -10,76 +10,12 @@ import threading
 from ashari import Ashari
 from score import AshariScoreManager
 from performance_clock import get_clock, start_clock, get_time_str
+# Import the playsound module functions
+from playsound import play_sound, play_input_sound, play_cultural_shift_sound
 
-# Function to handle sound playback - replaces playsound module
-def play_sound(sound_file):
-    """Play a sound file safely"""
-    try:
-        if not os.path.exists(sound_file):
-            possible_paths = [
-                sound_file,
-                os.path.join(os.path.dirname(__file__), sound_file),
-                os.path.join("data/sound_files/input_sound", os.path.basename(sound_file))
-            ]
-            
-            # Try alternate paths
-            for path in possible_paths:
-                if os.path.exists(path):
-                    sound_file = path
-                    break
-            else:
-                print(f"⚠️ Sound file not found: {sound_file}")
-                return False
-        
-        # Make sure pygame mixer is initialized
-        if not pygame.mixer.get_init():
-            pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
-            pygame.mixer.set_num_channels(64)
-        
-        # Find a channel
-        channel = pygame.mixer.find_channel()
-        if channel is None:
-            # Stop any playing sound to make room
-            pygame.mixer.Channel(0).stop()
-            channel = pygame.mixer.find_channel()
-        
-        if channel:
-            sound = pygame.mixer.Sound(sound_file)
-            channel.play(sound)
-            print(f"🔊 Playing input sound: {sound_file}")
-            return True
-        else:
-            print("⚠️ No available channel for input sound")
-            return False
-    except Exception as e:
-        print(f"Error playing sound: {e}")
-        return False
-
-# Module functions for compatibility with original code
-class playsound:
-    @staticmethod
-    def play_input_sound():
-        input_sound = "data/sound_files/input_sound/input_2.mp3"
-        return play_sound(input_sound)
-    
-    @staticmethod
-    def play_cultural_shift_sound(magnitude):
-        if magnitude >= 0.2:
-            shift_sound = "data/sound_files/cultural_shift/high_shift.mp3"
-        elif magnitude >= 0.1:
-            shift_sound = "data/sound_files/cultural_shift/medium_shift.mp3"
-        else:
-            shift_sound = "data/sound_files/cultural_shift/low_shift.mp3"
-        
-        return play_sound(shift_sound)
-
-# Initialize pygame
+# Initialize pygame (minimal initialization as playsound.py now handles the audio setup)
 pygame.init()
-if pygame.mixer.get_init():
-    pygame.mixer.quit()
-pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
-pygame.mixer.set_num_channels(64)
-print(f"Initialized pygame mixer with {pygame.mixer.get_num_channels()} channels")
+print("Mycelial system initialized")
 
 # Initialize Ashari
 ashari = Ashari()
@@ -142,7 +78,7 @@ def text_input_game():
         method = parts[1] if len(parts) > 1 else ""  # Default
 
         # Play a sound when there is an input
-        playsound.play_input_sound()
+        play_input_sound()
 
         # Check for cultural shift
         cultural_shift = ashari.check_cultural_shift(keyword)
@@ -150,7 +86,7 @@ def text_input_game():
         if cultural_shift["significant_shift"]:
             shift_magnitude = cultural_shift["shift_magnitude"]
             shifted_value = cultural_shift["shifted_value"]
-            # playsound.play_cultural_shift_sound(shift_magnitude)
+            play_cultural_shift_sound(shift_magnitude)
         
         # Process the keyword through Ashari before performing other actions
         ashari_response = ashari.process_keyword(keyword)
@@ -159,7 +95,7 @@ def text_input_game():
         print(f"\nThe mycelium absorbs the concept of '{keyword}'... 🍄")
         if method == "haiku":
             haiku.generate_tts_haiku(keyword)
-            playsound.play_input_sound()
+            play_input_sound()
         elif method == "move":
             print("🎶 The network whispers back with movement...")
             movement_result = movement.generate_movement_score(keyword)
@@ -185,7 +121,7 @@ def text_input_game():
             # Add current time to the context
             cultural_context["current_time"] = get_time_str()
             
-            playsound.play_input_sound()
+            play_input_sound()
             
             # Queue sounds with cultural context
             score_manager.queue_sounds(keyword, cultural_context)
