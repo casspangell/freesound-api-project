@@ -95,6 +95,24 @@ class AshariScoreManager:
         
         print(f"🎵 Ashari Score Manager initialized with {len(self.sound_files)} sound files")
 
+    def _initialize_climax_system(self):
+        """Initialize the climax intensity system"""
+        try:
+            # Import the ClimaxIntensitySystem class
+            from climax_system import ClimaxIntensitySystem
+            
+            # Create an instance with reference to this score manager
+            self.climax_system = ClimaxIntensitySystem(self)
+            
+            # Start the monitoring
+            self.climax_system.start_monitoring()
+            
+            print("✅ Climax intensity system initialized")
+            return True
+        except Exception as e:
+            print(f"❌ Error initializing climax system: {e}")
+            return False
+
     def _load_sound_files(self, sound_files_path):
         """Load sound files from JSON, with robust error handling"""
         # Possible paths for sound files JSON

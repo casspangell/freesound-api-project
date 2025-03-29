@@ -38,6 +38,16 @@ def clock_update(clock):
         progress_percent = int(progress * 100)
         print(f"\n---\n🕒 Performance update - Time: {clock.get_time_str()} | Section: {current_section['section_name']} ({progress_percent}%)\n---")
 
+# Initialize the climax intensity system as part of the startup process
+def initialize_systems():
+    """Initialize all subsystems"""
+    print("Initializing performance subsystems...")
+    
+    # Initialize the climax intensity system
+    score_manager._initialize_climax_system()
+    
+    print("All subsystems initialized")
+    
 # Main game loop
 def text_input_game():
     # Initialize the global clock
@@ -54,6 +64,8 @@ def text_input_game():
             # Start the performance clock
             start_clock()
             score_manager.start_playback()
+            # Initialize additional systems
+            initialize_systems()
             break
     
     while True:
