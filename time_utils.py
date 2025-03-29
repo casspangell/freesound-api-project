@@ -84,6 +84,30 @@ def convert_model_to_seconds(model):
     
     return converted_model
 
+    def _get_sound_duration(self, sound_file):
+        """
+        Get the duration of a sound file in seconds
+        
+        :param sound_file: Name of the sound file
+        :return: Duration in seconds or default value of 30 seconds if unknown
+        """
+        # First check metadata from sound_files
+        metadata = self.sound_files.get(sound_file, {})
+        if 'duration_seconds' in metadata:
+            return metadata.get('duration_seconds')
+        
+        # If not in metadata, try to get it from the sound object
+        sound = self._load_sound(sound_file)
+        if sound:
+            try:
+                return sound.get_length()
+            except:
+                pass
+        
+        # Default duration if we can't determine it
+        print(f"⚠️ Could not determine duration for {sound_file}, using default (30s)")
+        return 30.0
+
 # Optional: If you want to include some basic testing
 if __name__ == "__main__":
     import doctest

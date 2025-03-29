@@ -21,7 +21,9 @@
         {
             "section_name": "Bridge",
             "start_seconds": 60,
-            "end_seconds": 100,
+            "midpoint_seconds": 0,
+            "climax_seconds": 0,
+            "end_seconds": 194,
             "thematic_elements": {
                 "start": "The tension from the climax begins to subside, but the Ashari are still in the midst of grappling with the consequences of the cultural shift. There is a moment of reflection, where the full impact of their transformation is not yet fully clear.",
                 "midpoint": "The Ashari begin to embrace the necessity of change but with caution. They realize that the world they once knew no longer exists, and they must adapt to their new reality while acknowledging the cost of that transformation.",

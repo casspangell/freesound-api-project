@@ -221,112 +221,232 @@ class AshariScoreManager:
         print(f"   Tried paths: {', '.join(possible_paths)}")
         return None
 
+
     def _continuous_playback(self):
-        """Continuously play sounds in the playback queue with section-aware repeats"""
+        """Continuously play sounds in the playback queue with section-aware repeats and smooth crossfades"""
         import haiku
+        
+        # Reserve specific channels for main queue playback - avoid conflicts with climax system
+        RESERVED_CHANNELS = 16  # Reserve 16 of the 64 channels for main queue
+        main_channels = [pygame.mixer.Channel(i) for i in range(RESERVED_CHANNELS)]
+        current_channel_index = 0
+        next_channel_index = 1  # For crossfading
+        
+        # Crossfade settings
+        CROSSFADE_START = 5.0  # Start crossfade 5 seconds before end
+        FADE_DURATION = 5.0    # Duration of fades in seconds
+        
+        # Active channel tracking for crossfading
+        current_channel = None
+        next_channel = None
+        current_sound_file = None
+        current_sound_end_time = 0
+        crossfade_started = False
         
         while not self._stop_event.is_set():
             try:
-                # Check if playback queue is empty
-                if not self.playback_queue:
-                    time.sleep(0.1)
-                    continue
+                current_time = time.time()
                 
-                # First, do some housekeeping - make sure we have enough channels
-                if pygame.mixer.get_num_channels() < 32:
-                    pygame.mixer.set_num_channels(32)
-                    print(f"Increased sound channels to {pygame.mixer.get_num_channels()}")
-                
-                # Count busy channels to check system state
-                busy_count = sum(1 for i in range(pygame.mixer.get_num_channels()) if pygame.mixer.Channel(i).get_busy())
-                if busy_count > pygame.mixer.get_num_channels() - 5:
-                    print(f"WARNING: {busy_count}/{pygame.mixer.get_num_channels()} channels busy, freeing resources")
-                    # Stop some sounds to free up channels
-                    for i in range(pygame.mixer.get_num_channels()):
-                        if pygame.mixer.Channel(i).get_busy():
-                            pygame.mixer.Channel(i).stop()
-                            break
-                
-                # Get the next sound file
-                with self._playback_lock:
+                # CASE 1: No active sound playing, start a new one
+                if current_channel is None or not current_channel.get_busy():
+                    crossfade_started = False
+                    
+                    # Check if playback queue is empty
                     if not self.playback_queue:
-                        continue
-                    sound_file = self.playback_queue.pop(0)
-                
-                # Load the sound
-                sound = self._load_sound(sound_file)
-                
-                if sound:
-                    # Get metadata for logging
-                    metadata = self.sound_files.get(sound_file, {})
-                    
-                    logging.info(f"Playing sound: {sound_file}")
-                    
-                    # Force playback by finding a free channel or freeing one
-                    channel = pygame.mixer.find_channel()
-                    if channel is None:
-                        # No channels available, stop the oldest sound
-                        print("⚠️ No channels available - stopping oldest sound")
-                        pygame.mixer.Channel(0).stop()  # Stop the first channel
-                        channel = pygame.mixer.find_channel()
-                    
-                    # Double-check we have a channel
-                    if channel:
-                        channel.set_volume(0.8)
-                        channel.play(sound)
-                    else:
-                        # Emergency fallback - stop all sounds and try again
-                        print("❗ EMERGENCY: Stopping all sounds to free channels")
-                        pygame.mixer.stop()
-                        # Try once more
-                        channel = pygame.mixer.find_channel()
-                        if channel:
-                            channel.play(sound)
-                        else:
-                            print("💥 CRITICAL: Still no channel available after emergency stop")
-                            # Add sound back to queue and continue
+                        # If we have a current sound, add it back to the queue
+                        if current_sound_file and current_sound_file != "None":
+                            print(f"Queue empty, adding current sound back: {current_sound_file}")
                             with self._playback_lock:
-                                self.playback_queue.insert(0, sound_file)
-                            time.sleep(0.5)
-                            continue
+                                self.playback_queue.append(current_sound_file)
+                        # If no current sound is available, add a default based on current section
+                        else:
+                            # Get current time from performance clock
+                            from performance_clock import get_clock
+                            current_time_seconds = get_clock().get_elapsed_seconds()
+                            current_section = self._get_current_section(current_time_seconds)
+                            
+                            # If we have a valid section, get an appropriate sound for it
+                            if current_section:
+                                section_name = current_section["section_name"]
+                                section_sounds = [
+                                    filename for filename, metadata in self.sound_files.items()
+                                    if metadata.get('section', '') == section_name
+                                ]
+                                
+                                if section_sounds:
+                                    import random
+                                    default_sound = random.choice(section_sounds)
+                                    print(f"Queue empty, no current sound, adding default for section {section_name}: {default_sound}")
+                                    with self._playback_lock:
+                                        self.playback_queue.append(default_sound)
+                                else:
+                                    # Last resort - just pick any sound
+                                    all_sounds = list(self.sound_files.keys())
+                                    if all_sounds:
+                                        default_sound = all_sounds[0]
+                                        print(f"Queue empty, no section sounds, adding fallback: {default_sound}")
+                                        with self._playback_lock:
+                                            self.playback_queue.append(default_sound)
                     
-                    # Wait and manage multiple sounds
-                    start_time = time.time()
-                    duration = metadata.get('duration_seconds', 1)
-                    
-                    # Simplify playback management - don't try to overlap sounds as much
-                    while (time.time() - start_time) < duration * 0.9:  # 90% of duration to avoid overlap issues
-                        if self._stop_event.is_set():
-                            if channel.get_busy():
-                                channel.stop()
-                            return
-                        time.sleep(0.1)
-                    
-                    # If no sounds in queue, check if we should repeat or select a new sound
+                    # Get the next sound file from queue
                     with self._playback_lock:
                         if not self.playback_queue:
-                            # Check if repeating this sound would cross a section boundary
-                            if self._would_cross_section_boundary(sound_file, duration):
-                                # Select a sound appropriate for the next section instead
-                                next_section_sound = self._select_sound_for_next_section(sound_file)
-                                print(f"⚠️ Section boundary detected! Using {next_section_sound} from new section instead of repeating {sound_file}")
-                                self.playback_queue.insert(0, next_section_sound)
-                            else:
-                                # Current sound's section is still valid, repeat it
-                                print(f"Adding {sound_file} back to queue (queue is empty)")
-                                self.playback_queue.insert(0, sound_file)
+                            time.sleep(0.1)
+                            continue
+                        sound_file = self.playback_queue.pop(0)
+                        
+                        # Verify sound_file is not None - safety check
+                        if sound_file is None or sound_file == "None":
+                            print("⚠️ WARNING: Found 'None' in playback queue, skipping")
+                            continue
+                    
+                    # Store current sound being played
+                    current_sound_file = sound_file
+                    self._current_sound = sound_file
+                    
+                    # Load the sound
+                    sound = self._load_sound(sound_file)
+                    
+                    if sound:
+                        # Get metadata for logging
+                        metadata = self.sound_files.get(sound_file, {})
+                        duration = metadata.get('duration_seconds', 30)
+                        
+                        logging.info(f"Playing sound: {sound_file} (duration: {duration:.1f}s)")
+                        
+                        # Setup channel for new sound
+                        current_channel = main_channels[current_channel_index]
+                        current_channel_index = (current_channel_index + 1) % RESERVED_CHANNELS
+                        
+                        # Update next channel index too
+                        next_channel_index = (current_channel_index + 1) % RESERVED_CHANNELS
+                        
+                        # If channel is busy, stop it to make room for new sound
+                        if current_channel.get_busy():
+                            current_channel.stop()
+                        
+                        # Start with full volume if no crossfade in progress
+                        current_channel.set_volume(0.8)
+                        current_channel.play(sound)
+                        
+                        # Calculate when this sound will end
+                        current_sound_end_time = current_time + duration
                         
                         # Print remaining playback queue
-                        if self.playback_queue:
-                            print("\n🎶 Remaining Playback Queue:")
-                            for i, remaining_sound in enumerate(self.playback_queue, 1):
-                                print(f"  {i}. {remaining_sound}")
-                        else:
-                            print("  Queue is now empty.")
-            
+                        with self._playback_lock:
+                            if self.playback_queue:
+                                print("\n🎶 Remaining Playback Queue:")
+                                for i, remaining_sound in enumerate(self.playback_queue, 1):
+                                    print(f"  {i}. {remaining_sound}")
+                            else:
+                                print("  Queue is now empty.")
+                
+                # CASE 2: Sound is playing, check if we need to prepare for crossfade
+                elif current_channel and current_channel.get_busy() and not crossfade_started:
+                    # Check if we're within CROSSFADE_START seconds of the end
+                    time_remaining = current_sound_end_time - current_time
+                    
+                    if time_remaining <= CROSSFADE_START:
+                        # We need to prepare the next sound
+                        crossfade_started = True
+                        
+                        # Check if there's anything in the queue, if not add current sound back
+                        with self._playback_lock:
+                            if not self.playback_queue:
+                                # Check if repeating this sound would cross a section boundary
+                                if self._would_cross_section_boundary(current_sound_file, time_remaining + CROSSFADE_START):
+                                    # Select a sound appropriate for the next section
+                                    next_section_sound = self._select_sound_for_next_section(current_sound_file)
+                                    if next_section_sound and next_section_sound != "None":
+                                        print(f"⚠️ Section boundary detected! Using {next_section_sound} from new section for crossfade")
+                                        self.playback_queue.insert(0, next_section_sound)
+                                    else:
+                                        # Fallback if next_section_sound is None or "None"
+                                        print(f"⚠️ Section boundary detected but got invalid next section sound, reusing current for crossfade: {current_sound_file}")
+                                        self.playback_queue.insert(0, current_sound_file)
+                                else:
+                                    # Current sound's section is still valid, repeat it
+                                    print(f"Preparing for crossfade, adding {current_sound_file} back to queue (queue was empty)")
+                                    self.playback_queue.insert(0, current_sound_file)
+                        
+                        # Now get the next sound from the queue (which we just ensured has something)
+                        with self._playback_lock:
+                            next_sound_file = self.playback_queue[0]  # Peek but don't remove yet
+                        
+                        # Load the next sound
+                        next_sound = self._load_sound(next_sound_file)
+                        
+                        if next_sound:
+                            # Setup channel for the next sound
+                            next_channel = main_channels[next_channel_index]
+                            
+                            # If next channel is busy, stop it
+                            if next_channel.get_busy():
+                                next_channel.stop()
+                            
+                            # Start with zero volume (will fade in)
+                            next_channel.set_volume(0.0)
+                            
+                            # Calculate current fade progress and apply to both channels
+                            start_fade_in = time.time()  # When we started the fade
+                            
+                            # Start playing the next sound (it starts silent)
+                            next_channel.play(next_sound)
+                            
+                            # Begin the crossfade process - fade out current, fade in next
+                            fade_complete = False
+                            while not fade_complete and not self._stop_event.is_set():
+                                now = time.time()
+                                fade_progress = min(1.0, (now - start_fade_in) / FADE_DURATION)
+                                
+                                # Apply fade out to current channel (from 0.8 to 0)
+                                current_vol = max(0.0, 0.8 * (1.0 - fade_progress))
+                                current_channel.set_volume(current_vol)
+                                
+                                # Apply fade in to next channel (from 0 to 0.8)
+                                next_vol = min(0.8, 0.8 * fade_progress)
+                                next_channel.set_volume(next_vol)
+                                
+                                # Check if fade is complete
+                                if fade_progress >= 1.0:
+                                    fade_complete = True
+                                    # The next sound is now our current sound
+                                    current_channel = next_channel
+                                    current_sound_file = next_sound_file
+                                    
+                                    # Pop the sound we just started playing from the queue
+                                    with self._playback_lock:
+                                        if self.playback_queue and self.playback_queue[0] == next_sound_file:
+                                            self.playback_queue.pop(0)
+                                    
+                                    # Update tracking variables for the new current sound
+                                    metadata = self.sound_files.get(current_sound_file, {})
+                                    duration = metadata.get('duration_seconds', 30)
+                                    current_sound_end_time = now + duration
+                                    
+                                    # Set next channel index for future crossfades
+                                    current_channel_index = next_channel_index
+                                    next_channel_index = (current_channel_index + 1) % RESERVED_CHANNELS
+                                    
+                                    # Reset crossfade flag
+                                    crossfade_started = False
+                                    
+                                    print(f"✨ Crossfade complete - Now playing: {current_sound_file}")
+                                    
+                                    # Break out of the fade loop
+                                    break
+                                
+                                # Small sleep to avoid CPU spinning
+                                time.sleep(0.05)
+                
+                # Sleep to avoid consuming too much CPU in main loop
+                time.sleep(0.1)
+                
             except Exception as e:
                 print(f"Error in continuous playback: {e}")
-                time.sleep(1.0)  # Sleep on error
+                import traceback
+                traceback.print_exc()
+                time.sleep(1.0)  # Sleep longer on error
 
     def _would_cross_section_boundary(self, sound_file, duration):
         """
@@ -388,13 +508,28 @@ class AshariScoreManager:
         
         if not future_section:
             print("⚠️ Couldn't determine future section, using default sound")
-            return list(self.sound_files.keys())[0]  # Just use the first sound as fallback
+            return list(self.sound_files.keys())[0] if self.sound_files else current_sound  # Use first sound or current as fallback
         
         # Map the performance section to sound section
         target_section = future_section["section_name"]
-
+        
+        # Handle the Intro section case properly
         if target_section == "Intro":
-            return
+            # Find a specific intro sound or use the current sound as fallback
+            intro_sounds = [
+                filename for filename, metadata in self.sound_files.items()
+                if metadata.get('section', '') == "Intro" or metadata.get('section', '') == "Rising Action"
+            ]
+            
+            if intro_sounds:
+                import random
+                selected_sound = random.choice(intro_sounds)
+                print(f"Selected intro sound: {selected_sound}")
+                return selected_sound
+            else:
+                # If no intro sounds found, just use the current sound
+                print(f"No intro sounds found, reusing current sound: {current_sound}")
+                return current_sound
         
         # Find all sounds from the target section
         section_sounds = [
@@ -403,8 +538,8 @@ class AshariScoreManager:
         ]
         
         if not section_sounds:
-            print(f"⚠️ No sounds found for section {target_section}, using default")
-            return list(self.sound_files.keys())[0]  # Just use the first sound as fallback
+            print(f"⚠️ No sounds found for section {target_section}, using current sound as fallback")
+            return current_sound  # Use current sound as fallback instead of a random one
         
         # Select a random sound from the appropriate section
         import random
@@ -776,12 +911,11 @@ class AshariScoreManager:
                     self.playback_queue.insert(0, "1-7.mp3")
                     print(f"🎬 Starting performance with initial sound: 1-7.mp3")
         
-        # Rest of the existing method remains the same...
         # Use GPT to select the most appropriate sound file
         selected_sound = self.select_sound_with_gpt(word, cultural_context)
         
         # If no sound is selected, attempt to add a default sound for the current section
-        if selected_sound is None:
+        if selected_sound is None or selected_sound == "None":
             # Get current time from performance clock
             current_time = get_clock().get_elapsed_seconds()
             current_section = self._get_current_section(current_time)
@@ -803,11 +937,15 @@ class AshariScoreManager:
                     print(f"🎵 Added default sound {selected_sound} for section {sound_section}")
                 else:
                     # Fallback to a generic sound if no section-specific sounds found
-                    selected_sound = list(self.sound_files.keys())[0] if self.sound_files else None
-                    print("⚠️ No appropriate sounds found, using first available sound")
+                    if self.sound_files:
+                        selected_sound = list(self.sound_files.keys())[0]
+                        print("⚠️ No appropriate sounds found, using first available sound")
+                    else:
+                        print("❌ No sounds available at all!")
+                        return None
         
         # If still no sound, log and return
-        if selected_sound is None:
+        if selected_sound is None or selected_sound == "None":
             print("❌ No sounds available to play")
             return None
         
@@ -820,6 +958,9 @@ class AshariScoreManager:
             elif selected_sound not in self.playback_queue:
                 # Only add if not already in queue
                 self.playback_queue.append(selected_sound)
+                print(f"🎶 Added sound to queue: {selected_sound}")
+            else:
+                print(f"⚠️ Sound {selected_sound} already in queue, not adding again")
             
             # Print the current playback queue
             print("\n🎶 Current Playback Queue:")
@@ -853,6 +994,66 @@ class AshariScoreManager:
             print(f"✅ Logged GPT interaction to {filename}")
         except Exception as e:
             print(f"❌ Error logging GPT interaction: {e}")
+
+    def print_channel_status(self):
+        """Print the status of all pygame mixer channels to diagnose playback issues"""
+        print("\n🔊 CHANNEL STATUS REPORT:")
+        print(f"Total channels: {pygame.mixer.get_num_channels()}")
+        
+        busy_channels = 0
+        main_queue_channels = 0
+        climax_channels = 0
+        untracked_channels = 0
+        
+        for i in range(pygame.mixer.get_num_channels()):
+            channel = pygame.mixer.Channel(i)
+            is_busy = channel.get_busy()
+            volume = channel.get_volume()
+            
+            if is_busy:
+                busy_channels += 1
+                
+                # Determine if this channel belongs to main queue (0-15)
+                if i < 16:
+                    main_queue_channels += 1
+                    print(f"  Channel {i}: BUSY (vol={volume:.2f}) - Main Queue")
+                # Or if it belongs to climax system (16-31)
+                elif 16 <= i < 32:
+                    climax_channels += 1
+                    print(f"  Channel {i}: BUSY (vol={volume:.2f}) - Climax System")
+                else:
+                    untracked_channels += 1
+                    print(f"  Channel {i}: BUSY (vol={volume:.2f}) - Untracked")
+        
+        print(f"Busy channels: {busy_channels}/{pygame.mixer.get_num_channels()} ({busy_channels/pygame.mixer.get_num_channels()*100:.1f}%)")
+        print(f"Main queue channels: {main_queue_channels}/16")
+        print(f"Climax system channels: {climax_channels}/16")
+        print(f"Untracked busy channels: {untracked_channels}")
+        
+        # Print details of actively tracked clips
+        if hasattr(self, 'climax_system') and hasattr(self.climax_system, 'active_clips'):
+            print(f"\nActive climax clips: {len(self.climax_system.active_clips)}")
+        
+        # Print crossfade info
+        print("\nCrossfade Status:")
+        if hasattr(self, '_current_sound') and self._current_sound:
+            print(f"  Current sound: {self._current_sound}")
+            
+            # Calculate time remaining
+            if hasattr(self, '_current_sound_end_time'):
+                time_remaining = self._current_sound_end_time - time.time()
+                print(f"  Time remaining: {time_remaining:.1f}s")
+                if time_remaining <= 5.0:
+                    print(f"  ⚠️ Crossfade should be active!")
+        else:
+            print("  No active sound")
+            
+        print(f"Current playback queue: {len(self.playback_queue)} items")
+        if self.playback_queue:
+            print("  Queue contents:")
+            for i, sound in enumerate(self.playback_queue):
+                print(f"    {i+1}. {sound}")
+        print("-" * 40)
     
     def stop_sounds(self):
         """
