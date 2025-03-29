@@ -74,16 +74,16 @@ class ClimaxIntensitySystem:
                 self.end_time = 120.0
                 return
             
-            # Check if midpoint and climax are defined
-            if "midpoint_time_seconds" in rising_action and "climax_time_seconds" in rising_action:
-                self.start_time = rising_action["midpoint_time_seconds"]
-                self.end_time = rising_action["climax_time_seconds"]
+            # Check if midpoint and climax are defined using new *_seconds keys
+            if "midpoint_seconds" in rising_action and "climax_seconds" in rising_action:
+                self.start_time = rising_action["midpoint_seconds"]
+                self.end_time = rising_action["climax_seconds"]
                 print(f"✅ Climax system initialized from performance model:")
                 print(f"   Intensity period: {self._format_time(self.start_time)} to {self._format_time(self.end_time)}")
             else:
                 # Calculate midpoint and climax if not explicitly defined
-                start = rising_action.get("start_time_seconds", 0)
-                end = rising_action.get("end_time_seconds", 600)  # Default 10 minutes if not specified
+                start = rising_action.get("start_seconds", 0)
+                end = rising_action.get("end_seconds", 600)  # Default 10 minutes if not specified
                 
                 # Default to 40% and 80% through the section if exact points not specified
                 self.start_time = start + (end - start) * 0.4

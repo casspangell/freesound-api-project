@@ -8,6 +8,7 @@ import config
 import pygame
 import logging
 from performance_clock import get_clock, get_time_str
+from time_utils import convert_model_to_seconds
 
 class AshariScoreManager:
     def __init__(self, 
@@ -140,21 +141,10 @@ class AshariScoreManager:
         """Load performance model from JSON"""
         try:
             with open(performance_model_path, 'r', encoding='utf-8') as f:
-                self.performance_model = json.load(f)
+                original_model = json.load(f)
             
-            # Add seconds values for easier time comparison
-            for section in self.performance_model["sections"]:
-                # Convert time strings to seconds (format: "MM:SS")
-                for time_key in ["start_time", "end_time"]:
-                    if time_key in section:
-                        min_sec = section[time_key].split(":")
-                        section[f"{time_key}_seconds"] = int(min_sec[0]) * 60 + int(min_sec[1])
-                
-                # Convert midpoint and climax if they exist
-                for special_time in ["midpoint_time", "climax_time"]:
-                    if special_time in section:
-                        min_sec = section[special_time].split(":")
-                        section[f"{special_time}_seconds"] = int(min_sec[0]) * 60 + int(min_sec[1])
+            # Convert the model to use seconds consistently
+            self.performance_model = convert_model_to_seconds(original_model)
             
             print(f"✅ Loaded performance model from {performance_model_path}")
             return True

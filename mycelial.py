@@ -43,7 +43,69 @@ def initialize_systems():
     
     print("All subsystems initialized")
     
-# Main game loop
+def convert_model_to_seconds(model):
+    """
+    Convert a performance model with time strings to a seconds-based model.
+    
+    Ensures that all sections have *_seconds keys for start, end, midpoint, and climax.
+    
+    Args:
+        model (dict): Performance model potentially containing time strings
+    
+    Returns:
+        dict: Performance model with all times converted to seconds
+    """
+    # Create a deep copy to avoid modifying the original
+    import copy
+    converted_model = copy.deepcopy(model)
+    
+    # Convert total duration if it's a string
+    if isinstance(converted_model.get('total_duration'), str):
+        converted_model['total_duration_seconds'] = time_to_seconds(converted_model['total_duration'])
+    
+    # Default time mapping for sections if not specified
+    default_section_times = {
+        "Rising Action": {"start": 0, "end": 180, "midpoint": 60, "climax": 120},
+        "Bridge": {"start": 180, "end": 240},
+        "Falling Action": {"start": 240, "end": 360, "climax": 300}
+    }
+    
+    # Mapping of old keys to new keys
+    time_key_mapping = [
+        ('start_time', 'start_time_seconds'),
+        ('end_time', 'end_time_seconds'),
+        ('midpoint_time', 'midpoint_time_seconds'),
+        ('climax_time', 'climax_time_seconds')
+    ]
+    
+    # Convert section times
+    for section in converted_model.get('sections', []):
+        section_name = section.get('section_name', '')
+        default_times = default_section_times.get(section_name, {})
+        
+        for old_key, new_key in time_key_mapping:
+            # Try to convert from existing key
+            if old_key in section:
+                try:
+                    section[new_key] = time_to_seconds(section[old_key])
+                except Exception as e:
+                    print(f"Warning: Could not convert {old_key} for section {section_name}: {e}")
+                    # Use default if conversion fails
+                    section[new_key] = default_times.get(old_key.split('_')[0], 0)
+            
+            # If key doesn't exist, use default
+            if new_key not in section:
+                section[new_key] = default_times.get(new_key.split('_')[0], 0)
+        
+        # Ensure all time keys exist with sensible defaults
+        for key_base in ['start', 'end', 'midpoint', 'climax']:
+            seconds_key = f"{key_base}_time_seconds"
+            if seconds_key not in section:
+                section[seconds_key] = default_times.get(key_base, 0)
+    
+    return converted_model
+
+    # Main game loop
 def text_input_game():
     # Initialize the global clock
     clock = get_clock()
@@ -186,6 +248,39 @@ def text_input_game():
             
             # Queue sounds with enhanced context
             score_manager.queue_sounds(keyword, cultural_context)
+
+        elif method == "queue":
+            # Print detailed information about the current playback queue
+            with score_manager._playback_lock:
+                queue = list(score_manager.playback_queue)
+            
+            print(f"\n🎶 Current Playback Queue:")
+            if not queue:
+                print("  Queue is empty.")
+            else:
+                for i, sound_file in enumerate(queue, 1):
+                    # Get metadata for the sound file
+                    metadata = score_manager.sound_files.get(sound_file, {})
+                    section = metadata.get('section', 'unknown')
+                    duration = metadata.get('duration_seconds', 0)
+                    sentiment = metadata.get('sentiment_value', 0)
+                    
+                    # Format duration as MM:SS
+                    minutes = int(duration // 60)
+                    seconds = int(duration % 60)
+                    duration_str = f"{minutes:02d}:{seconds:02d}"
+                    
+                    # Print detailed info about each queued sound
+                    print(f"  {i}. {sound_file} (section: {section}, duration: {duration_str}, sentiment: {sentiment})")
+                
+                # Calculate total queue duration
+                total_duration = sum(score_manager.sound_files.get(s, {}).get('duration_seconds', 0) for s in queue)
+                total_minutes = int(total_duration // 60) 
+                total_seconds = int(total_duration % 60)
+                
+                print(f"\n  Total queue duration: {total_minutes:02d}:{total_seconds:02d}")
+            
+            continue
         else:
             print(f"⚠️ Invalid method. Use 'haiku', 'move', or 'score'.")
 
