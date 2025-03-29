@@ -1,11 +1,4 @@
 {
-    "1-7.mp3": {
-        "duration_seconds": 32.24,
-        "sentiment_value": 0.0,
-        "dialogue": "The Ashari stand at the edge of their land, watching the horizon with wary eyes, knowing that survival is their only certainty.",
-        "section": "Rising Action",
-        "story_arc": "0:00-6:43"
-    },
     "1-5.mp3": {
         "duration_seconds": 129.579,
         "sentiment_value": 0.1,

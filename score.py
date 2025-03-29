@@ -360,7 +360,7 @@ class AshariScoreManager:
         sound_section = sound_metadata.get('section', '')
         
         if future_section:
-            future_sound_section = self._map_performance_section_to_sound_section(future_section["section_name"])
+            future_sound_section = future_section["section_name"]
             if sound_section != future_sound_section:
                 print(f"Sound section mismatch: {sound_section} vs {future_sound_section}")
                 return True
@@ -391,7 +391,10 @@ class AshariScoreManager:
             return list(self.sound_files.keys())[0]  # Just use the first sound as fallback
         
         # Map the performance section to sound section
-        target_section = self._map_performance_section_to_sound_section(future_section["section_name"])
+        target_section = future_section["section_name"]
+
+        if target_section == "Intro":
+            return
         
         # Find all sounds from the target section
         section_sounds = [
@@ -501,15 +504,15 @@ class AshariScoreManager:
         progress = (current_time_seconds - section_start) / section_duration
         return max(0.0, min(1.0, progress))  # Clamp between 0 and 1
     
-    def _map_performance_section_to_sound_section(self, performance_section: str) -> str:
-        """Map performance section names to sound file section categories"""
-        section_mapping = {
-            "Rising Action": "intro",
-            "Bridge": "middle",
-            "Falling Action": "climactic"
-        }
+    # def _map_performance_section_to_sound_section(self, performance_section: str) -> str:
+    #     """Map performance section names to sound file section categories"""
+    #     section_mapping = {
+    #         "Rising Action": "intro",
+    #         "Bridge": "middle",
+    #         "Falling Action": "climactic"
+    #     }
         
-        return section_mapping.get(performance_section, "middle")
+    #     return section_mapping.get(performance_section, "middle")
 
     def select_sound_with_gpt(self, word: str, cultural_context: dict = None) -> str:
         """
@@ -547,7 +550,7 @@ class AshariScoreManager:
                 performance_context["current_theme"] = current_theme
             
             # Filter sounds for appropriate section
-            sound_section = self._map_performance_section_to_sound_section(section_name)
+            sound_section = section_name
             
             # Add to performance context
             performance_context["mapped_sound_section"] = sound_section
@@ -765,25 +768,65 @@ class AshariScoreManager:
         :param word: Input word to find matching sounds
         :param cultural_context: Optional additional context about the cultural interpretation
         """
+        # Special handling for "begin"
+        if word.lower() == "begin":
+            # Ensure 1-7.mp3 is added to the queue if it's not already there
+            with self._playback_lock:
+                if "1-7.mp3" not in self.playback_queue:
+                    self.playback_queue.insert(0, "1-7.mp3")
+                    print(f"🎬 Starting performance with initial sound: 1-7.mp3")
+        
+        # Rest of the existing method remains the same...
         # Use GPT to select the most appropriate sound file
         selected_sound = self.select_sound_with_gpt(word, cultural_context)
         
-        # If no sound is selected, handle gracefully
+        # If no sound is selected, attempt to add a default sound for the current section
         if selected_sound is None:
-            print(f"No sound file available for '{word}'")
+            # Get current time from performance clock
+            current_time = get_clock().get_elapsed_seconds()
+            current_section = self._get_current_section(current_time)
+            
+            if current_section:
+                # Map performance section to sound section
+                sound_section = current_section['section_name']
+                
+                # Find sounds in the appropriate section
+                section_sounds = [
+                    filename for filename, metadata in self.sound_files.items()
+                    if metadata.get('section', '') == sound_section
+                ]
+                
+                if section_sounds:
+                    # Choose a random sound from the appropriate section
+                    import random
+                    selected_sound = random.choice(section_sounds)
+                    print(f"🎵 Added default sound {selected_sound} for section {sound_section}")
+                else:
+                    # Fallback to a generic sound if no section-specific sounds found
+                    selected_sound = list(self.sound_files.keys())[0] if self.sound_files else None
+                    print("⚠️ No appropriate sounds found, using first available sound")
+        
+        # If still no sound, log and return
+        if selected_sound is None:
+            print("❌ No sounds available to play")
             return None
         
         # Add the selected sound to the playback queue
         with self._playback_lock:
-            # Append the new sound to the end of the existing queue
-            self.playback_queue.append(selected_sound)
+            # Check if queue is empty before adding
+            if not self.playback_queue:
+                self.playback_queue.append(selected_sound)
+                print(f"🎶 Added sound to empty queue: {selected_sound}")
+            elif selected_sound not in self.playback_queue:
+                # Only add if not already in queue
+                self.playback_queue.append(selected_sound)
             
             # Print the current playback queue
             print("\n🎶 Current Playback Queue:")
             for i, sound in enumerate(self.playback_queue, 1):
                 print(f"  {i}. {sound}")
         
-        # Ensure playback is running - important change here
+        # Ensure playback is running
         if not (self._playback_thread and self._playback_thread.is_alive()):
             self.start_playback()
         
