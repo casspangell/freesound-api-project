@@ -91,7 +91,7 @@ class AshariScoreManager:
         self._current_sound = None
         self._playback_lock = threading.Lock()
         self._playback_thread = None
-        self._stop_playback = threading.Event()
+        self._stop_event = threading.Event()
         
         print(f"🎵 Ashari Score Manager initialized with {len(self.sound_files)} sound files")
 
@@ -232,116 +232,193 @@ class AshariScoreManager:
         return None
 
     def _continuous_playback(self):
-        """Continuously play sounds in the playback queue"""
+        """Continuously play sounds in the playback queue with section-aware repeats"""
         import haiku
         
-        while not self._stop_playback.is_set():
-            # Check if playback queue is empty
-            if not self.playback_queue:
-                time.sleep(0.1)
-                continue
-            
-            # First, do some housekeeping - make sure we have enough channels
-            if pygame.mixer.get_num_channels() < 32:
-                pygame.mixer.set_num_channels(32)
-                print(f"Increased sound channels to {pygame.mixer.get_num_channels()}")
-            
-            # Count busy channels to check system state
-            busy_count = sum(1 for i in range(pygame.mixer.get_num_channels()) if pygame.mixer.Channel(i).get_busy())
-            if busy_count > pygame.mixer.get_num_channels() - 5:
-                print(f"WARNING: {busy_count}/{pygame.mixer.get_num_channels()} channels busy, freeing resources")
-                # Stop some sounds to free up channels
-                for i in range(pygame.mixer.get_num_channels()):
-                    if pygame.mixer.Channel(i).get_busy():
-                        pygame.mixer.Channel(i).stop()
-                        break
-            
-            # Get the next sound file
-            with self._playback_lock:
+        while not self._stop_event.is_set():
+            try:
+                # Check if playback queue is empty
                 if not self.playback_queue:
-                    continue
-                sound_file = self.playback_queue.pop(0)
-            
-            # Load the sound
-            sound = self._load_sound(sound_file)
-            
-            if sound:
-                # Get metadata for logging
-                metadata = self.sound_files.get(sound_file, {})
-                
-                logging.info(f"Playing sound: {sound_file}")
-                
-                # Force playback by finding a free channel or freeing one
-                channel = pygame.mixer.find_channel()
-                if channel is None:
-                    # No channels available, stop the oldest sound
-                    print("⚠️ No channels available - stopping oldest sound")
-                    pygame.mixer.Channel(0).stop()  # Stop the first channel
-                    channel = pygame.mixer.find_channel()
-                
-                # Double-check we have a channel
-                if channel:
-                    channel.set_volume(0.8)
-                    channel.play(sound)
-                    
-                    # Check if there's dialogue, and if so, generate TTS haiku from it
-                    # dialogue = metadata.get('dialogue', '')
-                    # if dialogue and dialogue.strip():
-                    #     try:
-                    #         if not self.repeat:
-                    #             # Process the entire dialogue directly
-                    #             print(f"Processing dialogue: '{dialogue[:50]}...'")
-                    #             # Generate the haiku in a separate thread to avoid blocking
-                    #             haiku_thread = threading.Thread(
-                    #                 target=haiku.generate_tts_haiku, 
-                    #                 args=(dialogue,)
-                    #             )
-                    #             haiku_thread.daemon = True
-                    #             haiku_thread.start()
-                    #     except Exception as e:
-                    #         print(f"Error generating haiku from dialogue: {e}")
-                else:
-                    # Emergency fallback - stop all sounds and try again
-                    print("❗ EMERGENCY: Stopping all sounds to free channels")
-                    pygame.mixer.stop()
-                    # Try once more
-                    channel = pygame.mixer.find_channel()
-                    if channel:
-                        channel.play(sound)
-                    else:
-                        print("💥 CRITICAL: Still no channel available after emergency stop")
-                        # Add sound back to queue and continue
-                        with self._playback_lock:
-                            self.playback_queue.insert(0, sound_file)
-                        time.sleep(0.5)
-                        continue
-                
-                # Wait and manage multiple sounds
-                start_time = time.time()
-                duration = metadata.get('duration_seconds', 1)
-                
-                # Simplify playback management - don't try to overlap sounds as much
-                while (time.time() - start_time) < duration * 0.9:  # 90% of duration to avoid overlap issues
-                    if self._stop_playback.is_set():
-                        if channel.get_busy():
-                            channel.stop()
-                        return
                     time.sleep(0.1)
+                    continue
                 
-                # If no sounds in queue, re-add the current sound
+                # First, do some housekeeping - make sure we have enough channels
+                if pygame.mixer.get_num_channels() < 32:
+                    pygame.mixer.set_num_channels(32)
+                    print(f"Increased sound channels to {pygame.mixer.get_num_channels()}")
+                
+                # Count busy channels to check system state
+                busy_count = sum(1 for i in range(pygame.mixer.get_num_channels()) if pygame.mixer.Channel(i).get_busy())
+                if busy_count > pygame.mixer.get_num_channels() - 5:
+                    print(f"WARNING: {busy_count}/{pygame.mixer.get_num_channels()} channels busy, freeing resources")
+                    # Stop some sounds to free up channels
+                    for i in range(pygame.mixer.get_num_channels()):
+                        if pygame.mixer.Channel(i).get_busy():
+                            pygame.mixer.Channel(i).stop()
+                            break
+                
+                # Get the next sound file
                 with self._playback_lock:
                     if not self.playback_queue:
-                        # Always add the current sound back to the queue if empty
-                        print(f"Adding {sound_file} back to queue (queue is empty)")
-                        self.playback_queue.insert(0, sound_file)
+                        continue
+                    sound_file = self.playback_queue.pop(0)
+                
+                # Load the sound
+                sound = self._load_sound(sound_file)
+                
+                if sound:
+                    # Get metadata for logging
+                    metadata = self.sound_files.get(sound_file, {})
                     
-                    # Print remaining playback queue
-                    if self.playback_queue:
-                        print("\n🎶 Remaining Playback Queue:")
-                        for i, remaining_sound in enumerate(self.playback_queue, 1):
-                            print(f"  {i}. {remaining_sound}")
+                    logging.info(f"Playing sound: {sound_file}")
+                    
+                    # Force playback by finding a free channel or freeing one
+                    channel = pygame.mixer.find_channel()
+                    if channel is None:
+                        # No channels available, stop the oldest sound
+                        print("⚠️ No channels available - stopping oldest sound")
+                        pygame.mixer.Channel(0).stop()  # Stop the first channel
+                        channel = pygame.mixer.find_channel()
+                    
+                    # Double-check we have a channel
+                    if channel:
+                        channel.set_volume(0.8)
+                        channel.play(sound)
                     else:
-                        print("  Queue is now empty.")
+                        # Emergency fallback - stop all sounds and try again
+                        print("❗ EMERGENCY: Stopping all sounds to free channels")
+                        pygame.mixer.stop()
+                        # Try once more
+                        channel = pygame.mixer.find_channel()
+                        if channel:
+                            channel.play(sound)
+                        else:
+                            print("💥 CRITICAL: Still no channel available after emergency stop")
+                            # Add sound back to queue and continue
+                            with self._playback_lock:
+                                self.playback_queue.insert(0, sound_file)
+                            time.sleep(0.5)
+                            continue
+                    
+                    # Wait and manage multiple sounds
+                    start_time = time.time()
+                    duration = metadata.get('duration_seconds', 1)
+                    
+                    # Simplify playback management - don't try to overlap sounds as much
+                    while (time.time() - start_time) < duration * 0.9:  # 90% of duration to avoid overlap issues
+                        if self._stop_event.is_set():
+                            if channel.get_busy():
+                                channel.stop()
+                            return
+                        time.sleep(0.1)
+                    
+                    # If no sounds in queue, check if we should repeat or select a new sound
+                    with self._playback_lock:
+                        if not self.playback_queue:
+                            # Check if repeating this sound would cross a section boundary
+                            if self._would_cross_section_boundary(sound_file, duration):
+                                # Select a sound appropriate for the next section instead
+                                next_section_sound = self._select_sound_for_next_section(sound_file)
+                                print(f"⚠️ Section boundary detected! Using {next_section_sound} from new section instead of repeating {sound_file}")
+                                self.playback_queue.insert(0, next_section_sound)
+                            else:
+                                # Current sound's section is still valid, repeat it
+                                print(f"Adding {sound_file} back to queue (queue is empty)")
+                                self.playback_queue.insert(0, sound_file)
+                        
+                        # Print remaining playback queue
+                        if self.playback_queue:
+                            print("\n🎶 Remaining Playback Queue:")
+                            for i, remaining_sound in enumerate(self.playback_queue, 1):
+                                print(f"  {i}. {remaining_sound}")
+                        else:
+                            print("  Queue is now empty.")
+            
+            except Exception as e:
+                print(f"Error in continuous playback: {e}")
+                time.sleep(1.0)  # Sleep on error
+
+    def _would_cross_section_boundary(self, sound_file, duration):
+        """
+        Check if repeating this sound would cross a section boundary
+        
+        :param sound_file: The sound file to check
+        :param duration: Duration of the sound in seconds
+        :return: True if playing this sound would cross a section boundary
+        """
+        # Get current time from performance clock
+        from performance_clock import get_clock
+        current_time = get_clock().get_elapsed_seconds()
+        
+        # Get the current section
+        current_section = self._get_current_section(current_time)
+        
+        # Calculate where we'll be after this sound plays again
+        future_time = current_time + duration
+        
+        # Get the section we'd be in at that future time
+        future_section = self._get_current_section(future_time)
+        
+        # Check if we'd cross a section boundary
+        if current_section and future_section and current_section["section_name"] != future_section["section_name"]:
+            print(f"Section boundary detected: {current_section['section_name']} -> {future_section['section_name']}")
+            print(f"Current time: {int(current_time//60):02d}:{int(current_time%60):02d}, Future time: {int(future_time//60):02d}:{int(future_time%60):02d}")
+            return True
+        
+        # Also check if the sound file's section doesn't match the future section
+        sound_metadata = self.sound_files.get(sound_file, {})
+        sound_section = sound_metadata.get('section', '')
+        
+        if future_section:
+            future_sound_section = self._map_performance_section_to_sound_section(future_section["section_name"])
+            if sound_section != future_sound_section:
+                print(f"Sound section mismatch: {sound_section} vs {future_sound_section}")
+                return True
+        
+        return False
+
+    def _select_sound_for_next_section(self, current_sound):
+        """
+        Select an appropriate sound for the next section
+        
+        :param current_sound: The current sound that would cross the boundary
+        :return: A new sound file appropriate for the next section
+        """
+        # Get current time from performance clock
+        from performance_clock import get_clock
+        current_time = get_clock().get_elapsed_seconds()
+        
+        # Calculate where we'll be after this sound plays again
+        sound_metadata = self.sound_files.get(current_sound, {})
+        duration = sound_metadata.get('duration_seconds', 30)  # Default to 30s if unknown
+        future_time = current_time + duration
+        
+        # Get the section we'd be in at that future time
+        future_section = self._get_current_section(future_time)
+        
+        if not future_section:
+            print("⚠️ Couldn't determine future section, using default sound")
+            return list(self.sound_files.keys())[0]  # Just use the first sound as fallback
+        
+        # Map the performance section to sound section
+        target_section = self._map_performance_section_to_sound_section(future_section["section_name"])
+        
+        # Find all sounds from the target section
+        section_sounds = [
+            filename for filename, metadata in self.sound_files.items()
+            if metadata.get('section', '') == target_section
+        ]
+        
+        if not section_sounds:
+            print(f"⚠️ No sounds found for section {target_section}, using default")
+            return list(self.sound_files.keys())[0]  # Just use the first sound as fallback
+        
+        # Select a random sound from the appropriate section
+        import random
+        selected_sound = random.choice(section_sounds)
+        
+        print(f"Selected sound {selected_sound} for next section {target_section}")
+        return selected_sound
 
     def start_playback(self):
         """Start continuous playback thread if not already running"""
@@ -350,11 +427,11 @@ class AshariScoreManager:
             return
         
         # Reset stop flag
-        self._stop_playback.clear()
+        self._stop_event.clear()  # Changed from self._stop_playback.clear()
         
         # Start playback thread
         self._playback_thread = threading.Thread(target=self._continuous_playback)
-        self._playback_thread.daemon = True  # Make thread exit when main program exits
+        self._playback_thread.daemon = True
         self._playback_thread.start()
         print("🎵 Score playback system started")
     

@@ -6,8 +6,8 @@ import math
 
 class ClimaxIntensitySystem:
     """
-    System to handle increasing intensity during a specific time period
-    by playing additional sound clips with decreasing intervals and tapered volume
+    System to handle increasing intensity during the midpoint to climax period
+    of the Rising Action section, using the performance model for timing
     """
     
     def __init__(self, score_manager):
@@ -22,21 +22,21 @@ class ClimaxIntensitySystem:
         self.volume_thread = None
         self.stop_event = threading.Event()
         
-        # Intensity time range (in seconds)
-        self.start_time = 15.0   # Start at 15 seconds
-        self.end_time = 120.0    # End at 2 minutes (120 seconds)
+        # Intensity parameters from performance model will be set during initialization
+        self.start_time = None  # Will be set from model's midpoint
+        self.end_time = None    # Will be set from model's climax
         
         # Intensity parameters - INCREASED FOR MORE INTENSITY
-        self.initial_interval = 12.0  # Start with shorter intervals between clips (was 15)
-        self.final_interval = 1.0     # End with even shorter intervals (was 2)
+        self.initial_interval = 12.0  # Start with shorter intervals between clips
+        self.final_interval = 1.0     # End with even shorter intervals
         
         # Add multi-clip support for higher intensity
         self.max_concurrent_clips = 3  # Allow up to 3 clips to play simultaneously
         
-        # Volume parameters - INCREASED FOR MORE INTENSITY
-        self.base_min_volume = 0.4   # Higher starting volume (was 0.3)
-        self.base_max_volume = 0.95  # Nearly full volume at peak (was 0.8)
-        self.fade_duration = 0.5     # Shorter, more dramatic fades (was 0.7)
+        # Volume parameters
+        self.base_min_volume = 0.4   # Higher starting volume
+        self.base_max_volume = 0.95  # Nearly full volume at peak
+        self.fade_duration = 0.5     # Shorter, more dramatic fades
         
         # Active clip tracking (for volume control)
         self.active_clips = {}  # {channel: {start_time, sound, base_volume}}
@@ -45,6 +45,59 @@ class ClimaxIntensitySystem:
         # State tracking
         self.is_active = False
         self.last_clip_time = 0
+        
+        # Initialize the intensity period from the performance model
+        self._initialize_from_performance_model()
+    
+    def _initialize_from_performance_model(self):
+        """Initialize timing from the performance model"""
+        try:
+            # Get the performance model from the score manager
+            performance_model = self.score_manager.performance_model
+            
+            if not performance_model or "sections" not in performance_model:
+                print("⚠️ No valid performance model found, using default values")
+                self.start_time = 15.0   # Default: Start at 15 seconds
+                self.end_time = 120.0    # Default: End at 2 minutes (120 seconds)
+                return
+            
+            # Find the Rising Action section
+            rising_action = None
+            for section in performance_model["sections"]:
+                if section["section_name"] == "Rising Action":
+                    rising_action = section
+                    break
+            
+            if not rising_action:
+                print("⚠️ No Rising Action section found in performance model, using default values")
+                self.start_time = 15.0
+                self.end_time = 120.0
+                return
+            
+            # Check if midpoint and climax are defined
+            if "midpoint_time_seconds" in rising_action and "climax_time_seconds" in rising_action:
+                self.start_time = rising_action["midpoint_time_seconds"]
+                self.end_time = rising_action["climax_time_seconds"]
+                print(f"✅ Climax system initialized from performance model:")
+                print(f"   Intensity period: {self._format_time(self.start_time)} to {self._format_time(self.end_time)}")
+            else:
+                # Calculate midpoint and climax if not explicitly defined
+                start = rising_action.get("start_time_seconds", 0)
+                end = rising_action.get("end_time_seconds", 600)  # Default 10 minutes if not specified
+                
+                # Default to 40% and 80% through the section if exact points not specified
+                self.start_time = start + (end - start) * 0.4
+                self.end_time = start + (end - start) * 0.8
+                
+                print(f"⚠️ Midpoint and climax not explicitly defined in model, calculated values:")
+                print(f"   Intensity period: {self._format_time(self.start_time)} to {self._format_time(self.end_time)}")
+        
+        except Exception as e:
+            print(f"❌ Error initializing from performance model: {e}")
+            # Fall back to default values
+            self.start_time = 15.0
+            self.end_time = 120.0
+            print(f"   Using default intensity period: {self._format_time(self.start_time)} to {self._format_time(self.end_time)}")
     
     def start_monitoring(self):
         """Start the background monitoring thread"""

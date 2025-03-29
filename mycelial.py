@@ -24,19 +24,14 @@ ashari.load_state()  # Load Ashari's memory
 # Initialize sound manager
 score_manager = AshariScoreManager()
 
-# Clock callback to display time in console
+# Clock callback to display time in console - FIXED VERSION
 def clock_update(clock):
     """Callback that runs every second when the clock updates"""
     elapsed_seconds = clock.get_elapsed_seconds()
     
-    # Get the current performance section
-    current_section = score_manager._get_current_section(elapsed_seconds)
-    
-    # Every 30 seconds, print a status update (but only to the console, not interrupting interaction)
-    if elapsed_seconds % 30 == 0 and current_section:
-        progress = score_manager._calculate_section_progress(elapsed_seconds, current_section)
-        progress_percent = int(progress * 100)
-        print(f"\n---\n🕒 Performance update - Time: {clock.get_time_str()} | Section: {current_section['section_name']} ({progress_percent}%)\n---")
+    # Only print a status update every 30 seconds
+    if elapsed_seconds % 30 == 0:
+        print(f"\n---\n🕒 Performance update - Time: {clock.get_time_str()} | Elapsed: {int(elapsed_seconds)} seconds\n---")
 
 # Initialize the climax intensity system as part of the startup process
 def initialize_systems():
@@ -63,9 +58,14 @@ def text_input_game():
         if user_input == "begin":
             # Start the performance clock
             start_clock()
-            score_manager.start_playback()
-            # Initialize additional systems
+            
+            # Initialize the systems
             initialize_systems()
+            
+            # Start the playback
+            score_manager.start_playback()
+            
+            print("Performance started! Type keywords to interact...")
             break
     
     while True:
