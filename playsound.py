@@ -41,7 +41,7 @@ def play_sound(sound_file, block=False):
     :param sound_file: Path to the sound file
     :param block: Whether to block until sound finishes playing
     """
-    print(f"++++Playing Sound: {sound_file}")
+    print(f"++++Playing sound: {sound_file}")
 
     try:
         # Check if file exists

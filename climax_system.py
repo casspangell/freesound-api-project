@@ -3,6 +3,7 @@ import threading
 import time
 import pygame
 import math
+import os  # Added import for os.path.join
 
 class ClimaxIntensitySystem:
     def __init__(self, score_manager):
@@ -20,8 +21,8 @@ class ClimaxIntensitySystem:
         self.stop_event = threading.Event()
         
         # Intensity parameters from performance model will be set during initialization
-        self.start_time = None  # Will be set from model's midpoint
-        self.end_time = None    # Will be set from model's climax
+        self.start_time = None
+        self.end_time = None
         self.current_section = None  # Track the current section
         
         # Intensity parameters - INCREASED FOR MORE INTENSITY
@@ -29,12 +30,12 @@ class ClimaxIntensitySystem:
         self.final_interval = 1.0     # End with even shorter intervals
         
         # Add multi-clip support for higher intensity
-        self.max_concurrent_clips = 3  # Allow up to 3 clips to play simultaneously
+        self.max_concurrent_clips = 3
         
         # Volume parameters
-        self.base_min_volume = 0.4   # Higher starting volume
-        self.base_max_volume = 0.95  # Nearly full volume at peak
-        self.fade_duration = 0.5     # Shorter, more dramatic fades
+        self.base_min_volume = 0.4
+        self.base_max_volume = 0.95
+        self.fade_duration = 0.5
         
         # Active clip tracking (for volume control)
         self.active_clips = {}  # {channel: {start_time, sound, base_volume}}
@@ -53,20 +54,14 @@ class ClimaxIntensitySystem:
             # Get the performance model from the score manager
             performance_model = self.score_manager.performance_model
             
-            if not performance_model or "sections" not in performance_model:
-                print("⚠️ No valid performance model found, using default values")
-                self.start_time = 15.0   # Default: Start at 15 seconds
-                self.end_time = 120.0    # Default: End at 2 minutes (120 seconds)
-                return
-            
             # Find the current time to determine which section we're in
             from performance_clock import get_clock
             current_time = get_clock().get_elapsed_seconds()
             current_section = self.score_manager._get_current_section(current_time)
+            print(f"CURRENT SECTION {current_section}")
             
             if current_section:
                 self.current_section = current_section["section_name"]
-                print(f"🎭 Current section for climax system: {self.current_section}")
                 
                 # Set appropriate clips based on section
                 if self.current_section == "Falling Action":
@@ -76,46 +71,42 @@ class ClimaxIntensitySystem:
                     self.climax_clips = self.rising_action_clips
                     print(f"🎵 Using Rising Action climax clips: {self.climax_clips}")
             
-            # Find the appropriate section for timing
-            target_section = None
-            if self.current_section == "Falling Action":
-                # Look for Falling Action section
-                for section in performance_model["sections"]:
-                    if section["section_name"] == "Falling Action":
-                        target_section = section
-                        break
-            else:
-                # Default to Rising Action section
-                for section in performance_model["sections"]:
-                    if section["section_name"] == "Rising Action":
-                        target_section = section
-                        break
+            # Store both intensity periods from the performance model for reference
+            self.intensity_periods = {
+                "Rising Action": None,
+                "Falling Action": None
+            }
             
-            if not target_section:
-                print("⚠️ Target section not found in performance model, using default values")
-                self.start_time = 15.0
-                self.end_time = 120.0
-                return
+            # Extract intensity periods for both sections
+            for section in performance_model["sections"]:
+                section_name = section.get("section_name")
+                if section_name in ["Rising Action", "Falling Action"]:
+                    self.intensity_periods[section_name] = {
+                        "start": section.get("midpoint_seconds"),
+                        "end": section.get("climax_seconds")
+                    }
             
-            # Get timing values based on section
-            if self.current_section == "Falling Action":
-                # For Falling Action, use start to climax as the intensity period
-                self.start_time = target_section.get("start_time_seconds", 0)
-                self.end_time = target_section.get("climax_time_seconds", 300)
-            else:
-                # For Rising Action, use midpoint to climax
-                self.start_time = target_section.get("midpoint_time_seconds", 0)
-                self.end_time = target_section.get("climax_time_seconds", 120)
+            # Initialize with the current section's intensity period
+            self._update_current_intensity_period()
             
-            print(f"✅ Climax system initialized for {self.current_section}:")
-            print(f"   Intensity period: {self._format_time(self.start_time)} to {self._format_time(self.end_time)}")
+            print(f"✅ Climax system initialized with multiple intensity periods:")
+            for section_name, period in self.intensity_periods.items():
+                if period:
+                    print(f"   {section_name}: {self._format_time(period['start'])} to {self._format_time(period['end'])}")
+            print(f"   Current active period ({self.current_section}): {self._format_time(self.start_time)} to {self._format_time(self.end_time)}")
         
         except Exception as e:
             print(f"❌ Error initializing from performance model: {e}")
-            # Fall back to default values
-            self.start_time = 15.0
-            self.end_time = 120.0
-            print(f"   Using default intensity period: {self._format_time(self.start_time)} to {self._format_time(self.end_time)}")
+    
+    def _update_current_intensity_period(self):
+        """Update the current intensity period based on the active section"""
+        if self.current_section in self.intensity_periods and self.intensity_periods[self.current_section]:
+            period = self.intensity_periods[self.current_section]
+            self.start_time = period["start"]
+            self.end_time = period["end"]
+            print(f"🔄 Updated intensity period for {self.current_section}: {self._format_time(self.start_time)} to {self._format_time(self.end_time)}")
+        else:
+            print(f"⚠️ No intensity period found for {self.current_section}")
     
     def start_monitoring(self):
         """Start the background monitoring thread"""
@@ -159,6 +150,10 @@ class ClimaxIntensitySystem:
         """Background thread that monitors timeline position and triggers intensity clips"""
         from performance_clock import get_clock
         
+        # Track the last time we checked the section to avoid constant checks
+        last_section_check_time = 0
+        section_check_interval = 1.0  # Check current section every second
+        
         while not self.stop_event.is_set():
             try:
                 # Get current timeline position
@@ -170,23 +165,56 @@ class ClimaxIntensitySystem:
                     if not self.is_active:
                         self.is_active = True
                         self.last_clip_time = current_time
+                        last_section_check_time = 0  # Force section check on activation
                         
-                        # Update the current section and clip set
+                        # Initial section-based setup
                         current_section = self.score_manager._get_current_section(current_time)
                         if current_section:
                             section_name = current_section["section_name"]
+                            print(f"Section: {section_name}")  # Fixed string interpolation
                             if section_name != self.current_section:
                                 self.current_section = section_name
                                 # Update clips based on section
                                 if self.current_section == "Falling Action":
                                     self.climax_clips = self.falling_action_clips
                                     print(f"🍂 ENTERING FALLING ACTION INTENSITY ZONE - Using clips: {self.climax_clips}")
-                                else:
+                                if self.current_section == "Rising Action":
                                     self.climax_clips = self.rising_action_clips
                                     print(f"🔥 ENTERING RISING ACTION INTENSITY ZONE - Using clips: {self.climax_clips}")
                         
                         section_emoji = "🍂" if self.current_section == "Falling Action" else "🔥"
                         print(f"{section_emoji} ENTERING HIGH INTENSITY ZONE ({self._format_time(current_time)})")
+                    
+                    # Periodically check if the section has changed while we're active
+                    if current_time - last_section_check_time >= section_check_interval:
+                        current_section = self.score_manager._get_current_section(current_time)
+                        if current_section:
+                            section_name = current_section["section_name"]
+                            print(f"Current section: {section_name}")  # Periodic section reporting
+                            
+                            # If section changed, update our settings
+                            if section_name != self.current_section:
+                                self.current_section = section_name
+                                print(f"📊 SECTION CHANGED to: {section_name}")
+                                
+                                # Update clips based on section
+                                if self.current_section == "Falling Action":
+                                    self.climax_clips = self.falling_action_clips
+                                    print(f"🍂 SWITCHING TO FALLING ACTION CLIPS: {self.climax_clips}")
+                                else:
+                                    self.climax_clips = self.rising_action_clips
+                                    print(f"🔥 SWITCHING TO RISING ACTION CLIPS: {self.climax_clips}")
+                                
+                                # Update the intensity period for the new section
+                                self._update_current_intensity_period()
+                                
+                                # Reset active state to force re-evaluation with new intensity period
+                                if not (self.start_time <= current_time <= self.end_time):
+                                    self.is_active = False
+                                    print(f"🔄 Section changed - outside intensity period. Will activate when time reaches {self._format_time(self.start_time)}")
+                        
+                        # Update last check time
+                        last_section_check_time = current_time
                     
                     # Calculate how far we are through the intensity period (0.0 to 1.0)
                     progress = (current_time - self.start_time) / (self.end_time - self.start_time)
@@ -295,81 +323,81 @@ class ClimaxIntensitySystem:
         return base_volume * multiplier
     
     def _play_random_climax_clip(self, progress):
-            """Play a random clip from the climax collection with tapered volume"""
-            try:
-                # Select a random clip based on current section
-                clip = random.choice(self.climax_clips)
+        """Play a random clip from the climax collection with tapered volume"""
+        try:
+            # Select a random clip based on current section
+            clip = random.choice(self.climax_clips)
+            
+            # Calculate base intensity volume based on progress (higher volume as we approach end)
+            base_volume = self.base_min_volume + (progress * (self.base_max_volume - self.base_min_volume))
+            
+            # Add more dynamic variation to volume based on progress
+            # As we get further into the climax zone, add more variation
+            volume_variation = progress * 0.2  # Up to 20% variation at peak
+            base_volume = base_volume * (1.0 + (random.random() * volume_variation - volume_variation/2))
+            
+            # Ensure volume stays in reasonable range
+            base_volume = max(0.1, min(1.0, base_volume))
+            
+            # Format progress and interval for logging
+            progress_percent = int(progress * 100)
+            current_interval = self.initial_interval - progress * (self.initial_interval - self.final_interval)
+            
+            # More dramatic logging for higher intensity
+            intensity_marker = "🔥" * (1 + int(progress * 3))  # More fire emojis as we progress
+            section_prefix = "🍂" if self.current_section == "Falling Action" else "🔥"
+            print(f"{section_prefix} {intensity_marker} Playing {self.current_section} climax clip: {clip} (progress: {progress_percent}%, volume: {base_volume:.1f})")
+            
+            # Load the sound - need to handle special folder for Falling Action clips
+            sound = None
+            if self.current_section == "Falling Action" and clip.startswith("falling_"):
+                # Get the special folder path
+                folder_path = os.path.join("data", "sound_files", "Falling Voices")
+                full_path = os.path.join(folder_path, clip)
                 
-                # Calculate base intensity volume based on progress (higher volume as we approach end)
-                base_volume = self.base_min_volume + (progress * (self.base_max_volume - self.base_min_volume))
-                
-                # Add more dynamic variation to volume based on progress
-                # As we get further into the climax zone, add more variation
-                volume_variation = progress * 0.2  # Up to 20% variation at peak
-                base_volume = base_volume * (1.0 + (random.random() * volume_variation - volume_variation/2))
-                
-                # Ensure volume stays in reasonable range
-                base_volume = max(0.1, min(1.0, base_volume))
-                
-                # Format progress and interval for logging
-                progress_percent = int(progress * 100)
-                current_interval = self.initial_interval - progress * (self.initial_interval - self.final_interval)
-                
-                # More dramatic logging for higher intensity
-                intensity_marker = "🔥" * (1 + int(progress * 3))  # More fire emojis as we progress
-                section_prefix = "🍂" if self.current_section == "Falling Action" else "🔥"
-                print(f"{section_prefix} {intensity_marker} Playing {self.current_section} climax clip: {clip} (progress: {progress_percent}%, volume: {base_volume:.1f})")
-                
-                # Load the sound - need to handle special folder for Falling Action clips
-                sound = None
-                if self.current_section == "Falling Action" and clip.startswith("falling_"):
-                    # Get the special folder path
-                    folder_path = os.path.join("data", "sound_files", "Falling Voices")
-                    full_path = os.path.join(folder_path, clip)
-                    
-                    if os.path.exists(full_path):
-                        print(f"✅ Found Falling Action clip at: {full_path}")
-                        sound = pygame.mixer.Sound(full_path)
-                        self.score_manager._sound_cache[clip] = sound
-                    else:
-                        print(f"⚠️ Could not find Falling Action clip at: {full_path}")
-                        # Try regular loading as fallback
-                        sound = self.score_manager._load_sound(clip)
+                if os.path.exists(full_path):
+                    print(f"✅ Found Falling Action clip at: {full_path}")
+                    sound = pygame.mixer.Sound(full_path)
+                    self.score_manager._sound_cache[clip] = sound
                 else:
-                    # Regular loading for Rising Action clips
+                    print(f"⚠️ Could not find Falling Action clip at: {full_path}")
+                    # Try regular loading as fallback
                     sound = self.score_manager._load_sound(clip)
-                
-                if sound:
-                    # Find a free channel
+            else:
+                # Regular loading for Rising Action clips
+                sound = self.score_manager._load_sound(clip)
+            
+            if sound:
+                # Find a free channel
+                channel = pygame.mixer.find_channel()
+                if channel is None:
+                    # No channels available, try freeing one
+                    for i in range(pygame.mixer.get_num_channels()):
+                        ch = pygame.mixer.Channel(i)
+                        if ch.get_busy():
+                            ch.stop()
+                            break
                     channel = pygame.mixer.find_channel()
-                    if channel is None:
-                        # No channels available, try freeing one
-                        for i in range(pygame.mixer.get_num_channels()):
-                            ch = pygame.mixer.Channel(i)
-                            if ch.get_busy():
-                                ch.stop()
-                                break
-                        channel = pygame.mixer.find_channel()
+                
+                # Play the sound if we found a channel
+                if channel:
+                    # Start with low volume (will be controlled by the volume thread)
+                    channel.set_volume(0.01)  # Start very quiet, will fade in
+                    channel.play(sound)
                     
-                    # Play the sound if we found a channel
-                    if channel:
-                        # Start with low volume (will be controlled by the volume thread)
-                        channel.set_volume(0.01)  # Start very quiet, will fade in
-                        channel.play(sound)
-                        
-                        # Add to active clips for volume control
-                        # Use the channel object itself as the key
-                        self.active_clips[channel] = {
-                            'start_time': time.time(),
-                            'sound': sound,
-                            'base_volume': base_volume
-                        }
-                    else:
-                        print("⚠️ No available channel for climax clip")
+                    # Add to active clips for volume control
+                    # Use the channel object itself as the key
+                    self.active_clips[channel] = {
+                        'start_time': time.time(),
+                        'sound': sound,
+                        'base_volume': base_volume
+                    }
                 else:
-                    print(f"⚠️ Could not load climax clip: {clip}")
-                    
-            except Exception as e:
-                print(f"Error playing climax clip: {e}")
-                import traceback
-                traceback.print_exc()
+                    print("⚠️ No available channel for climax clip")
+            else:
+                print(f"⚠️ Could not load climax clip: {clip}")
+                
+        except Exception as e:
+            print(f"Error playing climax clip: {e}")
+            import traceback
+            traceback.print_exc()

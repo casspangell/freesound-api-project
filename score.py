@@ -259,6 +259,15 @@ class AshariScoreManager:
                     
                     # Get current section
                     current_section = self._get_current_section(performance_time)
+
+                    # if current_section and current_section["section_name"] == "Bridge":
+                    #     print("+++BRIDGE SECTION")
+
+                    # if current_section and current_section["section_name"] == "Rising Action":
+                    #     print("+++RISING ACTION")
+
+                    # if current_section and current_section["section_name"] == "Falling Action":
+                    #     print("+++FALLING ACTION")
                     
                     # If we're in the End section, immediately play end_transition.mp3
                     if current_section and current_section["section_name"] == "End":
