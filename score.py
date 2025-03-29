@@ -13,8 +13,8 @@ class AshariScoreManager:
     def __init__(self, 
                  ashari=None,
                  repeat=False,
-                 sound_files_path='/data/sound_files.json', 
-                 performance_model_path='/data/performance_model.json',
+                 sound_files_path='data/sound_files.json', 
+                 performance_model_path='data/performance_model.json',
                  base_sound_path='data/sound_files',
                  log_dir='logs'):
         """
@@ -120,84 +120,30 @@ class AshariScoreManager:
     
     def _load_performance_model(self, performance_model_path):
         """Load performance model from JSON"""
-        # Possible paths for performance model JSON
-        possible_paths = [
-            performance_model_path,
-            os.path.join(os.path.dirname(__file__), performance_model_path),
-            os.path.join(os.path.dirname(__file__), 'data/performance_model.json'),
-            '/data/performance_model.json',
-            'performance_model.json'
-        ]
-        
-        for path in possible_paths:
-            try:
-                if os.path.exists(path):
-                    with open(path, 'r', encoding='utf-8') as f:
-                        self.performance_model = json.load(f)
-                        
-                        # Add seconds values for easier time comparison
-                        for section in self.performance_model["sections"]:
-                            # Convert time strings to seconds (format: "MM:SS")
-                            for time_key in ["start_time", "end_time"]:
-                                if time_key in section:
-                                    min_sec = section[time_key].split(":")
-                                    section[f"{time_key}_seconds"] = int(min_sec[0]) * 60 + int(min_sec[1])
-                            
-                            # Convert midpoint and climax if they exist
-                            for special_time in ["midpoint_time", "climax_time"]:
-                                if special_time in section:
-                                    min_sec = section[special_time].split(":")
-                                    section[f"{special_time}_seconds"] = int(min_sec[0]) * 60 + int(min_sec[1])
-                        
-                        print(f"✅ Loaded performance model from {path}")
-                        return
-            except Exception as e:
-                print(f"❌ Error trying to load performance model from {path}: {e}")
-        
-        print("⚠️ WARNING: Could not find performance_model.json, using default values")
-        # Create a simple default model if file not found
-        self.performance_model = {
-            "total_duration_seconds": 1080,  # 18 minutes
-            "sections": [
-                {
-                    "section_name": "Rising Action",
-                    "start_time": "0:00",
-                    "start_time_seconds": 0,
-                    "end_time": "6:00",
-                    "end_time_seconds": 360,
-                    "thematic_elements": {
-                        "start": "Establishing the narrative foundation",
-                        "midpoint": "Building connections",
-                        "end": "Approaching a dramatic shift"
-                    }
-                },
-                {
-                    "section_name": "Bridge",
-                    "start_time": "6:00",
-                    "start_time_seconds": 360,
-                    "end_time": "12:00",
-                    "end_time_seconds": 720,
-                    "thematic_elements": {
-                        "start": "Moment of tension",
-                        "midpoint": "Processing change",
-                        "end": "Finding new direction"
-                    }
-                },
-                {
-                    "section_name": "Falling Action",
-                    "start_time": "12:00",
-                    "start_time_seconds": 720,
-                    "end_time": "18:00",
-                    "end_time_seconds": 1080,
-                    "thematic_elements": {
-                        "start": "New understanding emerges",
-                        "midpoint": "Integration of experience",
-                        "end": "Final reflection and resolution"
-                    }
-                }
-            ]
-        }
-    
+        try:
+            with open(performance_model_path, 'r', encoding='utf-8') as f:
+                self.performance_model = json.load(f)
+            
+            # Add seconds values for easier time comparison
+            for section in self.performance_model["sections"]:
+                # Convert time strings to seconds (format: "MM:SS")
+                for time_key in ["start_time", "end_time"]:
+                    if time_key in section:
+                        min_sec = section[time_key].split(":")
+                        section[f"{time_key}_seconds"] = int(min_sec[0]) * 60 + int(min_sec[1])
+                
+                # Convert midpoint and climax if they exist
+                for special_time in ["midpoint_time", "climax_time"]:
+                    if special_time in section:
+                        min_sec = section[special_time].split(":")
+                        section[f"{special_time}_seconds"] = int(min_sec[0]) * 60 + int(min_sec[1])
+            
+            print(f"✅ Loaded performance model from {performance_model_path}")
+            return True
+        except Exception as e:
+            print(f"❌ Error loading performance model: {e}")
+            return False
+
     def _load_sound(self, filename: str) -> pygame.mixer.Sound:
         """Load a sound file with the correct section-based path"""
         if filename is None:
