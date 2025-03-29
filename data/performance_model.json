@@ -31,8 +31,8 @@
         {
             "section_name": "Falling Action",
             "start_seconds": 25,
-            "climax_seconds": 27,
-            "end_seconds": 30,
+            "climax_seconds": 30,
+            "end_seconds": 50,
             "thematic_elements": {
                 "start": "The Ashari culture begins to rebuild in the aftermath of the shift. The emotional intensity from the climax continues to reverberate, but the Ashari now start to reconcile their new identity and embrace the change they've undergone.",
                 "midpoint": "The Ashari culture begins to settle into its new form, though old wounds still linger. They are no longer defined solely by survival but are beginning to explore new possibilities for their future, navigating the tension between the past and the present.",
@@ -41,8 +41,8 @@
         },
         {
             "section_name": "End",
-            "start_seconds": 30,
-            "end_seconds": 400
+            "start_seconds": 50,
+            "end_seconds": 60
         }
     ]
 }

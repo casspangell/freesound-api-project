@@ -502,6 +502,17 @@ class AshariScoreManager:
         # Get the section we'd be in at that future time
         future_section = self._get_current_section(future_time)
         
+        # Special case for end_transition.mp3 - never consider it a section boundary
+        if sound_file == "end_transition.mp3":
+            print(f"🏁 End transition is playing - ignoring section boundary checks")
+            return False
+        
+        # Special check for transition to End section
+        if future_section and future_section["section_name"] == "End" and current_section and current_section["section_name"] != "End":
+            print(f"🏁 End section boundary detected! Current={current_section['section_name']}, Future=End")
+            print(f"Current time: {int(current_time//60):02d}:{int(current_time%60):02d}, Future time: {int(future_time//60):02d}:{int(future_time%60):02d}")
+            return True
+        
         # Check if we'd cross a section boundary
         if current_section and future_section and current_section["section_name"] != future_section["section_name"]:
             print(f"Section boundary detected: {current_section['section_name']} -> {future_section['section_name']}")
@@ -514,7 +525,7 @@ class AshariScoreManager:
         
         if future_section:
             future_sound_section = future_section["section_name"]
-            if sound_section != future_sound_section:
+            if sound_section and sound_section != future_sound_section:
                 print(f"Sound section mismatch: {sound_section} vs {future_sound_section}")
                 return True
         
@@ -546,23 +557,26 @@ class AshariScoreManager:
         # Map the performance section to sound section
         target_section = future_section["section_name"]
         
-        # Handle the Intro section case properly
-        if target_section == "Intro":
-            # Find a specific intro sound or use the current sound as fallback
-            intro_sounds = [
-                filename for filename, metadata in self.sound_files.items()
-                if metadata.get('section', '') == "Intro" or metadata.get('section', '') == "Rising Action"
-            ]
-            
-            if intro_sounds:
+        # Special handling for End section - use end_transition.mp3
+        if target_section == "End":
+            print("🏁 Detected transition to End section - playing end_transition.mp3")
+            return "end_transition.mp3"
+        
+        # Special handling for Falling Action section - use falling voice clips if appropriate
+        if target_section == "Falling Action":
+            # Check if we should use the special falling clips
+            falling_clips_available = False
+            for i in range(1, 5):
+                path = os.path.join("data", "sound_files", "Falling Voices", f"falling_{i}.mp3")
+                if os.path.exists(path):
+                    falling_clips_available = True
+                    break
+                    
+            if falling_clips_available:
                 import random
-                selected_sound = random.choice(intro_sounds)
-                print(f"Selected intro sound: {selected_sound}")
-                return selected_sound
-            else:
-                # If no intro sounds found, just use the current sound
-                print(f"No intro sounds found, reusing current sound: {current_sound}")
-                return current_sound
+                falling_clip = f"falling_{random.randint(1, 4)}.mp3"
+                print(f"🍂 Selected Falling Action clip: {falling_clip}")
+                return falling_clip
         
         # Find all sounds from the target section
         section_sounds = [
@@ -581,6 +595,7 @@ class AshariScoreManager:
         print(f"Selected sound {selected_sound} for next section {target_section}")
         return selected_sound
 
+
     def start_playback(self):
         """Start continuous playback thread if not already running"""
         # Ensure only one playback thread is running
@@ -596,6 +611,7 @@ class AshariScoreManager:
         self._playback_thread.start()
         print("🎵 Score playback system started")
     
+
     def _get_current_section(self, current_time_seconds: float):
         """Get the current section based on elapsed time"""
         # Use cached value if checked recently (within 5 seconds)
@@ -627,6 +643,8 @@ class AshariScoreManager:
             self._last_section_check_time = time.time()
             return self._current_section
         
+        # If we reach here, something unexpected happened
+        print(f"⚠️ Could not determine section for time {current_time_seconds}")
         return None
 
     def _get_current_theme(self, section, progress):
@@ -936,6 +954,19 @@ class AshariScoreManager:
         :param word: Input word to find matching sounds
         :param cultural_context: Optional additional context about the cultural interpretation
         """
+        # Check if we're past the end of the End section
+        from performance_clock import get_clock
+        current_time = get_clock().get_elapsed_seconds()
+        current_section = self._get_current_section(current_time)
+        
+        # If we're in the End section and past its end_seconds, don't add more clips
+        if current_section and current_section["section_name"] == "End":
+            end_section_end_time = current_section.get("end_time_seconds", float('inf'))
+            if current_time >= end_section_end_time:
+                print(f"🛑 Performance has ended (time: {current_time:.1f}s, End section end: {end_section_end_time:.1f}s)")
+                print(f"🛑 No more clips can be added to the queue")
+                return None
+        
         # Special handling for "begin"
         if word.lower() == "begin":
             # Ensure 1-7.mp3 is added to the queue if it's not already there
@@ -943,6 +974,7 @@ class AshariScoreManager:
                 if "1-7.mp3" not in self.playback_queue:
                     self.playback_queue.insert(0, "1-7.mp3")
                     print(f"🎬 Starting performance with initial sound: 1-7.mp3")
+                    self._print_queue("Initial sound added for performance start")
         
         # Use GPT to select the most appropriate sound file
         selected_sound = self.select_sound_with_gpt(word, cultural_context)
@@ -968,11 +1000,13 @@ class AshariScoreManager:
                     import random
                     selected_sound = random.choice(section_sounds)
                     print(f"🎵 Added default sound {selected_sound} for section {sound_section}")
+                    self._print_queue(f"Default sound added for {sound_section}")
                 else:
                     # Fallback to a generic sound if no section-specific sounds found
                     if self.sound_files:
                         selected_sound = list(self.sound_files.keys())[0]
                         print("⚠️ No appropriate sounds found, using first available sound")
+                        self._print_queue("Fallback sound added")
                     else:
                         print("❌ No sounds available at all!")
                         return None
@@ -988,17 +1022,15 @@ class AshariScoreManager:
             if not self.playback_queue:
                 self.playback_queue.append(selected_sound)
                 print(f"🎶 Added sound to empty queue: {selected_sound}")
+                self._print_queue("Sound added to empty queue")
             elif selected_sound not in self.playback_queue:
                 # Only add if not already in queue
                 self.playback_queue.append(selected_sound)
                 print(f"🎶 Added sound to queue: {selected_sound}")
+                self._print_queue("Sound added to queue")
             else:
                 print(f"⚠️ Sound {selected_sound} already in queue, not adding again")
-            
-            # Print the current playback queue
-            print("\n🎶 Current Playback Queue:")
-            for i, sound in enumerate(self.playback_queue, 1):
-                print(f"  {i}. {sound}")
+                self._print_queue("No change - sound already in queue")
         
         # Ensure playback is running
         if not (self._playback_thread and self._playback_thread.is_alive()):
