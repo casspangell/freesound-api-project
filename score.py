@@ -171,6 +171,8 @@ class AshariScoreManager:
             section_folder = "climactic" 
         elif filename.startswith("bridge-"):
             section_folder = "Bridge"
+        elif filename == "end_transition.mp3":
+            section_folder = "End"
         else:
             # Find the section from metadata if available
             section_folder = next(
@@ -185,10 +187,12 @@ class AshariScoreManager:
             os.path.join("data/sound_files", section_folder, filename),
             
             # Try mapped section names
-            os.path.join("data", "sound_files", "Rising Action", filename) if section_folder == "intro" else None,
-            os.path.join("data", "sound_files", "middle", filename) if section_folder == "middle" else None,
-            os.path.join("data", "sound_files", "climactic", filename) if section_folder == "climactic" else None,
-            os.path.join("data", "sound_files", "Bridge", filename) if section_folder == "bridge" else None,
+            os.path.join("data", "sound_files", "Intro", filename),
+            os.path.join("data", "sound_files", "Rising Action", filename),
+            os.path.join("data", "sound_files", "middle", filename),
+            os.path.join("data", "sound_files", "climactic", filename),
+            os.path.join("data", "sound_files", "Bridge", filename),
+            os.path.join("data", "sound_files", "End", filename),
             
             # Try with different base paths
             os.path.join(self.base_sound_path, section_folder, filename),
@@ -242,10 +246,39 @@ class AshariScoreManager:
         current_sound_file = None
         current_sound_end_time = 0
         crossfade_started = False
+        end_transition_added = False
         
         while not self._stop_event.is_set():
             try:
                 current_time = time.time()
+
+                if not end_transition_added:
+                    # Get performance time
+                    from performance_clock import get_clock
+                    performance_time = get_clock().get_elapsed_seconds()
+                    
+                    # Get current section
+                    current_section = self._get_current_section(performance_time)
+                    
+                    # If we're in the End section, immediately play end_transition.mp3
+                    if current_section and current_section["section_name"] == "End":
+                        print("🏁 End section reached - immediately playing end_transition.mp3")
+                        
+                        # Clear the queue and add end_transition.mp3
+                        with self._playback_lock:
+                            self.playback_queue.clear()
+                            self.playback_queue.insert(0, "end_transition.mp3")
+                            end_transition_added = True
+                            
+                            # If a sound is currently playing, stop it
+                            if current_channel and current_channel.get_busy():
+                                print("🔇 Stopping current sound to start end transition")
+                                current_channel.stop()
+                                
+                                # Reset current sound tracking variables
+                                current_channel = None
+                                current_sound_file = None
+                                crossfade_started = False
                 
                 # CASE 1: No active sound playing, start a new one
                 if current_channel is None or not current_channel.get_busy():
@@ -1068,13 +1101,22 @@ class AshariScoreManager:
         # Wait for the thread to finish if it exists
         if self._playback_thread and self._playback_thread.is_alive():
             self._playback_thread.join(timeout=1)
+
+    def _print_queue(self, action_message="Queue updated"):
+        """Print the current queue with a custom message"""
+        with self._playback_lock:
+            print(f"\n🎶 {action_message}:")
+            if not self.playback_queue:
+                print("  Queue is empty.")
+            else:
+                for i, sound in enumerate(self.playback_queue, 1):
+                    print(f"  {i}. {sound}")
     
     def clear_queue(self):
-        """
-        Clear the sound playback queue
-        """
-        self.stop_sounds()
-        self.playback_queue.clear()
+        """Clear the sound playback queue"""
+        with self._playback_lock:
+            self.playback_queue.clear()
+            self._print_queue("Queue cleared manually")
     
     def get_sound_dialogue(self, sound_file: str) -> str:
         """
