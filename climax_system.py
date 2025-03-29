@@ -23,20 +23,24 @@ class ClimaxIntensitySystem:
         self.stop_event = threading.Event()
         
         # Intensity time range (in seconds)
-        self.start_time = 15.0  # Start at 15 seconds
-        self.end_time = 120.0   # End at 2 minutes (120 seconds)
+        self.start_time = 15.0   # Start at 15 seconds
+        self.end_time = 120.0    # End at 2 minutes (120 seconds)
         
-        # Intensity parameters
-        self.initial_interval = 15.0  # Start with 15 seconds between clips
-        self.final_interval = 2.0     # End with 2 seconds between clips
+        # Intensity parameters - INCREASED FOR MORE INTENSITY
+        self.initial_interval = 12.0  # Start with shorter intervals between clips (was 15)
+        self.final_interval = 1.0     # End with even shorter intervals (was 2)
         
-        # Volume parameters
-        self.base_min_volume = 0.3   # Minimum volume at start of intensity period
-        self.base_max_volume = 0.8   # Maximum volume at end of intensity period
-        self.fade_duration = 0.7     # Fade duration in seconds (for both in and out)
+        # Add multi-clip support for higher intensity
+        self.max_concurrent_clips = 3  # Allow up to 3 clips to play simultaneously
+        
+        # Volume parameters - INCREASED FOR MORE INTENSITY
+        self.base_min_volume = 0.4   # Higher starting volume (was 0.3)
+        self.base_max_volume = 0.95  # Nearly full volume at peak (was 0.8)
+        self.fade_duration = 0.5     # Shorter, more dramatic fades (was 0.7)
         
         # Active clip tracking (for volume control)
         self.active_clips = {}  # {channel: {start_time, sound, base_volume}}
+        self.active_count = 0   # Track how many clips are currently playing
         
         # State tracking
         self.is_active = False
@@ -54,7 +58,7 @@ class ClimaxIntensitySystem:
         # Start monitoring thread
         self.monitor_thread = threading.Thread(target=self._monitor_timeline, daemon=True)
         self.monitor_thread.start()
-        print(f"🔥 Climax intensity monitoring started (active from {self._format_time(self.start_time)} to {self._format_time(self.end_time)})")
+        print(f"🔥 INTENSE Climax monitoring started (active from {self._format_time(self.start_time)} to {self._format_time(self.end_time)})")
         
         # Start volume control thread
         self.volume_thread = threading.Thread(target=self._monitor_volume, daemon=True)
@@ -95,7 +99,7 @@ class ClimaxIntensitySystem:
                     if not self.is_active:
                         self.is_active = True
                         self.last_clip_time = current_time
-                        print(f"🔥 Entering climax intensity zone ({self._format_time(current_time)})")
+                        print(f"🔥🔥🔥 ENTERING HIGH INTENSITY ZONE ({self._format_time(current_time)})")
                     
                     # Calculate how far we are through the intensity period (0.0 to 1.0)
                     progress = (current_time - self.start_time) / (self.end_time - self.start_time)
@@ -104,18 +108,26 @@ class ClimaxIntensitySystem:
                     # Start with longer intervals, end with shorter intervals
                     current_interval = self.initial_interval - progress * (self.initial_interval - self.final_interval)
                     
-                    # Check if it's time to play a new clip
-                    if current_time - self.last_clip_time >= current_interval:
+                    # Add variation to the interval (plus or minus 15%)
+                    variation = (random.random() * 0.3) - 0.15  # -15% to +15%
+                    adjusted_interval = max(0.5, current_interval * (1 + variation))
+                    
+                    # Check if it's time to play a new clip and we're under the concurrent limit
+                    # As we progress, allow more simultaneous clips
+                    current_max_clips = 1 + int(progress * (self.max_concurrent_clips - 1))
+                    
+                    if (current_time - self.last_clip_time >= adjusted_interval and 
+                            self.active_count < current_max_clips):
                         self._play_random_climax_clip(progress)
                         self.last_clip_time = current_time
                 
                 # If we were active but now we're outside the zone
                 elif self.is_active and current_time > self.end_time:
                     self.is_active = False
-                    print(f"❄️ Exiting climax intensity zone ({self._format_time(current_time)})")
+                    print(f"❄️ Exiting HIGH INTENSITY zone ({self._format_time(current_time)})")
                 
                 # Sleep to avoid consuming too much CPU
-                time.sleep(0.5)
+                time.sleep(0.25)  # More frequent checks for more accurate timing
                 
             except Exception as e:
                 print(f"Error in climax intensity monitoring: {e}")
@@ -126,6 +138,7 @@ class ClimaxIntensitySystem:
         while not self.stop_event.is_set():
             try:
                 current_time = time.time()
+                active_count = 0
                 
                 # Make a copy of the keys to avoid modifying during iteration
                 channels_to_check = list(self.active_clips.keys())
@@ -141,6 +154,8 @@ class ClimaxIntensitySystem:
                         del self.active_clips[channel]
                         continue
                     
+                    active_count += 1
+                    
                     # Calculate elapsed time for this clip
                     elapsed = current_time - clip_info['start_time']
                     
@@ -152,6 +167,9 @@ class ClimaxIntensitySystem:
                     
                     # Set the new volume
                     channel.set_volume(volume)
+                
+                # Update active count for the playback system
+                self.active_count = active_count
                 
                 # Sleep to avoid consuming too much CPU
                 time.sleep(0.05)  # More frequent updates for smoother fades
@@ -197,11 +215,21 @@ class ClimaxIntensitySystem:
             # Calculate base intensity volume based on progress (higher volume as we approach end)
             base_volume = self.base_min_volume + (progress * (self.base_max_volume - self.base_min_volume))
             
+            # Add more dynamic variation to volume based on progress
+            # As we get further into the climax zone, add more variation
+            volume_variation = progress * 0.2  # Up to 20% variation at peak
+            base_volume = base_volume * (1.0 + (random.random() * volume_variation - volume_variation/2))
+            
+            # Ensure volume stays in reasonable range
+            base_volume = max(0.1, min(1.0, base_volume))
+            
             # Format progress and interval for logging
             progress_percent = int(progress * 100)
             current_interval = self.initial_interval - progress * (self.initial_interval - self.final_interval)
             
-            print(f"🔉 Playing climax clip: {clip} (progress: {progress_percent}%, interval: {current_interval:.1f}s, volume: {base_volume:.1f})")
+            # More dramatic logging for higher intensity
+            intensity_marker = "🔥" * (1 + int(progress * 3))  # More fire emojis as we progress
+            print(f"{intensity_marker} Playing climax clip: {clip} (progress: {progress_percent}%, volume: {base_volume:.1f})")
             
             # Load the sound
             sound = self.score_manager._load_sound(clip)
