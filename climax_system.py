@@ -442,8 +442,6 @@ class ClimaxIntensitySystem:
                     if os.path.exists(full_path):
                         print(f"✅ Found Falling Action clip at: {full_path}")
                         sound = pygame.mixer.Sound(full_path)
-                        # Cache the sound for future use
-                        self.score_manager._sound_cache[clip] = sound
                     else:
                         print(f"⚠️ Could not find Falling Action clip at: {full_path}")
                         # Fall back to regular loading

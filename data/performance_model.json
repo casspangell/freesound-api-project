@@ -4,11 +4,11 @@
         {
             "section_name": "Intro",
             "start_seconds": 0,
-            "end_seconds": 20
+            "end_seconds": 10
         },
         {
             "section_name": "End",
-            "start_seconds": 20,
+            "start_seconds": 10,
             "end_seconds": 100
         }
     ]
