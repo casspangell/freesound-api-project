@@ -15,7 +15,7 @@ class ClimaxIntensitySystem:
          self.score_manager = score_manager
 
          # Climax clips to use (these will be played randomly during the climax approach)
-         self.climax_clips = [f"1-{i}.mp3" for i in range(8, 26)]  # 1-8.mp3 through 1-25.mp3
+         self.climax_clips = []
 
          # Thread for monitoring and playing clips
          self.monitor_thread = None
@@ -56,49 +56,32 @@ class ClimaxIntensitySystem:
              performance_model = self.score_manager.performance_model
 
              if not performance_model or "sections" not in performance_model:
-                 print("⚠️ No valid performance model found, using default values")
-                 self.start_time = 15.0   # Default: Start at 15 seconds
-                 self.end_time = 120.0    # Default: End at 2 minutes (120 seconds)
+                 print("⚠️ No valid performance model found")
                  return
 
              # Find the Rising Action section
-             rising_action = None
+             climax_action = None
              for section in performance_model["sections"]:
                  if section["section_name"] == "Rising Action":
-                     rising_action = section
-                     break
-
-             if not rising_action:
-                 print("⚠️ No Rising Action section found in performance model, using default values")
-                 self.start_time = 15.0
-                 self.end_time = 120.0
-                 return
+                    self.climax_clips = [f"1-{i}.mp3" for i in range(8, 26)]  # 1-8.mp3 through 1-25.mp3
+                    climax_action = section
+                    break
+                    
+                 if section["section_name"] == "Falling Action":
+                    self.climax_clips = [f"falling_{i}.mp3" for i in range(1, 4)]  # falling_1.mp3 through falling_4.mp3
+                    climax_action = section
+                    break
 
              # Check if midpoint and climax are defined
-             if "midpoint_time_seconds" in rising_action and "climax_time_seconds" in rising_action:
-                 self.start_time = rising_action["midpoint_time_seconds"]
-                 self.end_time = rising_action["climax_time_seconds"]
+             if "midpoint_seconds" in climax_action and "climax_seconds" in climax_action:
+                 self.start_time = climax_action["midpoint_seconds"]
+                 self.end_time = climax_action["climax_seconds"]
 
                  print(f"✅ Climax system initialized from performance model:")
-                 print(f"   Intensity period: {self._format_time(self.start_time)} to {self._format_time(self.end_time)}")
-             else:
-                 # Calculate midpoint and climax if not explicitly defined
-                 start = rising_action.get("start_seconds", 0)
-                 end = rising_action.get("end_seconds", 600)  # Default 10 minutes if not specified
-
-                 # Default to 40% and 80% through the section if exact points not specified
-                 self.start_time = start + (end - start) * 0.4
-                 self.end_time = start + (end - start) * 0.8
-
-                 print(f"⚠️ Midpoint and climax not explicitly defined in model, calculated values:")
                  print(f"   Intensity period: {self._format_time(self.start_time)} to {self._format_time(self.end_time)}")
 
          except Exception as e:
              print(f"❌ Error initializing from performance model: {e}")
-             # Fall back to default values
-             self.start_time = 15.0
-             self.end_time = 120.0
-             print(f"   Using default intensity period: {self._format_time(self.start_time)} to {self._format_time(self.end_time)}")
 
      def start_monitoring(self):
          """Start the background monitoring thread"""

@@ -46,7 +46,7 @@ class AshariScoreManager:
         pygame.mixer.set_num_channels(64)  # Use 64 channels to ensure enough are available
 
         # Playback queue with persistent memory
-        self.playback_queue = ["1-7.mp3"]
+        self.playback_queue = ["intro.mp3"]
         self._current_sounds = []
         self._current_sound = None
         self.repeat = repeat
@@ -978,11 +978,11 @@ class AshariScoreManager:
         
         # Special handling for "begin"
         if word.lower() == "begin":
-            # Ensure 1-7.mp3 is added to the queue if it's not already there
+            # Ensure intro.mp3 is added to the queue if it's not already there
             with self._playback_lock:
-                if "1-7.mp3" not in self.playback_queue:
-                    self.playback_queue.insert(0, "1-7.mp3")
-                    print(f"🎬 Starting performance with initial sound: 1-7.mp3")
+                if "intro.mp3" not in self.playback_queue:
+                    self.playback_queue.insert(0, "intro.mp3")
+                    print(f"🎬 Starting performance with initial sound: intro.mp3")
                     self._print_queue("Initial sound added for performance start")
         
         # Use GPT to select the most appropriate sound file
