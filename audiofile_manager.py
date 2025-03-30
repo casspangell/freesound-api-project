@@ -160,7 +160,7 @@ class AudioFileManager:
                 
                 # Print progress occasionally
                 if loaded_count % 20 == 0 or loaded_count == total_sounds:
-                    # print(f"⏳ Queued {loaded_count}/{total_sounds} sounds for loading...")
+                    print(f"⏳ Queued {loaded_count}/{total_sounds} sounds for loading...")
             except Exception as e:
                 print(f"❌ Error queueing {filename}: {e}")
                 failed_count += 1
