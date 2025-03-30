@@ -59,68 +59,6 @@ class ClimaxIntensitySystem:
 
         # Initialize the intensity periods from the performance model
         self._initialize_from_performance_model()
-        
-        # Force debug test of clip loading
-        self._test_clip_loading()
-    
-    def _test_clip_loading(self):
-        """Test if we can load the climax clips"""
-        print("\n🔍 TESTING CLIP LOADING:")
-        # Test a rising action clip
-        if self.rising_action_clips:
-            test_clip = self.rising_action_clips[0]
-            print(f"  Testing Rising Action clip: {test_clip}")
-            try:
-                sound = self.score_manager._load_sound(test_clip)
-                if sound:
-                    print(f"  ✅ Successfully loaded Rising Action clip: {test_clip}")
-                else:
-                    print(f"  ❌ Failed to load Rising Action clip: {test_clip} (returned None)")
-            except Exception as e:
-                print(f"  ❌ Error loading Rising Action clip: {e}")
-                traceback.print_exc()
-        
-        # Test a falling action clip
-        if self.falling_action_clips:
-            test_clip = self.falling_action_clips[0]
-            print(f"  Testing Falling Action clip: {test_clip}")
-            try:
-                # Try the special folder first
-                folder_path = os.path.join("data", "sound_files", "Falling Voices")
-                full_path = os.path.join(folder_path, test_clip)
-                if os.path.exists(full_path):
-                    print(f"  📂 Found Falling Action clip at: {full_path}")
-                    try:
-                        sound = pygame.mixer.Sound(full_path)
-                        print(f"  ✅ Successfully loaded Falling Action clip from special folder: {test_clip}")
-                    except Exception as e:
-                        print(f"  ⚠️ Error loading from special folder: {e}")
-                else:
-                    print(f"  📂 Special folder path not found: {full_path}")
-                    # Try regular loading
-                    sound = self.score_manager._load_sound(test_clip)
-                    if sound:
-                        print(f"  ✅ Successfully loaded Falling Action clip via score manager: {test_clip}")
-                    else:
-                        print(f"  ❌ Failed to load Falling Action clip: {test_clip} (returned None)")
-            except Exception as e:
-                print(f"  ❌ Error loading Falling Action clip: {e}")
-                traceback.print_exc()
-                
-        # Test for available channels
-        try:
-            print(f"  Testing for available audio channels...")
-            free_channels = 0
-            for i in range(pygame.mixer.get_num_channels()):
-                ch = pygame.mixer.Channel(i)
-                if not ch.get_busy():
-                    free_channels += 1
-            
-            print(f"  ℹ️ Available channels: {free_channels} out of {pygame.mixer.get_num_channels()}")
-        except Exception as e:
-            print(f"  ❌ Error checking audio channels: {e}")
-        
-        print("🔍 CLIP TESTING COMPLETE\n")
 
     def _initialize_from_performance_model(self):
         """Initialize timing from the performance model"""
@@ -530,10 +468,10 @@ class ClimaxIntensitySystem:
                     # No channels available, try freeing one
                     for i in range(pygame.mixer.get_num_channels()):
                         ch = pygame.mixer.Channel(i)
-                        if ch.get_busy():
-                            print(f"  Stopping sound on channel {i} to make room")
-                            ch.stop()
-                            break
+                        # if ch.get_busy():
+                        #     print(f"  Stopping sound on channel {i} to make room")
+                        #     ch.stop()
+                        #     break
                     channel = pygame.mixer.find_channel()
 
                 # Play the sound if we found a channel
