@@ -169,18 +169,24 @@ class AshariScoreManager:
         if filename.startswith("1-"):
             section_folder = "Rising Action"
         elif filename.startswith("2-"):
-            section_folder = "middle"
+            section_folder = "Middle"
         elif filename.startswith("3-"):
-            section_folder = "climactic"
+            section_folder = "Climactic"
         elif filename.startswith("bridge"):
             section_folder = "Bridge"
-        elif filename == "end_transition.mp3":
+        elif filename.startswith("falling"):
+            section_folder = "Falling Voices"
+        elif filename.startswith("end_"):
+            section_folder = "Falling Action"
+        elif filename.startswith("end_"):
             section_folder = "End"
+        elif filename.startswith("shift"):
+            section_folder = "Cultural Shift"
         else:
             # Find the section from metadata if available
             section_folder = next(
                 (metadata['section'] for file, metadata in self.sound_files.items() if file == filename), 
-                'narrative'  # default section if not found
+                'Intro'  # default section if not found
             )
         
         # Try multiple possible paths based on your actual directory structure
@@ -193,9 +199,11 @@ class AshariScoreManager:
             os.path.join("data", "sound_files", "Intro", filename),
             os.path.join("data", "sound_files", "Rising Action", filename),
             os.path.join("data", "sound_files", "Bridge", filename),
-            os.path.join("data", "sound_files", "middle", filename),
-            os.path.join("data", "sound_files", "climactic", filename),
+            os.path.join("data", "sound_files", "Middle", filename),
+            os.path.join("data", "sound_files", "Climactic", filename),
             os.path.join("data", "sound_files", "Falling Action", filename),
+            os.path.join("data", "sound_files", "Falling Voices", filename),
+            os.path.join("data", "sound_files", "Cultural Shift", filename),
             os.path.join("data", "sound_files", "End", filename),
             
             # Try with different base paths
