@@ -5,6 +5,14 @@ This module provides helper functions to convert between time strings
 and seconds, and to transform performance models.
 """
 
+def _format_time(seconds):
+    """Format seconds as MM:SS"""
+    if seconds is None:
+        return "00:00"
+    minutes = int(seconds // 60)
+    secs = int(seconds % 60)
+    return f"{minutes:02d}:{secs:02d}"
+    
 def time_to_seconds(time_str):
     """
     Convert a time string in 'MM:SS' format to total seconds.

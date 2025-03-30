@@ -8,7 +8,7 @@ import config
 import pygame
 import logging
 from performance_clock import get_clock, get_time_str
-from time_utils import convert_model_to_seconds
+from time_utils import convert_model_to_seconds, _format_time
 
 class AshariScoreManager:
     def __init__(self, 
@@ -93,6 +93,9 @@ class AshariScoreManager:
         self._playback_lock = threading.Lock()
         self._playback_thread = None
         self._stop_event = threading.Event()
+
+        # Section transition monitoring thread
+        self._section_monitor_thread = None
         
         print(f"🎵 Ashari Score Manager initialized with {len(self.sound_files)} sound files")
 
@@ -168,8 +171,8 @@ class AshariScoreManager:
         elif filename.startswith("2-"):
             section_folder = "middle"
         elif filename.startswith("3-"):
-            section_folder = "climactic" 
-        elif filename.startswith("bridge-"):
+            section_folder = "climactic"
+        elif filename.startswith("bridge"):
             section_folder = "Bridge"
         elif filename == "end_transition.mp3":
             section_folder = "End"
@@ -189,9 +192,10 @@ class AshariScoreManager:
             # Try mapped section names
             os.path.join("data", "sound_files", "Intro", filename),
             os.path.join("data", "sound_files", "Rising Action", filename),
+            os.path.join("data", "sound_files", "Bridge", filename),
             os.path.join("data", "sound_files", "middle", filename),
             os.path.join("data", "sound_files", "climactic", filename),
-            os.path.join("data", "sound_files", "Bridge", filename),
+            os.path.join("data", "sound_files", "Falling Action", filename),
             os.path.join("data", "sound_files", "End", filename),
             
             # Try with different base paths
@@ -612,12 +616,18 @@ class AshariScoreManager:
             return
         
         # Reset stop flag
-        self._stop_event.clear()  # Changed from self._stop_playback.clear()
+        self._stop_event.clear()
         
         # Start playback thread
         self._playback_thread = threading.Thread(target=self._continuous_playback)
         self._playback_thread.daemon = True
         self._playback_thread.start()
+        
+        # Start section transition monitoring thread
+        self._section_monitor_thread = threading.Thread(target=self._monitor_section_transitions)
+        self._section_monitor_thread.daemon = True
+        self._section_monitor_thread.start()
+        
         print("🎵 Score playback system started")
     
 
@@ -699,15 +709,75 @@ class AshariScoreManager:
         progress = (current_time_seconds - section_start) / section_duration
         return max(0.0, min(1.0, progress))  # Clamp between 0 and 1
     
-    # def _map_performance_section_to_sound_section(self, performance_section: str) -> str:
-    #     """Map performance section names to sound file section categories"""
-    #     section_mapping = {
-    #         "Rising Action": "intro",
-    #         "Bridge": "middle",
-    #         "Falling Action": "climactic"
-    #     }
+    def _monitor_section_transitions(self):
+        """Background thread that monitors section transitions"""
+        from performance_clock import get_clock
         
-    #     return section_mapping.get(performance_section, "middle")
+        # Track the last known section
+        last_section_name = None
+        section_check_interval = 0.25  # Check every 1/4 second
+        last_check_time = 0
+        
+        # Keep track of if we've already handled the bridge transition
+        bridge_transition_handled = False
+        
+        while not self._stop_event.is_set():
+            try:
+                current_time = time.time()
+                
+                # Only check periodically to avoid excessive CPU usage
+                if current_time - last_check_time < section_check_interval:
+                    time.sleep(0.05)
+                    continue
+                    
+                last_check_time = current_time
+                
+                # Get current performance time
+                performance_time = get_clock().get_elapsed_seconds()
+                
+                # Get current section
+                current_section = self._get_current_section(performance_time)
+                if not current_section:
+                    time.sleep(0.1)
+                    continue
+                    
+                current_section_name = current_section["section_name"]
+                
+                # If section changed from previous check
+                if last_section_name != current_section_name:
+                    print(f"🔄 Section changed from {last_section_name} to {current_section_name} at {_format_time(performance_time)}")
+                    
+                    # Special handling for Bridge section
+                    if current_section_name == "Bridge" and not bridge_transition_handled:
+                        print(f"🌉 BRIDGE SECTION DETECTED! Clearing queue and adding bridge_1.mp3")
+                        
+                        # Clear the queue and add the bridge clip
+                        with self._playback_lock:
+                            self.playback_queue.clear()
+                            self.playback_queue.insert(0, "bridge_1.mp3")
+                            
+                            # If a sound is currently playing, stop it to force immediate transition
+                            for i in range(16):  # First 16 channels reserved for main queue
+                                channel = pygame.mixer.Channel(i)
+                                if channel.get_busy():
+                                    print(f"🔇 Stopping sound on channel {i} to start bridge transition")
+                                    channel.fadeout(500)  # 500ms fadeout instead of immediate stop
+                        
+                        # Mark bridge transition as handled
+                        bridge_transition_handled = True
+                        print("🌉 Bridge transition handling complete")
+                    
+                    # Update last known section
+                    last_section_name = current_section_name
+                
+                # Sleep to avoid consuming too much CPU
+                time.sleep(0.1)
+                
+            except Exception as e:
+                print(f"Error in section transition monitoring: {e}")
+                import traceback
+                traceback.print_exc()
+                time.sleep(1.0)  # Sleep longer on error
 
     def select_sound_with_gpt(self, word: str, cultural_context: dict = None) -> str:
         """
