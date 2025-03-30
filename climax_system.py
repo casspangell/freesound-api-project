@@ -107,7 +107,6 @@ class ClimaxIntensitySystem:
             print(f"📋 Registered {len(self.intensity_periods)} intensity periods")
             
             # Dump all intensity periods for verification
-            print("\n🔍 INTENSITY PERIODS SUMMARY:")
             for section_name, period in self.intensity_periods.items():
                 print(f"  {section_name}: {self._format_time(period['start'])} to {self._format_time(period['end'])}")
                 print(f"  Clips: {period['clips'][:3]}... ({len(period['clips'])} total)")
@@ -468,10 +467,10 @@ class ClimaxIntensitySystem:
                     # No channels available, try freeing one
                     for i in range(pygame.mixer.get_num_channels()):
                         ch = pygame.mixer.Channel(i)
-                        # if ch.get_busy():
-                        #     print(f"  Stopping sound on channel {i} to make room")
-                        #     ch.stop()
-                        #     break
+                        if ch.get_busy():
+                            print(f"  Stopping sound on channel {i} to make room")
+                            ch.stop()
+                            break
                     channel = pygame.mixer.find_channel()
 
                 # Play the sound if we found a channel

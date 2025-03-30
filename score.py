@@ -219,13 +219,9 @@ class AshariScoreManager:
         # Filter out None values
         possible_paths = [path for path in possible_paths if path]
         
-        # Print debug info for file loading
-        print(f"🔍 Looking for sound: {filename} (section: {section_folder})")
-        
         for full_path in possible_paths:
             try:
                 if os.path.exists(full_path):
-                    print(f"✅ Found sound at: {full_path}")
                     sound = pygame.mixer.Sound(full_path)
                     
                     # Cache the sound
@@ -530,8 +526,11 @@ class AshariScoreManager:
                             
                             next_sound_file = self.playback_queue[0]  # Peek but don't remove yet
                         
-                        # Log what we're about to crossfade to
-                        print(f"Preparing crossfade to: {next_sound_file}")
+                        # Preload the sound quietly without verbose logging
+                        next_sound = self._load_sound(next_sound_file)
+                        
+                        # Only log after loading is complete to avoid interrupting audio
+                        print(f"Ready to crossfade to: {next_sound_file}")
                         
                         # Load the next sound in advance, before we need it
                         # This prevents audio hiccups when file searching occurs
@@ -558,10 +557,17 @@ class AshariScoreManager:
                             next_channel.play(next_sound)
                             
                             # Begin the crossfade process - fade out current, fade in next
+                            # Use a smoother, more gradual approach with fewer volume changes
                             fade_complete = False
-                            while not fade_complete and not self._stop_event.is_set():
-                                now = time.time()
-                                fade_progress = min(1.0, (now - start_fade_in) / FADE_DURATION)
+                            fade_steps = 20  # Reduce number of steps for smoother transition
+                            fade_interval = FADE_DURATION / fade_steps  # Time between volume adjustments
+                            
+                            for step in range(fade_steps + 1):
+                                if self._stop_event.is_set():
+                                    break
+                                    
+                                # Calculate fade progress (0.0 to 1.0)
+                                fade_progress = step / fade_steps
                                 
                                 # Apply fade out to current channel (from 0.8 to 0)
                                 current_vol = max(0.0, 0.8 * (1.0 - fade_progress))
@@ -571,37 +577,35 @@ class AshariScoreManager:
                                 next_vol = min(0.8, 0.8 * fade_progress)
                                 next_channel.set_volume(next_vol)
                                 
-                                # Check if fade is complete
-                                if fade_progress >= 1.0:
-                                    fade_complete = True
-                                    # The next sound is now our current sound
-                                    current_channel = next_channel
-                                    current_sound_file = next_sound_file
-                                    
-                                    # Pop the sound we just started playing from the queue
-                                    with self._playback_lock:
-                                        if self.playback_queue and self.playback_queue[0] == next_sound_file:
-                                            self.playback_queue.pop(0)
-                                    
-                                    # Update tracking variables for the new current sound
-                                    metadata = self.sound_files.get(current_sound_file, {})
-                                    duration = metadata.get('duration_seconds', 30)
-                                    current_sound_end_time = now + duration
-                                    
-                                    # Set next channel index for future crossfades
-                                    current_channel_index = next_channel_index
-                                    next_channel_index = (current_channel_index + 1) % RESERVED_CHANNELS
-                                    
-                                    # Reset crossfade flag
-                                    crossfade_started = False
-                                    
-                                    print(f"✨ Crossfade complete - Now playing: {current_sound_file}")
-                                    
-                                    # Break out of the fade loop
-                                    break
-                                
-                                # Small sleep to avoid CPU spinning
-                                time.sleep(0.05)
+                                # Sleep for the fade interval
+                                time.sleep(fade_interval)
+                            
+                            # Ensure final volumes are set correctly
+                            current_channel.set_volume(0.0)
+                            next_channel.set_volume(0.8)
+                            
+                            # The next sound is now our current sound
+                            current_channel = next_channel
+                            current_sound_file = next_sound_file
+                            
+                            # Pop the sound we just started playing from the queue
+                            with self._playback_lock:
+                                if self.playback_queue and self.playback_queue[0] == next_sound_file:
+                                    self.playback_queue.pop(0)
+                            
+                            # Update tracking variables for the new current sound
+                            metadata = self.sound_files.get(current_sound_file, {})
+                            duration = metadata.get('duration_seconds', 30)
+                            current_sound_end_time = time.time() + duration
+                            
+                            # Set next channel index for future crossfades
+                            current_channel_index = next_channel_index
+                            next_channel_index = (current_channel_index + 1) % RESERVED_CHANNELS
+                            
+                            # Reset crossfade flag
+                            crossfade_started = False
+                            
+                            print(f"✨ Crossfade complete - Now playing: {current_sound_file}")
                 
                 # Sleep to avoid consuming too much CPU in main loop
                 time.sleep(0.1)
