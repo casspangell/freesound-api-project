@@ -10,8 +10,8 @@
             "section_name": "Rising Action",
             "start_seconds": 10,
             "midpoint_seconds": 12,
-            "climax_seconds": 30,
-            "end_seconds": 50,
+            "climax_seconds": 15,
+            "end_seconds": 20,
             "thematic_elements": {
                 "start": "Establishing the Ashari culture, marked by caution, resilience, and the weight of past betrayals. They are survivors, hesitant to embrace hope but grounded in the necessity of survival.",
                 "midpoint": "A subtle shift in their worldview begins as the Ashari start to question their past beliefs and the possibility of something more than mere survival. There's an emerging tension between holding onto tradition and embracing change.",
@@ -20,9 +20,9 @@
         },
         {
             "section_name": "Bridge",
-            "start_seconds": 50,
-            "midpoint_seconds": 65,
-            "end_seconds": 80,
+            "start_seconds": 20,
+            "midpoint_seconds": 25,
+            "end_seconds": 30,
             "thematic_elements": {
                 "start": "The tension from the climax begins to subside, but the Ashari are still in the midst of grappling with the consequences of the cultural shift. There is a moment of reflection, where the full impact of their transformation is not yet fully clear.",
                 "midpoint": "The Ashari begin to embrace the necessity of change but with caution. They realize that the world they once knew no longer exists, and they must adapt to their new reality while acknowledging the cost of that transformation.",
@@ -31,10 +31,10 @@
         },
         {
             "section_name": "Falling Action",
-            "start_seconds": 80,
-            "midpoint_seconds": 100,
-            "climax_seconds": 120,
-            "end_seconds": 150,
+            "start_seconds": 30,
+            "midpoint_seconds": 35,
+            "climax_seconds": 40,
+            "end_seconds": 45,
             "thematic_elements": {
                 "start": "The Ashari culture begins to rebuild in the aftermath of the shift. The emotional intensity from the climax continues to reverberate, but the Ashari now start to reconcile their new identity and embrace the change they've undergone.",
                 "midpoint": "The Ashari culture begins to settle into its new form, though old wounds still linger. They are no longer defined solely by survival but are beginning to explore new possibilities for their future, navigating the tension between the past and the present.",
@@ -43,8 +43,8 @@
         },
         {
             "section_name": "End",
-            "start_seconds": 150,
-            "end_seconds": 200
+            "start_seconds": 45,
+            "end_seconds": 50
         }
     ]
 }

@@ -50,6 +50,8 @@ class AshariScoreManager:
         self._current_sounds = []
         self._current_sound = None
         self.repeat = repeat
+        self._end_transition_played = False
+        self._performance_ended = False
 
         # Create Ashari instance if not provided
         if ashari is None:
@@ -307,11 +309,61 @@ class AshariScoreManager:
                     
                     # Check if playback queue is empty
                     if not self.playback_queue:
-                        # If we have a current sound, add it back to the queue
-                        if current_sound_file and current_sound_file != "None":
-                            print(f"Queue empty, adding current sound back: {current_sound_file}")
-                            with self._playback_lock:
-                                self.playback_queue.append(current_sound_file)
+                        # If end_transition has played and queue is empty, add an End section clip
+                        if self._end_transition_played:
+                            # Find sounds from the End section
+                            end_section_sounds = [
+                                filename for filename, metadata in self.sound_files.items()
+                                if metadata.get('section', '') == "End"
+                            ]
+                            
+                            if end_section_sounds:
+                                import random
+                                end_sound = random.choice(end_section_sounds)
+                                print(f"🏁 End transition complete, adding End section clip: {end_sound}")
+                                with self._playback_lock:
+                                    self.playback_queue.append(end_sound)
+                            else:
+                                # If no End section sounds found, use end_transition.mp3 again
+                                print("🏁 No End section sounds found, reusing end_transition.mp3")
+                                with self._playback_lock:
+                                    self.playback_queue.append("end_transition.mp3")
+                        # Regular handling for empty queue
+                        elif current_sound_file and current_sound_file != "None":
+                            # Only allow end_transition.mp3 or End section sounds
+                            if current_sound_file == "end_transition.mp3" and not self._end_transition_played:
+                                self._end_transition_played = True
+                                
+                                # Specifically use end_1.mp3 if it exists
+                                end_file_path = os.path.join("data", "sound_files", "End", "end_1.mp3")
+                                if os.path.exists(end_file_path):
+                                    print(f"🏁 End transition complete, adding specific End clip: end_1.mp3")
+                                    self.playback_queue.insert(0, "end_1.mp3")
+                                else:
+                                    # Find an End section sound
+                                    end_section_sounds = [
+                                        filename for filename, metadata in self.sound_files.items()
+                                        if metadata.get('section', '') == "End"
+                                    ]
+                                    
+                                    if end_section_sounds:
+                                        import random
+                                        end_sound = random.choice(end_section_sounds)
+                                        print(f"🏁 Performance ended, using End section clip: {end_sound}")
+                                        self.playback_queue.insert(0, end_sound)
+                                    else:
+                                        # Last resort - if no End section sound found and no end_1.mp3
+                                        # Create a silence or use a default ending sound
+                                        print("🏁 No End section sounds found, using default ending")
+                                        # You could create a short silence sound here
+                                        # Or just stop playing entirely
+                                        self._performance_ended = True
+                                        return
+                            else:
+                                # Normal behavior if not in end state
+                                print(f"Queue empty, adding current sound back: {current_sound_file}")
+                                with self._playback_lock:
+                                    self.playback_queue.append(current_sound_file)
                         # If no current sound is available, add a default based on current section
                         else:
                             # Get current time from performance clock
@@ -407,8 +459,70 @@ class AshariScoreManager:
                         # Check if there's anything in the queue, if not add current sound back
                         with self._playback_lock:
                             if not self.playback_queue:
-                                # Check if repeating this sound would cross a section boundary
-                                if self._would_cross_section_boundary(current_sound_file, time_remaining + CROSSFADE_START):
+                                # Check if performance has ended
+                                from performance_clock import get_clock
+                                current_time_seconds = get_clock().get_elapsed_seconds()
+                                current_section = self._get_current_section(current_time_seconds)
+                                
+                                # If we're in End section and past its end time, or if the end flag is set
+                                if self._performance_ended or (current_section and 
+                                    current_section["section_name"] == "End" and 
+                                    current_time_seconds >= current_section.get("end_time_seconds", float('inf'))):
+                                    
+                                    self._performance_ended = True  # Set the flag
+                                    
+                                    # Only allow end_transition.mp3 or End section sounds
+                                    if current_sound_file == "end_transition.mp3":
+                                        with self._playback_lock:
+                                            # Clear any existing queue items
+                                            self.playback_queue.clear()
+                                            
+                                            # Force end_1.mp3 as the next sound
+                                            self.playback_queue.insert(0, "end_1.mp3")
+                                        
+                                        # Set flags
+                                        self._end_transition_played = True
+                                        self._performance_ended = True
+                                        
+                                        # Find an End section sound
+                                        end_section_sounds = [
+                                            filename for filename, metadata in self.sound_files.items()
+                                            if metadata.get('section', '') == "End"
+                                        ]
+                                        
+                                        if end_section_sounds:
+                                            import random
+                                            end_sound = random.choice(end_section_sounds)
+                                            print(f"🏁 Performance ended, using End section clip: {end_sound}")
+                                            self.playback_queue.insert(0, end_sound)
+                                        else:
+                                            print("🏁 Performance ended")
+                                    
+                                    elif current_sound_file in [filename for filename, metadata in self.sound_files.items()
+                                                            if metadata.get('section', '') == "End"]:
+                                        # Current sound is from End section, reuse it or another End sound
+                                        end_section_sounds = [
+                                            filename for filename, metadata in self.sound_files.items()
+                                            if metadata.get('section', '') == "End" and filename != current_sound_file
+                                        ]
+                                        
+                                        if end_section_sounds:
+                                            import random
+                                            end_sound = random.choice(end_section_sounds)
+                                            print(f"🏁 Performance ended, using different End section clip: {end_sound}")
+                                            self.playback_queue.insert(0, end_sound)
+                                        else:
+                                            # No other End sounds, reuse current
+                                            print(f"🏁 Performance ended, reusing current End clip: {current_sound_file}")
+                                            self.playback_queue.insert(0, current_sound_file)
+                                    
+                                    else:
+                                        # Current sound is not end_transition or End section, switch to end_transition
+                                        print(f"🏁 Performance ended, switching to end_transition.mp3")
+                                        self.playback_queue.insert(0, "end_transition.mp3")
+                                
+                                # Regular section boundary detection for non-ended performance
+                                elif not self._performance_ended and self._would_cross_section_boundary(current_sound_file, time_remaining + CROSSFADE_START):
                                     # Select a sound appropriate for the next section
                                     next_section_sound = self._select_sound_for_next_section(current_sound_file)
                                     if next_section_sound and next_section_sound != "None":
@@ -419,7 +533,7 @@ class AshariScoreManager:
                                         print(f"⚠️ Section boundary detected but got invalid next section sound, reusing current for crossfade: {current_sound_file}")
                                         self.playback_queue.insert(0, current_sound_file)
                                 else:
-                                    # Current sound's section is still valid, repeat it
+                                    # Current sound's section is still valid and performance not ended, repeat it
                                     print(f"Preparing for crossfade, adding {current_sound_file} back to queue (queue was empty)")
                                     self.playback_queue.insert(0, current_sound_file)
                         
@@ -1046,13 +1160,20 @@ class AshariScoreManager:
         current_time = get_clock().get_elapsed_seconds()
         current_section = self._get_current_section(current_time)
         
-        # If we're in the End section and past its end_seconds, don't add more clips
-        if current_section and current_section["section_name"] == "End":
+        # If we're in the End section and past its end_seconds, or the performance ended flag is set
+        # don't add more clips
+        if self._performance_ended or (current_section and current_section["section_name"] == "End"):
             end_section_end_time = current_section.get("end_time_seconds", float('inf'))
             if current_time >= end_section_end_time:
+                self._performance_ended = True  # Set the flag for future use
                 print(f"🛑 Performance has ended (time: {current_time:.1f}s, End section end: {end_section_end_time:.1f}s)")
                 print(f"🛑 No more clips can be added to the queue")
                 return None
+
+        # Check if end transition has played - if so, don't allow new clips
+        if self._end_transition_played:
+            print("🏁 End transition has already played - no more clips can be added")
+            return None
         
         # Special handling for "begin"
         if word.lower() == "begin":
