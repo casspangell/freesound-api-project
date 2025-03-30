@@ -217,16 +217,16 @@ class AudioFileManager:
                 self._load_sound_queue.append(filename)
         
         # For critical sounds, try loading directly if not in cache
-        if filename in ["intro.mp3", "end_transition.mp3", "end_1.mp3"]:
-            path = self._get_sound_path(filename)
-            if path and os.path.exists(path):
-                try:
-                    sound = pygame.mixer.Sound(path)
-                    with self._load_sound_lock:
-                        self._sound_cache[filename] = sound
-                    return sound
-                except Exception as e:
-                    print(f"Error loading critical sound {filename}: {e}")
+        # if filename in ["intro.mp3", "end_transition.mp3", "end_1.mp3"]:
+        #     path = self._get_sound_path(filename)
+        #     if path and os.path.exists(path):
+        #         try:
+        #             sound = pygame.mixer.Sound(path)
+        #             with self._load_sound_lock:
+        #                 self._sound_cache[filename] = sound
+        #             return sound
+        #         except Exception as e:
+        #             print(f"Error loading critical sound {filename}: {e}")
         
         # Check cache again, maybe the background thread loaded it
         with self._load_sound_lock:
@@ -271,18 +271,16 @@ class AudioFileManager:
                 section = "Bridge"
             elif filename.startswith("falling"):
                 section = "Falling Voices"
-            elif filename.startswith("end_"):
+            elif filename.startswith("end-"):
                 section = "End"
             elif filename == "end_transition.mp3":
                 section = "End"
-            elif filename == "end_1.mp3":
-                section = "Falling Action"
             else:
                 section = "Intro"
         
         # Use a single, consistent path format
         path = os.path.join(self.base_sound_path, section, filename)
-        # print(f"{path}")
+        print(f"Soundfile path: {path}")
         # Check if file exists
         if os.path.exists(path):
             return path
