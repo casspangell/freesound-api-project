@@ -321,80 +321,99 @@ class AshariScoreManager:
         return max(0.0, min(1.0, progress))  # Clamp between 0 and 1
     
     def _monitor_section_transitions(self):
-        """Background thread that monitors section transitions"""
-        from performance_clock import get_clock
-        
-        # Track the last known section
-        last_section_name = None
-        section_check_interval = 0.25  # Check every 1/4 second
-        last_check_time = 0
-        
-        # Keep track of if we've already handled the bridge transition
-        bridge_transition_handled = False
-        
-        while not self._stop_event.is_set():
-            try:
-                current_time = time.time()
-                
-                # Only check periodically to avoid excessive CPU usage
-                if current_time - last_check_time < section_check_interval:
-                    time.sleep(0.05)
-                    continue
+            """Background thread that monitors section transitions"""
+            from performance_clock import get_clock
+            
+            # Track the last known section
+            last_section_name = None
+            section_check_interval = 0.25  # Check every 1/4 second
+            last_check_time = 0
+            
+            # Keep track of if we've already handled the bridge transition
+            bridge_transition_handled = False
+            
+            while not self._stop_event.is_set():
+                try:
+                    current_time = time.time()
                     
-                last_check_time = current_time
-                
-                # Get current performance time
-                performance_time = get_clock().get_elapsed_seconds()
-                
-                # Get current section
-                current_section = self._get_current_section(performance_time)
-                if not current_section:
+                    # Only check periodically to avoid excessive CPU usage
+                    if current_time - last_check_time < section_check_interval:
+                        time.sleep(0.05)
+                        continue
+                        
+                    last_check_time = current_time
+                    
+                    # Get current performance time
+                    performance_time = get_clock().get_elapsed_seconds()
+                    
+                    # Get current section
+                    current_section = self._get_current_section(performance_time)
+                    if not current_section:
+                        time.sleep(0.1)
+                        continue
+                        
+                    current_section_name = current_section["section_name"]
+                    
+                    # If section changed from previous check
+                    if last_section_name != current_section_name:
+                        print(f"🔄 Section changed from {last_section_name} to {current_section_name} at {_format_time(performance_time)}")
+                        
+                        # Special handling for Bridge section
+                        if current_section_name == "Bridge" and not bridge_transition_handled:
+                            print(f"🌉 BRIDGE SECTION DETECTED! Clearing queue and adding bridge_1.mp3")
+                            
+                            # Clear the queue and add the bridge clip
+                            self.sound_manager.clear_queue()
+                            self.sound_manager.add_to_queue("bridge_1.mp3", priority=True)
+                            
+                            # Mark bridge transition as handled
+                            bridge_transition_handled = True
+                            print("🌉 Bridge transition handling complete")
+                        
+                        # Special handling for End section
+                        if current_section_name == "End" and not self._end_transition_played:
+                            print(f"🏁 END SECTION DETECTED! Selecting appropriate ending sequence")
+                            
+                            # Clear the queue
+                            self.sound_manager.clear_queue()
+                            
+                            # Add transition sound first
+                            self.sound_manager.add_to_queue("end_transition.mp3", priority=True)
+                            
+                            # Get cultural context for the end selection
+                            cultural_context = {
+                                "performance_time": get_time_str(),
+                                "performance_time_seconds": performance_time
+                            }
+                            
+                            # Select the appropriate ending clip based on cultural journey
+                            end_clip = self.select_end_clip_with_gpt(cultural_context)
+                            
+                            if end_clip:
+                                # Add the selected end clip to the queue
+                                self.sound_manager.add_to_queue(end_clip)
+                                print(f"🏁 Selected ending clip: {end_clip}")
+                            else:
+                                # Fallback to end_1.mp3 if no clip selected
+                                self.sound_manager.add_to_queue("end-1.mp3")
+                                print(f"🏁 Using default ending clip: end-1.mp3")
+                            
+                            # Mark end transition as handled
+                            self._end_transition_played = True
+                            self._performance_ended = True
+                            print("🏁 End transition handling complete")
+                        
+                        # Update last known section
+                        last_section_name = current_section_name
+                    
+                    # Sleep to avoid consuming too much CPU
                     time.sleep(0.1)
-                    continue
                     
-                current_section_name = current_section["section_name"]
-                
-                # If section changed from previous check
-                if last_section_name != current_section_name:
-                    print(f"🔄 Section changed from {last_section_name} to {current_section_name} at {_format_time(performance_time)}")
-                    
-                    # Special handling for Bridge section
-                    if current_section_name == "Bridge" and not bridge_transition_handled:
-                        print(f"🌉 BRIDGE SECTION DETECTED! Clearing queue and adding bridge_1.mp3")
-                        
-                        # Clear the queue and add the bridge clip
-                        self.sound_manager.clear_queue()
-                        self.sound_manager.add_to_queue("bridge_1.mp3", priority=True)
-                        
-                        # Mark bridge transition as handled
-                        bridge_transition_handled = True
-                        print("🌉 Bridge transition handling complete")
-                    
-                    # Special handling for End section
-                    if current_section_name == "End" and not self._end_transition_played:
-                        print(f"🏁 END SECTION DETECTED! Clearing queue and adding end_transition.mp3")
-                        
-                        # Clear the queue and add the end transition
-                        self.sound_manager.clear_queue()
-                        self.sound_manager.add_to_queue("end_transition.mp3", priority=True)
-                        self.sound_manager.add_to_queue("end_1.mp3")
-                        
-                        # Mark end transition as handled
-                        self._end_transition_played = True
-                        self._performance_ended = True
-                        print("🏁 End transition handling complete")
-                    
-                    # Update last known section
-                    last_section_name = current_section_name
-                
-                # Sleep to avoid consuming too much CPU
-                time.sleep(0.1)
-                
-            except Exception as e:
-                print(f"Error in section transition monitoring: {e}")
-                import traceback
-                traceback.print_exc()
-                time.sleep(1.0)  # Sleep longer on error
+                except Exception as e:
+                    print(f"Error in section transition monitoring: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    time.sleep(1.0)  # Sleep longer on error
 
     def select_sound_with_gpt(self, word: str, cultural_context: dict = None) -> str:
         """
@@ -641,6 +660,148 @@ class AshariScoreManager:
             )
             print(f"Error in sound file selection: {e}")
             return None
+
+    def select_end_clip_with_gpt(self, cultural_context: dict = None) -> str:
+        """
+        Select the most appropriate ending clip based on the overall cultural journey
+        
+        :param cultural_context: Context including cultural memory and values
+        :return: Selected end clip filename or None
+        """
+        if cultural_context is None:
+            cultural_context = {}
+        
+        # Get all end section clips
+        end_clips = self.audio_manager.get_all_sounds_by_section("End")
+        
+        if not end_clips:
+            print("⚠️ No End section clips found!")
+            return None
+        
+        # Get the cultural memory values
+        cultural_memory = {
+            value: score for value, score in self.ashari.cultural_memory.items()
+        }
+        
+        # Get the strongest values (most influential in the journey)
+        strongest_values = [
+            {"value": value, "score": score} 
+            for value, score in sorted(
+                self.ashari.cultural_memory.items(), 
+                key=lambda x: abs(x[1]), 
+                reverse=True
+            )[:5]  # Get top 5 values
+        ]
+        
+        # Calculate overall sentiment from cultural memory
+        overall_sentiment = sum(score for score in cultural_memory.values()) / len(cultural_memory) if cultural_memory else 0
+        sentiment_description = "positive" if overall_sentiment > 0.1 else "negative" if overall_sentiment < -0.1 else "neutral"
+        
+        # Get descriptions of each end clip
+        end_clip_descriptions = {}
+        for clip in end_clips:
+            metadata = self.sound_files.get(clip, {})
+            end_clip_descriptions[clip] = {
+                "filename": clip,
+                "dialogue": metadata.get("dialogue", ""),
+                "sentiment": metadata.get("sentiment_value", 0)
+            }
+        
+        # Construct the system prompt
+        system_prompt = """
+        You are the Conclusion Selector for the Ashari cultural narrative. Your task is to select the most 
+        appropriate ending clip that resonates with the Ashari's cultural journey.
+        
+        REQUIREMENTS:
+        1. ALWAYS return a VALID FILENAME from the available ending clips.
+        2. Select a clip that reflects the overall sentiment and cultural values that have been dominant throughout the journey.
+        3. The ending should feel like a natural conclusion to the Ashari's story.
+        4. Consider the description of each clip and how it matches the emotional tone of the journey.
+        
+        Selection Criteria:
+        - Match the clip's atmosphere with the overall sentiment of the Ashari's cultural development
+        - Consider how the ending clip's description resonates with the strongest cultural values
+        - Select an ending that provides emotional closure to the narrative journey
+        - Choose an ending that feels authentic to the Ashari's experience
+        
+        OUTPUT FORMAT:
+        - Respond ONLY with the EXACT filename of the chosen ending clip
+        - NO additional explanation or text
+        """
+        
+        # Construct the user prompt
+        user_prompt = f"""
+        Select the most appropriate ending clip for the Ashari cultural narrative:
+        
+        CULTURAL SUMMARY:
+        - Overall Sentiment: {sentiment_description} ({overall_sentiment:.2f})
+        - Journey Duration: {cultural_context.get('performance_time', 'Unknown')}
+        
+        TOP INFLUENTIAL VALUES:
+        {json.dumps(strongest_values, indent=2)}
+        
+        AVAILABLE ENDING CLIPS:
+        {json.dumps(end_clip_descriptions, indent=2)}
+        
+        The ending clip should provide a meaningful conclusion that reflects the Ashari's cultural journey and dominant values.
+        """
+        
+        # Prepare input data for logging
+        input_data = {
+            "system_prompt": system_prompt,
+            "user_prompt": user_prompt,
+            "cultural_context": cultural_context,
+            "cultural_memory": cultural_memory,
+            "strongest_values": strongest_values,
+            "overall_sentiment": overall_sentiment,
+            "end_clips": end_clip_descriptions
+        }
+        
+        try:
+            # Call GPT to select the sound file
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                max_tokens=50  # We only want the filename
+            )
+            
+            # Extract the filename
+            selected_filename = response.choices[0].message.content.strip()
+            
+            # Log the interaction
+            self._log_gpt_interaction(
+                interaction_type="end_clip_selection", 
+                input_data=input_data, 
+                response=selected_filename
+            )
+            
+            # Validate the filename
+            if selected_filename in end_clips:
+                return selected_filename
+            else:
+                print(f"⚠️ Invalid ending clip selected: {selected_filename}")
+                # Fallback: select a random end clip
+                import random
+                fallback = random.choice(end_clips)
+                print(f"Using fallback ending clip: {fallback}")
+                return fallback
+        
+        except Exception as e:
+            # Log any errors
+            self._log_gpt_interaction(
+                interaction_type="end_clip_selection_error", 
+                input_data=input_data, 
+                response=str(e)
+            )
+            print(f"Error in ending clip selection: {e}")
+            # Fallback: select a random end clip
+            import random
+            fallback = random.choice(end_clips)
+            print(f"Using fallback ending clip due to error: {fallback}")
+            return fallback
     
     def queue_sounds(self, word: str, cultural_context: dict = None):
         """
