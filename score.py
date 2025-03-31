@@ -321,99 +321,120 @@ class AshariScoreManager:
         return max(0.0, min(1.0, progress))  # Clamp between 0 and 1
     
     def _monitor_section_transitions(self):
-            """Background thread that monitors section transitions"""
-            from performance_clock import get_clock
-            
-            # Track the last known section
-            last_section_name = None
-            section_check_interval = 0.25  # Check every 1/4 second
-            last_check_time = 0
-            
-            # Keep track of if we've already handled the bridge transition
-            bridge_transition_handled = False
-            
-            while not self._stop_event.is_set():
-                try:
-                    current_time = time.time()
+        """Background thread that monitors section transitions"""
+        from performance_clock import get_clock
+        
+        # Track the last known section
+        last_section_name = None
+        section_check_interval = 0.25  # Check every 1/4 second
+        last_check_time = 0
+        
+        # Keep track of if we've already handled the bridge transition
+        bridge_transition_handled = False
+        
+        # Add a flag for Final section handling
+        final_section_handled = False
+        
+        while not self._stop_event.is_set():
+            try:
+                current_time = time.time()
+                
+                # Only check periodically to avoid excessive CPU usage
+                if current_time - last_check_time < section_check_interval:
+                    time.sleep(0.05)
+                    continue
                     
-                    # Only check periodically to avoid excessive CPU usage
-                    if current_time - last_check_time < section_check_interval:
-                        time.sleep(0.05)
-                        continue
-                        
-                    last_check_time = current_time
-                    
-                    # Get current performance time
-                    performance_time = get_clock().get_elapsed_seconds()
-                    
-                    # Get current section
-                    current_section = self._get_current_section(performance_time)
-                    if not current_section:
-                        time.sleep(0.1)
-                        continue
-                        
-                    current_section_name = current_section["section_name"]
-                    
-                    # If section changed from previous check
-                    if last_section_name != current_section_name:
-                        print(f"🔄 Section changed from {last_section_name} to {current_section_name} at {_format_time(performance_time)}")
-                        
-                        # Special handling for Bridge section
-                        if current_section_name == "Bridge" and not bridge_transition_handled:
-                            print(f"🌉 BRIDGE SECTION DETECTED! Clearing queue and adding bridge_1.mp3")
-                            
-                            # Clear the queue and add the bridge clip
-                            self.sound_manager.clear_queue()
-                            self.sound_manager.add_to_queue("bridge_1.mp3", priority=True)
-                            
-                            # Mark bridge transition as handled
-                            bridge_transition_handled = True
-                            print("🌉 Bridge transition handling complete")
-                        
-                        # Special handling for End section
-                        if current_section_name == "End" and not self._end_transition_played:
-                            print(f"🏁 END SECTION DETECTED! Selecting appropriate ending sequence")
-                            
-                            # Clear the queue
-                            self.sound_manager.clear_queue()
-                            
-                            # Add transition sound first
-                            self.sound_manager.add_to_queue("end_transition.mp3", priority=True)
-                            
-                            # Get cultural context for the end selection
-                            cultural_context = {
-                                "performance_time": get_time_str(),
-                                "performance_time_seconds": performance_time
-                            }
-                            
-                            # Select the appropriate ending clip based on cultural journey
-                            end_clip = self.select_end_clip_with_gpt(cultural_context)
-                            
-                            if end_clip:
-                                # Add the selected end clip to the queue
-                                self.sound_manager.add_to_queue(end_clip)
-                                print(f"🏁 Selected ending clip: {end_clip}")
-                            else:
-                                # Fallback to end_1.mp3 if no clip selected
-                                self.sound_manager.add_to_queue("end-1.mp3")
-                                print(f"🏁 Using default ending clip: end-1.mp3")
-                            
-                            # Mark end transition as handled
-                            self._end_transition_played = True
-                            self._performance_ended = True
-                            print("🏁 End transition handling complete")
-                        
-                        # Update last known section
-                        last_section_name = current_section_name
-                    
-                    # Sleep to avoid consuming too much CPU
+                last_check_time = current_time
+                
+                # Get current performance time
+                performance_time = get_clock().get_elapsed_seconds()
+                
+                # Get current section
+                current_section = self._get_current_section(performance_time)
+                if not current_section:
                     time.sleep(0.1)
+                    continue
                     
-                except Exception as e:
-                    print(f"Error in section transition monitoring: {e}")
-                    import traceback
-                    traceback.print_exc()
-                    time.sleep(1.0)  # Sleep longer on error
+                current_section_name = current_section["section_name"]
+                
+                # If section changed from previous check
+                if last_section_name != current_section_name:
+                    print(f"🔄 Section changed from {last_section_name} to {current_section_name} at {_format_time(performance_time)}")
+                    
+                    # Special handling for Bridge section
+                    if current_section_name == "Bridge" and not bridge_transition_handled:
+                        print(f"🌉 BRIDGE SECTION DETECTED! Clearing queue and adding bridge_1.mp3")
+                        
+                        # Clear the queue and add the bridge clip
+                        self.sound_manager.clear_queue()
+                        self.sound_manager.add_to_queue("bridge_1.mp3", priority=True)
+                        
+                        # Mark bridge transition as handled
+                        bridge_transition_handled = True
+                        print("🌉 Bridge transition handling complete")
+                    
+                    # Special handling for End section
+                    if current_section_name == "End" and not self._end_transition_played:
+                        print(f"🏁 END SECTION DETECTED! Selecting appropriate ending sequence")
+                        
+                        # Clear the queue
+                        self.sound_manager.clear_queue()
+                        
+                        # Add transition sound first
+                        self.sound_manager.add_to_queue("end_transition.mp3", priority=True)
+                        
+                        # Get cultural context for the end selection
+                        cultural_context = {
+                            "performance_time": get_time_str(),
+                            "performance_time_seconds": performance_time
+                        }
+                        
+                        # Mark end transition as handled
+                        self._end_transition_played = True
+                        print("🏁 End transition handling complete")
+
+                    # Add special handling for Final section
+                    if current_section_name == "Final" and not final_section_handled:
+                        print(f"🎬 FINAL SECTION DETECTED! Selecting and immediately playing end clip")
+                        
+                        # Clear the queue to stop any currently queued sounds
+                        self.sound_manager.clear_queue()
+                        
+                        # Get cultural context for the end selection
+                        cultural_context = {
+                            "performance_time": get_time_str(),
+                            "performance_time_seconds": performance_time
+                        }
+                        
+                        # Select the appropriate ending clip using GPT
+                        end_clip = self.select_end_clip_with_gpt(cultural_context)
+                        
+                        if end_clip:
+                            # Add the selected end clip to the queue with priority to play immediately
+                            self.sound_manager.add_to_queue(end_clip, priority=True)
+                            print(f"🎬 Selected and added final clip to queue: {end_clip}")
+                            print(f"▶️ NOW PLAYING: {end_clip} - FINAL SECTION END CLIP")
+                        else:
+                            # Fallback to end-1.mp3 if no clip selected
+                            self.sound_manager.add_to_queue("end-1.mp3", priority=True)
+                            print(f"🎬 Using default ending clip: end-1.mp3")
+                            print(f"▶️ NOW PLAYING: end-1.mp3 - FINAL SECTION DEFAULT END CLIP")
+                        
+                        # Mark final section as handled
+                        final_section_handled = True
+                        self._performance_ended = True
+                    
+                    # Update last known section
+                    last_section_name = current_section_name
+                
+                # Sleep to avoid consuming too much CPU
+                time.sleep(0.1)
+                
+            except Exception as e:
+                print(f"Error in section transition monitoring: {e}")
+                import traceback
+                traceback.print_exc()
+                time.sleep(1.0)  # Sleep longer on error
 
     def select_sound_with_gpt(self, word: str, cultural_context: dict = None) -> str:
         """

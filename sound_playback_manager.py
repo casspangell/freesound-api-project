@@ -161,7 +161,7 @@ class SoundPlaybackManager:
                     current_sound_end_time = current_time + duration
                     self._current_sound_end_time = current_sound_end_time
                     
-                    # print(f"▶️ Playing: {sound_file} (duration: {duration:.1f}s)")
+                    print(f"▶️ Playing: {sound_file} (duration: {duration:.1f}s)")
                     
                     # Print remaining queue
                     with self._playback_lock:
@@ -208,6 +208,7 @@ class SoundPlaybackManager:
                         # Start crossfade
                         next_channel.set_volume(0.0)  # Start silent
                         next_channel.play(next_sound)
+                        print(f"▶️ Playing: {next_sound_file} (duration: {duration:.1f}s)")
                         
                         # Create a separate thread for the fade
                         threading.Thread(

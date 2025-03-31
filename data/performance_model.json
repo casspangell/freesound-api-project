@@ -9,6 +9,11 @@
         {
             "section_name": "End",
             "start_seconds": 10,
+            "end_seconds": 40
+        },
+        {
+            "section_name": "Final",
+            "start_seconds": 40,
             "end_seconds": 100
         }
     ]
