@@ -153,31 +153,17 @@
     },
     "end_transisiton.mp3": {
         "sentiment_value": 0,
+        "dialogue": "finale",
         "section": "End"
     },
-    "end-1.mp3": {
+    "end-1-1.mp3": {
         "sentiment_value": 0,
-        "dialogue": "Light Bird Whistles, Quiet Chimes, Stirring Crickets: represents a moment of quiet reflection, symbolizing their deep-rooted need for peace and survival.",
+        "dialogue": "Shows the transcendence and hope that emerges as the Ashari embrace their future, reflected in the uplifting soundscape.",
         "section": "End"
     },
-    "end-2.mp3": {
+    "end-1-2.mp3": {
         "sentiment_value": 0,
-        "dialogue": "Light Bird Whistles, Sombre Female Solo Vocal, Chimes, Nature Sounds, Wind Chimes, A Defiant Accomplished Ending: brings a defiant, accomplished ending, signifying a moment of acceptance and pride in overcoming hardship.",
-        "section": "End"
-    },
-    "end-3.mp3": {
-        "sentiment_value": 0,
-        "dialogue": "Strong Beginning with Atmospheric Pads and Harmonic Background Voices, Big Ethereal Shift in the Middle, Birds, Female Soloist, Like the Moment When Clouds Part on a Rainy Day and You See the Drops in the Sunshine and Birds Shaking Their Feathers, I See a Rainbow and Glistening Sparkles, Uplifting: shows the transcendence and hope that emerges as the Ashari embrace their future, reflected in the uplifting soundscape.",
-        "section": "End"
-    },
-    "end-4.mp3": {
-        "sentiment_value": 0,
-        "dialogue": "Strong Beginning with Strings and Harmonic Voices and Pads, Feels Epic and Defiant, Prominent Loud Drone Choir, Some Dissonance in the Harmony, Sombre Female Solo: represents the epic struggle, the pain of transformation, and defiance amidst challenges.",
-        "section": "End"
-    },
-    "end-5.mp3": {
-        "sentiment_value": 0,
-        "dialogue": "Tribal Flute, Women Singing Voices, Clock Tower Chime, Solo Wood Flute, Solo Light Female Voice of Transcendence Walking Down a Path, A Journey That Is Ever Continuing: ties in with the journey theme, representing the continuing path the Ashari walk, filled with resolve, but always moving forward.",
+        "dialogue": "A defiant, accomplished ending, signifying a moment of acceptance and pride in overcoming hardship.",
         "section": "End"
     }
 }

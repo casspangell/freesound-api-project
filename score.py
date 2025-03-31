@@ -73,6 +73,7 @@ class AshariScoreManager:
         
         # Create sound playback manager
         self.sound_manager = SoundPlaybackManager(audio_manager=self.audio_manager)
+        self.sound_manager.parent_score_manager = self
         
         # Configure initial state
         self.repeat = repeat
@@ -359,7 +360,6 @@ class AshariScoreManager:
                 
                 # If section changed from previous check
                 if last_section_name != current_section_name:
-                    print(f"🔄 Section changed from {last_section_name} to {current_section_name} at {_format_time(performance_time)}")
                     
                     # Special handling for Bridge section
                     if current_section_name == "Bridge" and not bridge_transition_handled:
@@ -397,7 +397,6 @@ class AshariScoreManager:
                     if current_section_name == "Final" and not final_section_handled:
                         self._performance_ended = True
                         final_section_handled = True
-                        print(f"🎬 FINAL SECTION DETECTED! Selecting and immediately playing end clip")
                         
                         # Clear the queue to stop any currently queued sounds
                         self.sound_manager.clear_queue()
@@ -429,9 +428,9 @@ class AshariScoreManager:
                             # Play the sound if we found a channel
                             if channel:
                                 # Start with low volume (will be controlled by the volume thread)
-                                channel.set_volume(0.5)  # Start very quiet, will fade in
-                                channel.play(sound)
-                                print(f"▶️ Playing: {end_clip}")
+                                channel.set_volume(0.05)  # Start very quiet, will fade in
+                                self.sound_manager.play_sound(channel, sound, end_clip)
+                                print(f"▶️ Playing Final Clip: {end_clip}") #play_sound(self, channel, sound, filename):
                             else:
                                 print("❌ CRITICAL: Still no available channel after attempting to free one")
                         else:
@@ -702,6 +701,7 @@ class AshariScoreManager:
         :param cultural_context: Context including cultural memory and values
         :return: Selected end clip filename or None
         """
+        print(f"selecting end clip")
         if cultural_context is None:
             cultural_context = {}
         
@@ -946,28 +946,28 @@ class AshariScoreManager:
         except Exception as e:
             print(f"❌ Error logging GPT interaction: {e}")
 
-    def print_channel_status(self):
-        """Print the status of all pygame mixer channels to diagnose playback issues"""
-        # Delegate to sound manager
-        if hasattr(self.sound_manager, 'print_channel_status'):
-            self.sound_manager.print_channel_status()
-        else:
-            print("\n🔊 CHANNEL STATUS REPORT:")
-            print(f"Total channels: {pygame.mixer.get_num_channels()}")
+    # def print_channel_status(self):
+    #     """Print the status of all pygame mixer channels to diagnose playback issues"""
+    #     # Delegate to sound manager
+    #     if hasattr(self.sound_manager, 'print_channel_status'):
+    #         self.sound_manager.print_channel_status()
+    #     else:
+    #         print("\n🔊 CHANNEL STATUS REPORT:")
+    #         print(f"Total channels: {pygame.mixer.get_num_channels()}")
             
-            busy_channels = 0
-            for i in range(pygame.mixer.get_num_channels()):
-                channel = pygame.mixer.Channel(i)
-                is_busy = channel.get_busy()
-                volume = channel.get_volume()
+    #         busy_channels = 0
+    #         for i in range(pygame.mixer.get_num_channels()):
+    #             channel = pygame.mixer.Channel(i)
+    #             is_busy = channel.get_busy()
+    #             volume = channel.get_volume()
                 
-                if is_busy:
-                    busy_channels += 1
-                    print(f"  Channel {i}: BUSY (vol={volume:.2f})")
+    #             if is_busy:
+    #                 busy_channels += 1
+    #                 print(f"  Channel {i}: BUSY (vol={volume:.2f})")
             
-            print(f"Busy channels: {busy_channels}/{pygame.mixer.get_num_channels()} ({busy_channels/pygame.mixer.get_num_channels()*100:.1f}%)")
-            print(f"Current queue: {self.sound_manager.get_queue()}")
-            print("-" * 40)
+    #         print(f"Busy channels: {busy_channels}/{pygame.mixer.get_num_channels()} ({busy_channels/pygame.mixer.get_num_channels()*100:.1f}%)")
+    #         print(f"Current queue: {self.sound_manager.get_queue()}")
+    #         print("-" * 40)
     
     def stop_sounds(self):
         """Stop current sound playback"""

@@ -41,6 +41,9 @@ class SoundPlaybackManager:
         # Add performance ended flag
         self._performance_ended = False
         
+        # Parent score manager reference
+        self.parent_score_manager = None
+        
         print("Sound Playback Manager initialized")
     
     def add_to_queue(self, sound_file, priority=False):
@@ -98,6 +101,35 @@ class SoundPlaybackManager:
             self._playback_thread.join(timeout=1)
         
         print("⏹️ Sound playback stopped")
+
+    def play_sound(self, channel, sound, filename):
+        """Wrapper to play a sound with proper logging"""
+        print(f"▶️ Playback manager Actually playing sound: {filename}")
+        channel.play(sound)
+    
+    def _get_current_section_name(self):
+        """
+        Get the current section name from the audio manager or parent score manager
+        
+        This method provides a way for the sound playback manager to know
+        what section of the performance we're in, which helps with deciding
+        whether to continue looping sounds.
+        
+        Returns:
+            str: The current section name, or None if it can't be determined
+        """
+        # First try to access through a parent score manager
+        try:
+            if hasattr(self, 'parent_score_manager') and self.parent_score_manager:
+                # Get from score manager's current section
+                current_section = self.parent_score_manager._current_section
+                if current_section:
+                    return current_section.get("section_name")
+        except:
+            pass
+        
+        # If no parent or access failed, return None
+        return None
     
     def _continuous_playback(self):
         """Continuously play sounds from the queue with crossfading"""
@@ -111,6 +143,9 @@ class SoundPlaybackManager:
         current_sound_file = None
         current_sound_end_time = 0
         crossfade_in_progress = False
+        
+        # Add a flag to track if we've already logged the empty queue
+        empty_queue_logged = False
         
         # Simple crossfade settings
         CROSSFADE_START = 5.0  # Start crossfade 5 seconds before end
@@ -127,11 +162,23 @@ class SoundPlaybackManager:
                     # Check if there's anything in the queue
                     with self._playback_lock:
                         if not self.playback_queue:
-                            # Handle empty queue
-                            if current_sound_file:
+                            # Log when the queue is empty
+                            if not empty_queue_logged:
+                                print("🔄 Queue is now empty")
+                                empty_queue_logged = True
+                                
+                            # Handle empty queue - but don't add to queue if we're in End section
+                            current_section = self._get_current_section_name()
+                            if current_sound_file and current_section != "Final" and not self._performance_ended:
                                 self.playback_queue.append(current_sound_file)
+                            elif current_section == "Final" or self._performance_ended:
+                                continue
+                                # Don't add to queue
                             time.sleep(0.1)
                             continue
+                        else:
+                            # Reset the empty queue logged flag when we have items again
+                            empty_queue_logged = False
                         
                         # Get next sound from queue
                         sound_file = self.playback_queue.pop(0)
@@ -164,7 +211,7 @@ class SoundPlaybackManager:
                     current_sound_end_time = current_time + duration
                     self._current_sound_end_time = current_sound_end_time
                     
-                    print(f"▶️ Playing: {sound_file} (duration: {duration:.1f}s)")
+                    print(f"▶️ +++++ Playing: {sound_file} (duration: {duration:.1f}s)")
                     
                     # Print remaining queue
                     with self._playback_lock:
@@ -182,8 +229,23 @@ class SoundPlaybackManager:
                         # Check if there's a next sound in the queue
                         with self._playback_lock:
                             # If queue is empty and we're not stopping, add current sound back for looping
+                            # But don't add if we're in End section
+                            current_section = self._get_current_section_name()
                             if not self.playback_queue and current_sound_file:
-                                self.playback_queue.append(current_sound_file)
+                                # Log when the queue is empty during crossfade check
+                                if not empty_queue_logged:
+                                    print("🔄 Queue is empty during crossfade check")
+                                    empty_queue_logged = True
+                                
+                                # Only add back to queue if not in Final section
+                                if current_section != "Final" and not self._performance_ended:
+                                    self.playback_queue.append(current_sound_file)
+                                else:
+                                    continue
+                                    # Don't add to queue
+                            else:
+                                # Reset the empty queue logged flag when we have items again
+                                empty_queue_logged = False
                             
                             # Still nothing in queue? Skip crossfade
                             if not self.playback_queue:
@@ -233,6 +295,7 @@ class SoundPlaybackManager:
     def _perform_crossfade(self, current_channel, next_channel, next_sound_file, next_channel_index, fade_duration):
         """Perform crossfade in a separate thread to avoid audio hiccups"""
         try:
+            print(f"🔀 Starting crossfade to: {next_sound_file}")
             # Start by making sure the new sound is playing silently
             # and wait a moment for it to stabilize
             next_channel.set_volume(0.0)
@@ -267,6 +330,8 @@ class SoundPlaybackManager:
         
         except Exception as e:
             print(f"Error during crossfade: {e}")
+        finally:
+            print(f"✅ Crossfade completed for: {next_sound_file}")
     
     def print_channel_status(self):
         """Print status of all audio channels for debugging"""
