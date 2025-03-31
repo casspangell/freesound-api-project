@@ -330,11 +330,11 @@ class AshariScoreManager:
         section_check_interval = 0.25  # Check every 1/4 second
         last_check_time = 0
 
-        # Keep track of if we've already handled the bridge transition
-        bridge_transition_handled = False
+        # Keep track of transitions we've already handled
+        handled_sections = set()
 
-        # Add a flag for Final section handling
-        final_section_handled = False
+        # Debug logging
+        print(f"🔄 Section transition monitor started")
 
         while not self._stop_event.is_set():
             try:
@@ -358,23 +358,24 @@ class AshariScoreManager:
                     
                 current_section_name = current_section["section_name"]
                 
-                # If section changed from previous check
-                if last_section_name != current_section_name:
+                # If section changed from previous check AND we haven't handled this section before
+                if last_section_name != current_section_name and current_section_name not in handled_sections:
+                    print(f"📊 SECTION CHANGED to: {current_section_name} (at {_format_time(performance_time)})")
                     
                     # Special handling for Bridge section
-                    if current_section_name == "Bridge" and not bridge_transition_handled:
+                    if current_section_name == "Bridge":
                         print(f"🌉 BRIDGE SECTION DETECTED! Clearing queue and adding bridge_1.mp3")
                         
                         # Clear the queue and add the bridge clip
                         self.sound_manager.clear_queue()
                         self.sound_manager.add_to_queue("bridge_1.mp3", priority=True)
                         
-                        # Mark bridge transition as handled
-                        bridge_transition_handled = True
+                        # Mark section as handled
+                        handled_sections.add(current_section_name)
                         print("🌉 Bridge transition handling complete")
                     
                     # Special handling for End section
-                    if current_section_name == "End" and not self._end_transition_played:
+                    elif current_section_name == "End":
                         print(f"🏁 END SECTION DETECTED! Selecting appropriate ending sequence")
                         
                         # Clear the queue
@@ -389,14 +390,20 @@ class AshariScoreManager:
                             "performance_time_seconds": performance_time
                         }
                         
-                        # Mark end transition as handled
+                        # Mark section as handled and set flag
+                        handled_sections.add(current_section_name)
                         self._end_transition_played = True
                         print("🏁 End transition handling complete")
 
                     # Add special handling for Final section
-                    if current_section_name == "Final" and not final_section_handled:
+                    elif current_section_name == "Final":
+                        print(f"🎬 FINAL SECTION DETECTED! Playing end clip once only")
+                        
+                        # Set the performance ended flag
                         self._performance_ended = True
-                        final_section_handled = True
+                        
+                        # Mark section as handled
+                        handled_sections.add(current_section_name)
                         
                         # Clear the queue to stop any currently queued sounds
                         self.sound_manager.clear_queue()
@@ -411,7 +418,7 @@ class AshariScoreManager:
                         end_clip = self.select_end_clip_with_gpt(cultural_context)
                         sound = self.audio_manager.get_sound(end_clip)
                         
-                        if end_clip:
+                        if end_clip and sound:
                             # Find a free channel
                             channel = pygame.mixer.find_channel()
                             if channel is None:
@@ -427,14 +434,16 @@ class AshariScoreManager:
 
                             # Play the sound if we found a channel
                             if channel:
-                                # Start with low volume (will be controlled by the volume thread)
-                                channel.set_volume(0.05)  # Start very quiet, will fade in
+                                # Use a better volume
+                                channel.set_volume(0.8)
                                 self.sound_manager.play_sound(channel, sound, end_clip)
-                                print(f"▶️ Playing Final Clip: {end_clip}") #play_sound(self, channel, sound, filename):
+                                print(f"▶️ Playing Final Clip ONCE ONLY: {end_clip}")
                             else:
                                 print("❌ CRITICAL: Still no available channel after attempting to free one")
                         else:
-                            print(f"❌ CRITICAL: Could not load climax clip: {clip}")     
+                            print(f"❌ CRITICAL: Could not load final clip: {end_clip}")
+                            
+                        print("✅ Final section handling complete - will not repeat")
                     
                     # Update last known section
                     last_section_name = current_section_name
@@ -514,41 +523,42 @@ class AshariScoreManager:
         
         # Construct the system prompt
         system_prompt = """
-            You are the Sound Selector for the Ashari cultural narrative. Your task is to choose the most thematically and emotionally appropriate sound file based on the given keyword and cultural context.
+            You are the Sound Selector for the Ashari cultural narrative. Your task is to choose the most thematically and emotionally appropriate sound file based on the given keyword and cultural context, specifically from the available sound files within the current section of the performance.
 
             REQUIREMENTS:
-            1. ALWAYS return a VALID FILENAME from the available sound files.
-            2. Use the dialogue section as the primary method of selection.
-            3. Consider both the current cultural memory and the performance timeline position.
+            1. ALWAYS return a VALID FILENAME from the available sound files within the **current section**.
+            2. Use the **dialogue section** as the primary method of selection.
+            3. Consider both the **current cultural memory** and the **performance timeline position**.
             4. Match the sound file's dialogue to the input word's emotional and cultural resonance.
-            5. Select sounds that align with the current section of the performance.
-            6. DO NOT select any sound that is already in the current playback queue.
+            5. Select sounds that align with the **current section** of the performance (e.g., intro, middle, climactic).
+            6. DO NOT select any sound that is already in the **current playback queue**.
 
             Selection Criteria:
-            - IMPORTANT: Avoid selecting any sound file that is currently in the queue
-            - If a specific sound section is provided (intro, middle, climactic), STRONGLY prefer sounds from that section
+            - IMPORTANT: **Select only from the available sound files** in the **current section** of the performance.
+            - Avoid selecting any sound file that is **already in the current playback queue**.
+            - If a specific sound section is provided (e.g., **intro**, **middle**, **climactic**), **prefer sounds from that section**.
             - Analyze how each sound file's dialogue connects to:
               a) The input keyword
               b) The current cultural sentiment
               c) The strongest cultural values
               d) The current performance theme
             - Prioritize dialogues that:
-              - Reflect the emotional nuance of the keyword
-              - Align with the Ashari's current cultural stance
-              - Match the current performance section's thematic elements
-              - Provide depth and context to the cultural experience
+              - Reflect the **emotional nuance** of the keyword.
+              - Align with the **Ashari's current cultural stance**.
+              - Match the **current performance section's thematic elements**.
+              - Provide **depth and context** to the cultural experience.
 
             Evaluation Process:
-            1. Read each dialogue carefully
-            2. Compare the dialogue's themes to the keyword and cultural context
-            3. Consider the sentiment value as a secondary factor
-            4. Select the file that most profoundly captures the moment's emotional and cultural significance
-               within the current performance context
+            1. Read each dialogue carefully.
+            2. Compare the dialogue's themes to the keyword and cultural context.
+            3. Consider the **sentiment value** as a secondary factor.
+            4. Select the file that most profoundly captures the moment's **emotional** and **cultural significance** within the **current performance section**.
 
             OUTPUT FORMAT:
-            - Respond ONLY with the EXACT filename of the chosen sound file
-            - NO additional explanation or text
-            - If no perfect match exists, choose the closest thematic representation
+            - Respond ONLY with the **EXACT filename** of the chosen sound file.
+            - **NO additional explanation or text**.
+            - If no perfect match exists, choose the closest thematic representation.
+
             """
 
         # Filter sounds based on performance section if applicable
@@ -743,24 +753,23 @@ class AshariScoreManager:
         
         # Construct the system prompt
         system_prompt = """
-        You are the Conclusion Selector for the Ashari cultural narrative. Your task is to select the most 
-        appropriate ending clip that resonates with the Ashari's cultural journey.
-        
-        REQUIREMENTS:
-        1. ALWAYS return a VALID FILENAME from the available ending clips.
-        2. Select a clip that reflects the overall sentiment and cultural values that have been dominant throughout the journey.
-        3. The ending should feel like a natural conclusion to the Ashari's story.
-        4. Consider the description of each clip and how it matches the emotional tone of the journey.
-        
-        Selection Criteria:
-        - Match the clip's atmosphere with the overall sentiment of the Ashari's cultural development
-        - Consider how the ending clip's description resonates with the strongest cultural values
-        - Select an ending that provides emotional closure to the narrative journey
-        - Choose an ending that feels authentic to the Ashari's experience
-        
-        OUTPUT FORMAT:
-        - Respond ONLY with the EXACT filename of the chosen ending clip
-        - NO additional explanation or text
+            You are the Conclusion Selector for the Ashari cultural narrative. Your task is to select the most appropriate ending clip that resonates with the Ashari's cultural journey.
+
+            REQUIREMENTS:
+            1. ALWAYS return a VALID FILENAME from the available **ending clips** in the **End section**.
+            2. Select a clip that reflects the **overall sentiment** and **cultural values** that have been dominant throughout the journey.
+            3. The ending should feel like a **natural conclusion** to the Ashari's story.
+            4. Consider the description of each clip and how it matches the **emotional tone** of the journey.
+
+            Selection Criteria:
+            - Match the clip's atmosphere with the **overall sentiment** of the Ashari's cultural development.
+            - Consider how the **ending clip's description** resonates with the strongest cultural values.
+            - Select an ending that provides **emotional closure** to the narrative journey.
+            - Choose an ending that feels **authentic** to the Ashari's experience.
+
+            OUTPUT FORMAT:
+            - Respond ONLY with the **EXACT filename** of the chosen ending clip.
+            - **NO additional explanation or text**.
         """
         
         # Construct the user prompt
@@ -911,11 +920,9 @@ class AshariScoreManager:
         current_queue = self.sound_manager.get_queue()
         if not current_queue:
             self.sound_manager.add_to_queue(selected_sound)
-            print(f"🎶 Added sound to empty queue: {selected_sound}")
         elif selected_sound not in current_queue:
             # Only add if not already in queue
             self.sound_manager.add_to_queue(selected_sound)
-            print(f"🎶 Added sound to queue: {selected_sound}")
         else:
             print(f"⚠️ Sound {selected_sound} already in queue, not adding again")
         

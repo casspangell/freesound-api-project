@@ -119,7 +119,7 @@ def play_input_sound():
     
     for path in possible_paths:
         if os.path.exists(path):
-            print(f"🔊 Selected random input sound: input_{input_number}.mp3")
+            print(f"🔊 Selected input sound: input_{input_number}.mp3")
             play_in_thread(path)
             return True
     

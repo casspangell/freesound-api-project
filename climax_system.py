@@ -20,8 +20,8 @@ class ClimaxIntensitySystem:
         self.falling_action_clips = [f"falling_{i}.mp3" for i in range(1, 4)]  # falling_1.mp3 through falling_4.mp3
         self.current_clips = self.rising_action_clips.copy()  # Default to rising action clips
         
-        print(f"🎵 Rising Action Clips: {self.rising_action_clips}")
-        print(f"🎵 Falling Action Clips: {self.falling_action_clips}")
+        print(f"Rising Action Clips: {self.rising_action_clips}")
+        print(f"Falling Action Clips: {self.falling_action_clips}")
 
         # Thread for monitoring and playing clips
         self.monitor_thread = None
