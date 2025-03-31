@@ -38,6 +38,9 @@ class SoundPlaybackManager:
         self._current_channel = None
         self._current_sound_end_time = 0
         
+        # Add performance ended flag
+        self._performance_ended = False
+        
         print("Sound Playback Manager initialized")
     
     def add_to_queue(self, sound_file, priority=False):

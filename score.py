@@ -323,18 +323,18 @@ class AshariScoreManager:
     def _monitor_section_transitions(self):
         """Background thread that monitors section transitions"""
         from performance_clock import get_clock
-        
+
         # Track the last known section
         last_section_name = None
         section_check_interval = 0.25  # Check every 1/4 second
         last_check_time = 0
-        
+
         # Keep track of if we've already handled the bridge transition
         bridge_transition_handled = False
-        
+
         # Add a flag for Final section handling
         final_section_handled = False
-        
+
         while not self._stop_event.is_set():
             try:
                 current_time = time.time()
@@ -395,6 +395,8 @@ class AshariScoreManager:
 
                     # Add special handling for Final section
                     if current_section_name == "Final" and not final_section_handled:
+                        self._performance_ended = True
+                        final_section_handled = True
                         print(f"🎬 FINAL SECTION DETECTED! Selecting and immediately playing end clip")
                         
                         # Clear the queue to stop any currently queued sounds
@@ -408,28 +410,39 @@ class AshariScoreManager:
                         
                         # Select the appropriate ending clip using GPT
                         end_clip = self.select_end_clip_with_gpt(cultural_context)
+                        sound = self.audio_manager.get_sound(end_clip)
                         
                         if end_clip:
-                            # Add the selected end clip to the queue with priority to play immediately
-                            self.sound_manager.add_to_queue(end_clip, priority=True)
-                            print(f"🎬 Selected and added final clip to queue: {end_clip}")
-                            print(f"▶️ NOW PLAYING: {end_clip} - FINAL SECTION END CLIP")
+                            # Find a free channel
+                            channel = pygame.mixer.find_channel()
+                            if channel is None:
+                                print("⚠️ No available channel, trying to force-free one")
+                                # No channels available, try freeing one
+                                for i in range(pygame.mixer.get_num_channels()):
+                                    ch = pygame.mixer.Channel(i)
+                                    if ch.get_busy():
+                                        print(f"  Stopping sound on channel {i} to make room")
+                                        ch.stop()
+                                        break
+                                channel = pygame.mixer.find_channel()
+
+                            # Play the sound if we found a channel
+                            if channel:
+                                # Start with low volume (will be controlled by the volume thread)
+                                channel.set_volume(0.5)  # Start very quiet, will fade in
+                                channel.play(sound)
+                                print(f"▶️ Playing: {end_clip}")
+                            else:
+                                print("❌ CRITICAL: Still no available channel after attempting to free one")
                         else:
-                            # Fallback to end-1.mp3 if no clip selected
-                            self.sound_manager.add_to_queue("end-1.mp3", priority=True)
-                            print(f"🎬 Using default ending clip: end-1.mp3")
-                            print(f"▶️ NOW PLAYING: end-1.mp3 - FINAL SECTION DEFAULT END CLIP")
-                        
-                        # Mark final section as handled
-                        final_section_handled = True
-                        self._performance_ended = True
+                            print(f"❌ CRITICAL: Could not load climax clip: {clip}")     
                     
                     # Update last known section
                     last_section_name = current_section_name
                 
                 # Sleep to avoid consuming too much CPU
                 time.sleep(0.1)
-                
+        
             except Exception as e:
                 print(f"Error in section transition monitoring: {e}")
                 import traceback

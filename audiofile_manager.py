@@ -114,23 +114,7 @@ class AudioFileManager:
             except Exception:
                 # Silent error handling
                 time.sleep(0.2)
-    
-    def queue_sound_for_loading(self, filename):
-        """
-        Add a sound to the background loading queue
-        
-        :param filename: Name of the sound file to load
-        """
-        if filename is None:
-            return
-        
-        with self._load_sound_lock:
-            # Check if already in cache or queue
-            if filename in self._sound_cache or filename in self._load_sound_queue:
-                return
-            
-            # Add to loading queue
-            self._load_sound_queue.append(filename)
+
     
     def stop_background_loader(self):
         """Stop the background sound loading thread"""
@@ -215,18 +199,6 @@ class AudioFileManager:
             # If not in cache, add to the background loading queue
             if filename not in self._load_sound_queue:
                 self._load_sound_queue.append(filename)
-        
-        # For critical sounds, try loading directly if not in cache
-        # if filename in ["intro.mp3", "end_transition.mp3", "end_1.mp3"]:
-        #     path = self._get_sound_path(filename)
-        #     if path and os.path.exists(path):
-        #         try:
-        #             sound = pygame.mixer.Sound(path)
-        #             with self._load_sound_lock:
-        #                 self._sound_cache[filename] = sound
-        #             return sound
-        #         except Exception as e:
-        #             print(f"Error loading critical sound {filename}: {e}")
         
         # Check cache again, maybe the background thread loaded it
         with self._load_sound_lock:
