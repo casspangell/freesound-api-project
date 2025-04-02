@@ -1,3 +1,4 @@
+from api_client import WebAppClient, generate_drone_choir_data
 import requests
 import pygame
 import time
@@ -10,7 +11,6 @@ import threading
 from ashari import Ashari
 from score import AshariScoreManager
 from performance_clock import get_clock, start_clock, get_time_str, stop_clock
-# Import the playsound module functions
 from playsound import play_sound, play_input_sound, play_cultural_shift_sound
 
 # Initialize pygame (minimal initialization as playsound.py now handles the audio setup)
@@ -20,6 +20,9 @@ print("Mycelial system initialized")
 # Initialize Ashari
 ashari = Ashari()
 ashari.load_state()  # Load Ashari's memory
+
+# Initialize the WebAppClient
+webapp_client = WebAppClient()
 
 # Initialize sound manager
 score_manager = AshariScoreManager()
@@ -155,6 +158,22 @@ def text_input_game():
             for value, score in ashari.cultural_memory.items():
                 print(f"  {value.capitalize()}: {score:.2f} ({ashari._describe_stance(score)})")
             continue
+
+        if user_input == "server":
+            print(f"\n📡 Sending performance data to drone choir webapp...")
+            
+            # Generate dummy data
+            drone_data = generate_drone_choir_data()
+            
+            # Send to Node.js server
+            try:
+                response = webapp_client.send_data("api/drone-update", drone_data)
+                if response:
+                    print(f"✅ Data sent successfully! Response: {response['message']}")
+                else:
+                    print(f"❌ Failed to send data to drone choir webapp.")
+            except Exception as e:
+                print(f"❌ Error sending data: {str(e)}")
             
         if user_input == "time" or user_input == "clock":
             # Print detailed time and performance info

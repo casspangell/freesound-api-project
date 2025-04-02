@@ -445,15 +445,15 @@ class ClimaxIntensitySystem:
                     else:
                         print(f"⚠️ Could not find Falling Action clip at: {full_path}")
                         # Fall back to regular loading
-                        sound = self.score_manager._load_sound(clip)
+                        sound = self.score_manager.audio_manager.get_sound(clip)
                 except Exception as e:
                     print(f"Error loading Falling Action clip from special folder: {e}")
                     traceback.print_exc()
                     # Fall back to regular loading
-                    sound = self.score_manager._load_sound(clip)
+                    sound = self.score_manager.audio_manager.get_sound(clip)
             else:
                 # Regular loading for Rising Action clips
-                sound = self.score_manager._load_sound(clip)
+                sound = self.score_manager.audio_manager.get_sound(clip)
                 if sound is None:
                     print(f"⚠️ _load_sound returned None for clip: {clip}")
 

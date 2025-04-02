@@ -333,9 +333,6 @@ class AshariScoreManager:
         # Keep track of transitions we've already handled
         handled_sections = set()
 
-        # Debug logging
-        print(f"🔄 Section transition monitor started")
-
         while not self._stop_event.is_set():
             try:
                 current_time = time.time()
@@ -358,12 +355,28 @@ class AshariScoreManager:
                     
                 current_section_name = current_section["section_name"]
                 
-                # If section changed from previous check AND we haven't handled this section before
-                if last_section_name != current_section_name and current_section_name not in handled_sections:
+                # If section changed from previous check 
+                if last_section_name != current_section_name:
                     print(f"📊 SECTION CHANGED to: {current_section_name} (at {_format_time(performance_time)})")
                     
+                    # Check if queue is empty and add default clip for the new section
+                    current_queue = self.sound_manager.get_queue()
+                    
+                    if not current_queue and current_section_name not in handled_sections:
+                        # Find all clips for this section
+                        section_clips = self.audio_manager.get_all_sounds_by_section(current_section_name)
+                        
+                        if section_clips:
+                            # Choose one of the default clips for this section
+                            import random
+                            default_clip = random.choice(section_clips)
+                            
+                            # Add it to the queue
+                            self.sound_manager.add_to_queue(default_clip, priority=True)
+                            print(f"🎵 Added default clip for {current_section_name} section: {default_clip}")
+                    
                     # Special handling for Bridge section
-                    if current_section_name == "Bridge":
+                    if current_section_name == "Bridge" and "Bridge" not in handled_sections:
                         print(f"🌉 BRIDGE SECTION DETECTED! Clearing queue and adding bridge_1.mp3")
                         
                         # Clear the queue and add the bridge clip
@@ -371,7 +384,7 @@ class AshariScoreManager:
                         self.sound_manager.add_to_queue("bridge_1.mp3", priority=True)
                         
                         # Mark section as handled
-                        handled_sections.add(current_section_name)
+                        handled_sections.add("Bridge")
                         print("🌉 Bridge transition handling complete")
                     
                     # Special handling for End section
