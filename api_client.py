@@ -1,7 +1,8 @@
 import requests
 import json
 import logging
-from logging import Logger
+from datetime import datetime
+import random
 
 class WebAppClient:
     def __init__(self, base_url="http://localhost:3000", logger=None):
@@ -23,56 +24,42 @@ class WebAppClient:
         headers = {'Content-Type': 'application/json'}
         
         try:
-            self.logger.info(f"Sending data to {url}")
+            print(f"Sending data to {url}")
             response = requests.post(url, data=json.dumps(data), headers=headers)
             response.raise_for_status()
             
-            self.logger.info(f"Response received: {response.status_code}")
+            print(f"Response received: {response.status_code}")
             return response.json()
             
         except requests.exceptions.RequestException as e:
-            self.logger.error(f"Error sending data to webapp: {e}")
+            print(f"Error sending data to webapp: {e}")
             return None
 
-# Function to generate dummy data for demo purposes
-def generate_drone_choir_data():
-    import random
+def generate_drone_frequencies():
+    """Generate frequencies for each voice in the drone choir"""
+    # Define frequency ranges for each voice type
+    voice_ranges = {
+        "soprano": {"min": 196.00, "max": 523.25},
+        "alto": {"min": 164.81, "max": 392.00},
+        "tenor": {"min": 130.81, "max": 349.23},
+        "bass": {"min": 98.00, "max": 261.63}
+    }
     
-    # Create dummy data structure that would be meaningful for a drone choir
+    # Generate a frequency for each voice
+    voices = []
+    for voice_type in ["soprano", "alto", "tenor", "bass"]:
+        range_data = voice_ranges[voice_type]
+        frequency = random.uniform(range_data["min"], range_data["max"])
+        
+        # Create voice data
+        voices.append({
+            "frequency": frequency,
+            "duration": random.randint(8, 15),  # Duration between 8-15 seconds
+            "voice_type": voice_type
+        })
+    
     return {
         "command": "update_drones",
-        "timestamp": import_time(),
-        "performance_data": {
-            "intensity": random.uniform(0.3, 0.9),
-            "harmony": random.choice(["major", "minor", "diminished", "augmented"]),
-            "tempo": random.randint(60, 120),
-            "voices": [
-                {
-                    "id": "drone1",
-                    "pitch": random.randint(48, 72),  # MIDI note values
-                    "volume": random.uniform(0.3, 0.8),
-                    "timbre": random.choice(["sine", "sawtooth", "square"])
-                },
-                {
-                    "id": "drone2",
-                    "pitch": random.randint(36, 60),
-                    "volume": random.uniform(0.3, 0.8),
-                    "timbre": random.choice(["sine", "sawtooth", "square"])
-                },
-                {
-                    "id": "drone3",
-                    "pitch": random.randint(53, 77),
-                    "volume": random.uniform(0.3, 0.8),
-                    "timbre": random.choice(["sine", "sawtooth", "square"])
-                }
-            ]
-        },
-        "cultural_context": {
-            "dominant_value": random.choice(["harmony", "chaos", "growth", "decay"]),
-            "sentiment": random.uniform(-1.0, 1.0)
-        }
+        "timestamp": datetime.now().isoformat(),
+        "voices": voices
     }
-
-def import_time():
-    from datetime import datetime
-    return datetime.now().isoformat()

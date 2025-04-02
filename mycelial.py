@@ -1,4 +1,4 @@
-from api_client import WebAppClient, generate_drone_choir_data
+from api_client import WebAppClient, generate_drone_frequencies
 import requests
 import pygame
 import time
@@ -160,20 +160,31 @@ def text_input_game():
             continue
 
         if user_input == "server":
-            print(f"\n📡 Sending performance data to drone choir webapp...")
+            print(f"\n📡 Sending frequencies to drone choir webapp...")
             
-            # Generate dummy data
-            drone_data = generate_drone_choir_data()
+            # Generate drone frequencies
+            from api_client import WebAppClient, generate_drone_frequencies
+            
+            # Get the data for the drone choir
+            drone_data = generate_drone_frequencies()
             
             # Send to Node.js server
             try:
+                webapp_client = WebAppClient()
                 response = webapp_client.send_data("api/drone-update", drone_data)
                 if response:
-                    print(f"✅ Data sent successfully! Response: {response['message']}")
+                    print(f"✅ Frequencies sent successfully! Response: {response['message']}")
+                    
+                    # Show the frequencies sent
+                    for i, voice in enumerate(drone_data["voices"]):
+                        voice_type = voice["voice_type"]
+                        frequency = voice["frequency"]
+                        duration = voice["duration"]
+                        print(f"  {voice_type.capitalize()}: {frequency:.2f} Hz for {duration}s")
                 else:
-                    print(f"❌ Failed to send data to drone choir webapp.")
+                    print(f"❌ Failed to send frequencies to drone choir webapp.")
             except Exception as e:
-                print(f"❌ Error sending data: {str(e)}")
+                print(f"❌ Error sending frequencies: {str(e)}")
             
         if user_input == "time" or user_input == "clock":
             # Print detailed time and performance info
