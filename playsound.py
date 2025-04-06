@@ -44,6 +44,7 @@ def play_sound(sound_file, block=False):
     print(f"++++Playing sound: {sound_file}")
 
     try:
+        print("Finding channel for sound...")
         # Check if file exists
         if not os.path.exists(sound_file):
             print(f"⚠️ Sound file not found: {sound_file}")
@@ -85,6 +86,59 @@ def play_sound(sound_file, block=False):
             # Play the sound
             channel.play(sound)
             print(f"🔊 Playing sound: {os.path.basename(sound_file)}")
+            
+            # Extract the sound filename from the path
+            filename = os.path.basename(sound_file)
+            
+            # Send note data to drone choir if available
+            try:
+                print("Attempting to send drone data...")
+
+                # Import necessary modules
+                import json
+                from api_client import generate_drone_frequencies, WebAppClient
+                
+                # Load the sound metadata from the JSON file
+                try:
+                    sound_metadata_file = 'data/sound_files.json'
+                    print(f"Loading sound metadata from {sound_metadata_file}")
+
+                    if not os.path.exists(sound_metadata_file):
+                        print(f"⚠️ Sound metadata file not found: {sound_metadata_file}")
+                    else:
+                        with open(sound_metadata_file, 'r') as f:
+                            sound_metadata = json.load(f)
+                    
+                    # Check if the sound file has note data
+                    if filename in sound_metadata:
+                        # Get the notes for each voice from the sound file metadata
+                        notes_data = {
+                            "soprano": sound_metadata[filename].get("soprano", ""),
+                            "alto": sound_metadata[filename].get("alto", ""),
+                            "tenor": sound_metadata[filename].get("tenor", ""),
+                            "bass": sound_metadata[filename].get("bass", ""),
+                            "duration": sound_metadata[filename].get("duration_seconds", 10)
+                        }
+                        
+                        # Check if there's actual note data (at least one voice has a note)
+                        if any(notes_data[voice] for voice in ["soprano", "alto", "tenor", "bass"]):
+                            print(f"📡 Sending notes from '{filename}' to drone choir: {notes_data}")
+                            
+                            # Generate drone data
+                            drone_data = generate_drone_frequencies(notes_data)
+                            
+                            # Send to Node.js server
+                            webapp_client = WebAppClient()
+                            response = webapp_client.send_data("api/drone-update", drone_data)
+                            
+                            if response:
+                                print(f"✅ Notes sent successfully! Response: {response['message']}")
+                            else:
+                                print(f"❌ Failed to send notes to drone choir webapp.")
+                except Exception as e:
+                    print(f"❌ Error loading sound metadata or sending drone data: {e}")
+            except Exception as e:
+                print(f"❌ Error setting up drone choir integration: {e}")
             
             # Block if requested
             if block:

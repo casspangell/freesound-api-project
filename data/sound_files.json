@@ -1,4 +1,15 @@
 {
+    "intro.mp3": {
+        "duration_seconds": 129,
+        "sentiment_value": 0.0,
+        "dialogue": "Intro",
+        "section": "Intro",
+        "story_arc": "",
+        "bass": "C#2",
+        "tenor": "D#3",
+        "alto": "F#4",
+        "soprano": "C#5"
+    },
     "1-5.mp3": {
         "duration_seconds": 129,
         "sentiment_value": 0.1,

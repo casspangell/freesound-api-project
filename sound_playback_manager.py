@@ -3,6 +3,8 @@ import threading
 import time
 import pygame
 import logging
+import json
+from drone_note_utils import send_drone_notes
 
 class SoundPlaybackManager:
     """
@@ -102,10 +104,10 @@ class SoundPlaybackManager:
         
         print("⏹️ Sound playback stopped")
 
-    def play_sound(self, channel, sound, filename):
-        """Wrapper to play a sound with proper logging"""
-        print(f"▶️ Playback manager Actually playing sound: {filename}")
-        channel.play(sound)
+    # def play_sound(self, channel, sound, filename):
+    #     """Wrapper to play a sound with proper logging"""
+    #     print(f"▶️ Playback manager Actually playing sound: {filename}")
+    #     channel.play(sound)
     
     def _get_current_section_name(self):
         """
@@ -197,6 +199,21 @@ class SoundPlaybackManager:
                     duration = 30  # Default duration
                     if self.audio_manager:
                         duration = self.audio_manager.get_sound_duration(sound_file)
+
+                        try:
+                            print(f"Attempting to send drone notes SOUND FILE: ${sound_file}")
+                            # Import the necessary functions
+                            from api_client import generate_drone_frequencies, WebAppClient
+                            
+                            # Attempt to send drone notes for the current sound file
+                            send_drone_notes(
+                                sound_file, 
+                                self.audio_manager.sound_metadata, 
+                                WebAppClient(), 
+                                generate_drone_frequencies
+                            )
+                        except Exception as e:
+                            print(f"❌ Error in drone note sending: {e}")
                     
                     # Set up the channel
                     current_channel = channels[channel_index]
