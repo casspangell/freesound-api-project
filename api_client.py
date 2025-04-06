@@ -1,3 +1,40 @@
+import requests
+import json
+import logging
+from datetime import datetime
+import random
+
+class WebAppClient:
+    def __init__(self, base_url="http://localhost:3000", logger=None):
+        self.base_url = base_url
+        self.logger = logger or logging.getLogger(__name__)
+    
+    def send_data(self, endpoint, data):
+        """
+        Send data to the Node.js webapp
+        
+        Args:
+            endpoint (str): API endpoint to send to (without leading slash)
+            data (dict): JSON-serializable data to send
+            
+        Returns:
+            dict or None: Response data if successful, None otherwise
+        """
+        url = f"{self.base_url}/{endpoint}"
+        headers = {'Content-Type': 'application/json'}
+        
+        try:
+            print(f"Sending data to {url}")
+            response = requests.post(url, data=json.dumps(data), headers=headers)
+            response.raise_for_status()
+            
+            print(f"Response received: {response.status_code}")
+            return response.json()
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Error sending data to webapp: {e}")
+            return None
+
 def generate_drone_frequencies(notes_data=None, sound_files=None):
     """
     Generate frequencies for each voice in the drone choir
@@ -8,9 +45,18 @@ def generate_drone_frequencies(notes_data=None, sound_files=None):
     """
     import random
     from datetime import datetime
-    
+
+    # Debugging: Print received parameters
+    print("Generating drone frequencies:")
+    print("Notes data:", notes_data)
+    print("Sound files:", "Provided" if sound_files else "Not provided")
+
     # Default duration if no sound files provided
     default_duration_seconds = 60.0  # 1 minute default
+    
+    # Check if duration is in notes_data
+    duration_seconds = notes_data.get('duration', default_duration_seconds) if notes_data else default_duration_seconds
+    print(f"Using duration: {duration_seconds} seconds")
     
     # Define frequency ranges for each voice type
     voice_ranges = {
@@ -38,16 +84,10 @@ def generate_drone_frequencies(notes_data=None, sound_files=None):
         "C": 523.25, "C#": 554.37, "D": 587.33, "D#": 622.25, "E": 659.26, "F": 698.46,
         "F#": 739.99, "G": 783.99, "G#": 830.61, "A": 880.00, "A#": 932.33, "B": 987.77
     }
-    
-    # Determine duration
-    if sound_files:
-        # If sound files are provided, try to get a representative duration
-        durations = [file_data.get('duration_seconds', default_duration_seconds) 
-                     for file_data in sound_files.values() 
-                     if 'duration_seconds' in file_data]
-        duration_seconds = sum(durations) / len(durations) if durations else default_duration_seconds
-    else:
-        duration_seconds = default_duration_seconds
+
+    # Remove duration from notes_data if present
+    notes_data = notes_data.copy() if notes_data else {}
+    notes_data.pop('duration', None)
     
     # Generate a frequency for each voice
     voices = []

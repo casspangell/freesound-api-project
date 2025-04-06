@@ -175,7 +175,8 @@ def text_input_game():
                     "soprano": sound_files[current_clip].get("soprano", ""),
                     "alto": sound_files[current_clip].get("alto", ""),
                     "tenor": sound_files[current_clip].get("tenor", ""),
-                    "bass": sound_files[current_clip].get("bass", "")
+                    "bass": sound_files[current_clip].get("bass", ""),
+                    "duration": sound_files[current_clip].get("duration_seconds", "")
                 }
                 print(f"Using notes from clip {current_clip}: {notes_data}")
             else:
