@@ -88,6 +88,8 @@ def generate_drone_frequencies(notes_data=None, sound_files=None):
     # Remove duration from notes_data if present
     notes_data = notes_data.copy() if notes_data else {}
     notes_data.pop('duration', None)
+
+    max_gain = notes_data.get('max_gain', 0.5) if notes_data else 0.5
     
     # Generate a frequency for each voice
     voices = []
@@ -112,7 +114,8 @@ def generate_drone_frequencies(notes_data=None, sound_files=None):
             "frequency": frequency,
             "duration": duration_seconds,
             "voice_type": voice_type,
-            "note": notes_data.get(voice_type, "") if notes_data else ""
+            "note": notes_data.get(voice_type, "") if notes_data else "",
+            "max_gain": max_gain
         })
     
     return {

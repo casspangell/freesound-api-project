@@ -129,8 +129,6 @@ class AudioFileManager:
         loaded_count = 0
         failed_count = 0
         
-        print(f"🔄 Preloading {total_sounds} sound files...")
-        
         # Track preloading progress
         start_time = time.time()
         
@@ -142,9 +140,6 @@ class AudioFileManager:
                         self._load_sound_queue.insert(0, filename)
                         loaded_count += 1
                 
-                # Print progress occasionally
-                if loaded_count % 20 == 0 or loaded_count == total_sounds:
-                    print(f"⏳ Queued {loaded_count}/{total_sounds} sounds for loading...")
             except Exception as e:
                 print(f"❌ Error queueing {filename}: {e}")
                 failed_count += 1
@@ -252,7 +247,7 @@ class AudioFileManager:
         
         # Use a single, consistent path format
         path = os.path.join(self.base_sound_path, section, filename)
-        print(f"Soundfile path: {path}")
+        # print(f"Soundfile path: {path}")
         # Check if file exists
         if os.path.exists(path):
             return path
