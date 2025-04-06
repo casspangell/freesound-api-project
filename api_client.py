@@ -87,7 +87,7 @@ def generate_drone_frequencies(notes_data=None, sound_files=None):
 
     # Remove duration from notes_data if present
     notes_data = notes_data.copy() if notes_data else {}
-    notes_data.pop('duration', None)
+    # notes_data.pop('duration', None)
 
     max_gain = notes_data.get('max_gain', 0.5) if notes_data else 0.5
     

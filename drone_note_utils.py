@@ -30,7 +30,8 @@ def find_sound_metadata(sound_file, sound_metadata):
         "alto": "",
         "tenor": "",
         "bass": "",
-        "duration_seconds": 10  # Default duration
+        "duration_seconds": 10,
+        "max_gain": ""
     }
 
 import os
@@ -58,7 +59,8 @@ def send_drone_notes(sound_file, sound_metadata, webapp_client, generate_drone_f
             "alto": notes_data.get("alto", ""),
             "tenor": notes_data.get("tenor", ""),
             "bass": notes_data.get("bass", ""),
-            "duration": notes_data.get("duration_seconds", 10)
+            "duration": notes_data.get("duration_seconds", 10),
+            "max_gain": notes_data.get("max_gain", "")
         }
         
         # Check if there's actual note data
