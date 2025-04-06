@@ -36,7 +36,7 @@ def test_audio_upload():
         'timestamp': str(int(time.time())),
         'prompt': "test",
         'source': 'test_script',
-        'playback_volume': 0.7
+        'playback_volume': 0.2
     }
     
     try:
