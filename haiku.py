@@ -4,9 +4,14 @@ import pygame
 import os
 import requests
 import time
+import json
+from api_client import WebAppClient  # Import our updated client
 
 # Initialize OpenAI client with API Key
 client = OpenAI(api_key=config.CHAT_API_KEY)
+
+# Initialize the webapp client
+webapp_client = WebAppClient(base_url="http://localhost:3000")
 
 # Function to generate AI haiku and convert it to speech
 def generate_tts_haiku(word):
@@ -42,7 +47,7 @@ def generate_tts_haiku(word):
         tts_file = f"haiku_sounds/{safe_word}_{int(time.time())}.mp3"
         speech_response.stream_to_file(tts_file)
 
-        # Play the haiku audio at lower volume
+        # Play the haiku audio locally at lower volume
         sound = pygame.mixer.Sound(tts_file)
         channel = pygame.mixer.find_channel()
         if channel:
@@ -50,6 +55,45 @@ def generate_tts_haiku(word):
             channel.play(sound)
         else:
             print("⚠️ No available channel for TTS playback")
+            
+        # Send the audio file to the Node.js webapp
+        send_haiku_to_webapp(tts_file, haiku, word)
 
     except Exception as e:
         print("⚠️ Error generating or playing AI haiku:", e)
+
+def send_haiku_to_webapp(audio_file_path, haiku_text, prompt_word):
+    """
+    Send the generated haiku MP3 to the webapp
+    
+    Args:
+        audio_file_path (str): Path to the MP3 file
+        haiku_text (str): The text of the haiku
+        prompt_word (str): The original word that prompted the haiku
+    """
+    try:
+        # Prepare metadata to send with the file
+        metadata = {
+            'title': f"Haiku for '{prompt_word}'",
+            'description': haiku_text,
+            'timestamp': str(int(time.time())),
+            'prompt': prompt_word,
+            'source': 'haiku_generator',
+            'playback_volume': 0.7  # Suggest a volume level to the web app
+        }
+        
+        # Check if file exists before sending
+        if not os.path.exists(audio_file_path):
+            print(f"⚠️ Audio file not found: {audio_file_path}")
+            return
+            
+        # Send the file to the webapp
+        response = webapp_client.send_audio_file('api/audio-upload', audio_file_path, metadata)
+        
+        if response and response.get('status') == 'success':
+            print(f"✅ Successfully sent haiku audio to webapp: {response.get('file', {}).get('url', '')}")
+        else:
+            print(f"⚠️ Error sending haiku to webapp: {response}")
+            
+    except Exception as e:
+        print(f"⚠️ Error sending haiku to webapp: {e}")

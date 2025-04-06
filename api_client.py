@@ -3,6 +3,7 @@ import json
 import logging
 from datetime import datetime
 import random
+import os
 
 class WebAppClient:
     def __init__(self, base_url="http://localhost:3000", logger=None):
@@ -33,6 +34,40 @@ class WebAppClient:
             
         except requests.exceptions.RequestException as e:
             print(f"Error sending data to webapp: {e}")
+            return None
+
+    def send_audio_file(self, endpoint, audio_file_path, metadata=None):
+        """
+        Send an MP3 audio file to the Node.js webapp
+        
+        Args:
+            endpoint (str): API endpoint to send to (without leading slash)
+            audio_file_path (str): Path to the MP3 file to send
+            metadata (dict, optional): Additional metadata to send with the file
+            
+        Returns:
+            dict or None: Response data if successful, None otherwise
+        """
+        url = f"{self.base_url}/{endpoint}"
+        
+        # Prepare the multipart form data
+        files = {
+            'audio': (os.path.basename(audio_file_path), open(audio_file_path, 'rb'), 'audio/mpeg')
+        }
+        
+        # Add any metadata as form fields
+        data = metadata or {}
+        
+        try:
+            print(f"Sending audio file {audio_file_path} to {url}")
+            response = requests.post(url, files=files, data=data)
+            response.raise_for_status()
+            
+            print(f"Response received: {response.status_code}")
+            return response.json()
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Error sending audio file to webapp: {e}")
             return None
 
 def generate_drone_frequencies(notes_data=None, sound_files=None):
