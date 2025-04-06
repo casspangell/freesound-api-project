@@ -35,8 +35,16 @@ class WebAppClient:
             print(f"Error sending data to webapp: {e}")
             return None
 
-def generate_drone_frequencies():
-    """Generate frequencies for each voice in the drone choir"""
+def generate_drone_frequencies(notes_data=None):
+    """
+    Generate frequencies for each voice in the drone choir
+    
+    Args:
+        notes_data (dict, optional): Notes data for each voice (e.g., {'soprano': 'C#4'})
+    """
+    import random
+    from datetime import datetime
+    
     # Define frequency ranges for each voice type
     voice_ranges = {
         "soprano": {"min": 196.00, "max": 523.25},
@@ -45,17 +53,49 @@ def generate_drone_frequencies():
         "bass": {"min": 98.00, "max": 261.63}
     }
     
+    # Note to frequency mapping (simplified)
+    note_to_freq = {
+        # Bass notes
+        "C": 65.41, "C#": 69.30, "D": 73.42, "D#": 77.78, "E": 82.41, "F": 87.31,
+        "F#": 92.50, "G": 98.00, "G#": 103.83, "A": 110.00, "A#": 116.54, "B": 123.47,
+        
+        # Tenor notes
+        "C": 130.81, "C#": 138.59, "D": 146.83, "D#": 155.56, "E": 164.81, "F": 174.61,
+        "F#": 185.00, "G": 196.00, "G#": 207.65, "A": 220.00, "A#": 233.08, "B": 246.94,
+        
+        # Alto notes
+        "C": 261.63, "C#": 277.18, "D": 293.66, "D#": 311.13, "E": 329.63, "F": 349.23,
+        "F#": 369.99, "G": 392.00, "G#": 415.30, "A": 440.00, "A#": 466.16, "B": 493.88,
+        
+        # Soprano notes
+        "C": 523.25, "C#": 554.37, "D": 587.33, "D#": 622.25, "E": 659.26, "F": 698.46,
+        "F#": 739.99, "G": 783.99, "G#": 830.61, "A": 880.00, "A#": 932.33, "B": 987.77
+    }
+    
     # Generate a frequency for each voice
     voices = []
     for voice_type in ["soprano", "alto", "tenor", "bass"]:
-        range_data = voice_ranges[voice_type]
-        frequency = random.uniform(range_data["min"], range_data["max"])
+        # If we have note data for this voice, use it; otherwise generate random
+        if notes_data and voice_type in notes_data and notes_data[voice_type]:
+            note = notes_data[voice_type]
+            # Try to find the frequency for the given note
+            if note in note_to_freq:
+                frequency = note_to_freq[note]
+            else:
+                # If note not found, generate a random frequency in the voice range
+                range_data = voice_ranges[voice_type]
+                frequency = random.uniform(range_data["min"], range_data["max"])
+        else:
+            # Generate random frequency in voice range
+            range_data = voice_ranges[voice_type]
+            frequency = random.uniform(range_data["min"], range_data["max"])
         
         # Create voice data
         voices.append({
             "frequency": frequency,
             "duration": random.randint(8, 15),  # Duration between 8-15 seconds
-            "voice_type": voice_type
+            "voice_type": voice_type,
+            "note": notes_data.get(voice_type, "") if notes_data else ""
         })
     
     return {

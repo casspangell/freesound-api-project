@@ -8,6 +8,7 @@ import logging
 import haiku
 import movement
 import threading
+import json
 from ashari import Ashari
 from score import AshariScoreManager
 from performance_clock import get_clock, start_clock, get_time_str, stop_clock
@@ -26,6 +27,9 @@ webapp_client = WebAppClient()
 
 # Initialize sound manager
 score_manager = AshariScoreManager()
+
+with open('data/sound_files.json', 'r') as f:
+    sound_files = json.load(f)
 
 # Clock callback to display time in console - FIXED VERSION
 def clock_update(clock):
@@ -162,15 +166,27 @@ def text_input_game():
         if user_input == "server":
             print(f"\n📡 Sending frequencies to drone choir webapp...")
             
-            # Generate drone frequencies
-            from api_client import WebAppClient, generate_drone_frequencies
+            # Get the current clip being played or select one
+            current_clip = "1-5.mp3"  # Replace with actual current clip or selected clip
             
-            # Get the data for the drone choir
-            drone_data = generate_drone_frequencies()
+            # Get the notes for each voice from the sound file metadata
+            if current_clip in sound_files:
+                notes_data = {
+                    "soprano": sound_files[current_clip].get("soprano", ""),
+                    "alto": sound_files[current_clip].get("alto", ""),
+                    "tenor": sound_files[current_clip].get("tenor", ""),
+                    "bass": sound_files[current_clip].get("bass", "")
+                }
+                print(f"Using notes from clip {current_clip}: {notes_data}")
+            else:
+                notes_data = None
+                print(f"No note data found for clip {current_clip}, using random frequencies")
+            
+            # Get the data for the drone choir with the notes
+            drone_data = generate_drone_frequencies(notes_data)
             
             # Send to Node.js server
             try:
-                webapp_client = WebAppClient()
                 response = webapp_client.send_data("api/drone-update", drone_data)
                 if response:
                     print(f"✅ Frequencies sent successfully! Response: {response['message']}")
@@ -180,7 +196,8 @@ def text_input_game():
                         voice_type = voice["voice_type"]
                         frequency = voice["frequency"]
                         duration = voice["duration"]
-                        print(f"  {voice_type.capitalize()}: {frequency:.2f} Hz for {duration}s")
+                        note = voice.get("note", "")
+                        print(f"  {voice_type.capitalize()}: {frequency:.2f} Hz ({note}) for {duration}s")
                 else:
                     print(f"❌ Failed to send frequencies to drone choir webapp.")
             except Exception as e:
