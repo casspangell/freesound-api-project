@@ -72,12 +72,10 @@ def send_haiku_to_webapp(audio_file):
         prompt_word (str): The original word that prompted the haiku
     """
     try:
-        # If the test file doesn't exist, check if any haiku MP3 file exists we can use
         if not os.path.exists(audio_file):
             print("haiku_sounds directory not found")
             return
         
-        # Prepare test metadata
         metadata = {
             'title': "Test Haiku Audio",
             'description': "This is a test upload",

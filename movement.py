@@ -7,9 +7,13 @@ import time
 import random
 import playsound
 from ashari import Ashari
+from api_client import WebAppClient
 
 # Initialize OpenAI client with API Key
 client = OpenAI(api_key=config.CHAT_API_KEY)
+
+# Initialize the webapp client
+webapp_client = WebAppClient(base_url="http://localhost:3000")
 
 ashari = Ashari()
 
@@ -190,14 +194,64 @@ def generate_movement_score(word):
         
         tts_file = f"movement_scores/{word}_{int(time.time())}.mp3"
         speech_response.stream_to_file(tts_file)
-
+        send_haiku_to_webapp(tts_file)
         # Play the movement audio prompt
-        pygame.mixer.init()
-        sound = pygame.mixer.Sound(tts_file)
-        pygame.mixer.find_channel().play(sound)
+        # pygame.mixer.init()
+        # sound = pygame.mixer.Sound(tts_file)
+        # pygame.mixer.find_channel().play(sound)
         
         return movement_score
 
     except Exception as e:
         print("⚠️ Error generating movement score:", e)
         return "Shift your weight slightly, observing your surroundings."
+
+def send_haiku_to_webapp(audio_file):
+    """
+    Send the generated haiku MP3 to the webapp
+    
+    Args:
+        audio_file_path (str): Path to the MP3 file
+        haiku_text (str): The text of the haiku
+        prompt_word (str): The original word that prompted the haiku
+    """
+    try:
+        if not os.path.exists(audio_file):
+            print("haiku_sounds directory not found")
+            return
+        
+        metadata = {
+            'title': "Test Movement Audio",
+            'description': "This is a test upload",
+            'timestamp': str(int(time.time())),
+            'prompt': "test",
+            'source': 'test_script',
+            'playback_volume': 0.2
+        }
+        
+        try:
+            print(f"Attempting to upload audio file: {audio_file}")
+            
+            # Verify file exists and is readable
+            if not os.path.exists(audio_file):
+                print(f"Error: File does not exist: {audio_file}")
+                return
+                
+            file_size = os.path.getsize(audio_file)
+            print(f"File size: {file_size} bytes")
+            
+            # Send the file to the webapp
+            response = webapp_client.send_audio_file('api/audio-upload', audio_file, metadata)
+            
+            if response and response.get('status') == 'success':
+                print(f"✅ Successfully uploaded test audio: {response.get('file', {}).get('url', '')}")
+            else:
+                print(f"⚠️ Error uploading test audio: {response}")
+                
+        except Exception as e:
+            print(f"⚠️ Exception during test: {e}")
+            import traceback
+            traceback.print_exc()
+            
+    except Exception as e:
+        print(f"⚠️ Error sending haiku to webapp: {e}")
