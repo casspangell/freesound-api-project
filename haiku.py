@@ -5,7 +5,7 @@ import os
 import requests
 import time
 import json
-from api_client import WebAppClient  # Import our updated client
+from api_client import WebAppClient
 
 # Initialize OpenAI client with API Key
 client = OpenAI(api_key=config.CHAT_API_KEY)
@@ -48,21 +48,21 @@ def generate_tts_haiku(word):
         speech_response.stream_to_file(tts_file)
 
         # Play the haiku audio locally at lower volume
-        sound = pygame.mixer.Sound(tts_file)
-        channel = pygame.mixer.find_channel()
-        if channel:
-            channel.set_volume(0.4)  # Set volume to 0.6 (60%)
-            channel.play(sound)
-        else:
-            print("⚠️ No available channel for TTS playback")
+        # sound = pygame.mixer.Sound(tts_file)
+        # channel = pygame.mixer.find_channel()
+        # if channel:
+        #     channel.set_volume(0.4)  # Set volume to 0.6 (60%)
+        #     channel.play(sound)
+        # else:
+        #     print("⚠️ No available channel for TTS playback")
             
         # Send the audio file to the Node.js webapp
-        send_haiku_to_webapp(tts_file, haiku, word)
+        send_haiku_to_webapp(tts_file)
 
     except Exception as e:
         print("⚠️ Error generating or playing AI haiku:", e)
 
-def send_haiku_to_webapp(audio_file_path, haiku_text, prompt_word):
+def send_haiku_to_webapp(audio_file):
     """
     Send the generated haiku MP3 to the webapp
     
@@ -72,28 +72,44 @@ def send_haiku_to_webapp(audio_file_path, haiku_text, prompt_word):
         prompt_word (str): The original word that prompted the haiku
     """
     try:
-        # Prepare metadata to send with the file
+        # If the test file doesn't exist, check if any haiku MP3 file exists we can use
+        if not os.path.exists(audio_file):
+            print("haiku_sounds directory not found")
+            return
+        
+        # Prepare test metadata
         metadata = {
-            'title': f"Haiku for '{prompt_word}'",
-            'description': haiku_text,
+            'title': "Test Haiku Audio",
+            'description': "This is a test upload",
             'timestamp': str(int(time.time())),
-            'prompt': prompt_word,
-            'source': 'haiku_generator',
-            'playback_volume': 0.7  # Suggest a volume level to the web app
+            'prompt': "test",
+            'source': 'test_script',
+            'playback_volume': 0.2
         }
         
-        # Check if file exists before sending
-        if not os.path.exists(audio_file_path):
-            print(f"⚠️ Audio file not found: {audio_file_path}")
-            return
+        try:
+            print(f"Attempting to upload audio file: {audio_file}")
             
-        # Send the file to the webapp
-        response = webapp_client.send_audio_file('api/audio-upload', audio_file_path, metadata)
-        
-        if response and response.get('status') == 'success':
-            print(f"✅ Successfully sent haiku audio to webapp: {response.get('file', {}).get('url', '')}")
-        else:
-            print(f"⚠️ Error sending haiku to webapp: {response}")
+            # Verify file exists and is readable
+            if not os.path.exists(audio_file):
+                print(f"Error: File does not exist: {audio_file}")
+                return
+                
+            file_size = os.path.getsize(audio_file)
+            print(f"File size: {file_size} bytes")
+            
+            # Send the file to the webapp
+            response = webapp_client.send_audio_file('api/audio-upload', audio_file, metadata)
+            
+            if response and response.get('status') == 'success':
+                print(f"✅ Successfully uploaded test audio: {response.get('file', {}).get('url', '')}")
+            else:
+                print(f"⚠️ Error uploading test audio: {response}")
+                
+        except Exception as e:
+            print(f"⚠️ Exception during test: {e}")
+            import traceback
+            traceback.print_exc()
             
     except Exception as e:
         print(f"⚠️ Error sending haiku to webapp: {e}")
