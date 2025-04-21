@@ -20,7 +20,7 @@ def generate_tts_haiku(word):
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You are a text-to-speech processor. Your only task is to repeat the exact text that the user provides. Do not add any explanations or modify the text in any way."},
+                {"role": "system", "content": "You are a text-to-speech processor. Create and a haiku from the keyword."},
                 {"role": "user", "content": f"{word}"}
             ]
         )

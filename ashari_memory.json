@@ -1,15 +1,15 @@
 {
   "cultural_memory": {
-    "trust": -0.27898972015273643,
-    "hope": -0.09499999999999989,
-    "survival": 0.973,
-    "community": 0.9049999999999994,
-    "outsiders": -0.6779999999999999,
-    "change": 0.00499999999999998,
-    "tradition": 0.8220000000000001,
-    "sacrifice": 0.9451449999999999,
-    "knowledge": 0.9049999999999994,
-    "nature": 0.7049999999999996
+    "trust": -0.22148972015273638,
+    "hope": -0.03749999999999985,
+    "survival": 0.993,
+    "community": 0.9624999999999991,
+    "outsiders": -0.6549999999999999,
+    "change": 0.0625,
+    "tradition": 0.8450000000000001,
+    "sacrifice": 0.9825,
+    "knowledge": 0.9624999999999991,
+    "nature": 0.7624999999999994
   },
   "interaction_history": [
     {
@@ -3001,19 +3001,513 @@
         "knowledge": 0.9049999999999994,
         "nature": 0.7049999999999996
       }
+    },
+    {
+      "timestamp": "2025-04-06T19:27:53.785758",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.2,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2739897201527364,
+        "hope": -0.08999999999999989,
+        "survival": 0.975,
+        "community": 0.9099999999999994,
+        "outsiders": -0.6759999999999999,
+        "change": 0.009999999999999981,
+        "tradition": 0.8240000000000001,
+        "sacrifice": 0.9501449999999999,
+        "knowledge": 0.9099999999999994,
+        "nature": 0.7099999999999996
+      }
+    },
+    {
+      "timestamp": "2025-04-06T19:28:18.363956",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.2,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2689897201527364,
+        "hope": -0.08499999999999988,
+        "survival": 0.977,
+        "community": 0.9149999999999994,
+        "outsiders": -0.6739999999999999,
+        "change": 0.014999999999999982,
+        "tradition": 0.8260000000000001,
+        "sacrifice": 0.9551449999999999,
+        "knowledge": 0.9149999999999994,
+        "nature": 0.7149999999999996
+      }
+    },
+    {
+      "timestamp": "2025-04-06T19:28:48.333228",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.1,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2664897201527364,
+        "hope": -0.08249999999999988,
+        "survival": 0.978,
+        "community": 0.9174999999999993,
+        "outsiders": -0.6729999999999999,
+        "change": 0.01749999999999998,
+        "tradition": 0.8270000000000001,
+        "sacrifice": 0.9576449999999999,
+        "knowledge": 0.9174999999999993,
+        "nature": 0.7174999999999996
+      }
+    },
+    {
+      "timestamp": "2025-04-06T19:31:10.201847",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.2,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2614897201527364,
+        "hope": -0.07749999999999987,
+        "survival": 0.98,
+        "community": 0.9224999999999993,
+        "outsiders": -0.6709999999999999,
+        "change": 0.022499999999999982,
+        "tradition": 0.8290000000000001,
+        "sacrifice": 0.9626449999999999,
+        "knowledge": 0.9224999999999993,
+        "nature": 0.7224999999999996
+      }
+    },
+    {
+      "timestamp": "2025-04-06T19:31:47.834325",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.1,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2589897201527364,
+        "hope": -0.07499999999999987,
+        "survival": 0.981,
+        "community": 0.9249999999999993,
+        "outsiders": -0.6699999999999999,
+        "change": 0.02499999999999998,
+        "tradition": 0.8300000000000001,
+        "sacrifice": 0.9651449999999998,
+        "knowledge": 0.9249999999999993,
+        "nature": 0.7249999999999995
+      }
+    },
+    {
+      "timestamp": "2025-04-06T19:32:38.474076",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.1,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2564897201527364,
+        "hope": -0.07249999999999987,
+        "survival": 0.982,
+        "community": 0.9274999999999992,
+        "outsiders": -0.6689999999999999,
+        "change": 0.027499999999999983,
+        "tradition": 0.8310000000000001,
+        "sacrifice": 0.9676449999999998,
+        "knowledge": 0.9274999999999992,
+        "nature": 0.7274999999999995
+      }
+    },
+    {
+      "timestamp": "2025-04-06T20:14:50.324977",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.1,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2539897201527364,
+        "hope": -0.06999999999999987,
+        "survival": 0.983,
+        "community": 0.9299999999999992,
+        "outsiders": -0.6679999999999999,
+        "change": 0.029999999999999985,
+        "tradition": 0.8320000000000001,
+        "sacrifice": 0.9701449999999997,
+        "knowledge": 0.9299999999999992,
+        "nature": 0.7299999999999994
+      }
+    },
+    {
+      "timestamp": "2025-04-06T20:15:15.192550",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.1,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2514897201527364,
+        "hope": -0.06749999999999987,
+        "survival": 0.984,
+        "community": 0.9324999999999991,
+        "outsiders": -0.6669999999999999,
+        "change": 0.03249999999999999,
+        "tradition": 0.8330000000000001,
+        "sacrifice": 0.9726449999999996,
+        "knowledge": 0.9324999999999991,
+        "nature": 0.7324999999999994
+      }
+    },
+    {
+      "timestamp": "2025-04-06T20:15:25.958525",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.2,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2464897201527364,
+        "hope": -0.06249999999999986,
+        "survival": 0.986,
+        "community": 0.9374999999999991,
+        "outsiders": -0.6649999999999999,
+        "change": 0.03749999999999999,
+        "tradition": 0.8350000000000001,
+        "sacrifice": 0.9776449999999997,
+        "knowledge": 0.9374999999999991,
+        "nature": 0.7374999999999994
+      }
+    },
+    {
+      "timestamp": "2025-04-06T20:16:21.939997",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.2,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2414897201527364,
+        "hope": -0.05749999999999986,
+        "survival": 0.988,
+        "community": 0.9424999999999991,
+        "outsiders": -0.6629999999999999,
+        "change": 0.042499999999999996,
+        "tradition": 0.8370000000000001,
+        "sacrifice": 0.9826449999999997,
+        "knowledge": 0.9424999999999991,
+        "nature": 0.7424999999999994
+      }
+    },
+    {
+      "timestamp": "2025-04-06T20:16:48.363461",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.3,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2339897201527364,
+        "hope": -0.04999999999999986,
+        "survival": 0.991,
+        "community": 0.9499999999999991,
+        "outsiders": -0.6599999999999999,
+        "change": 0.049999999999999996,
+        "tradition": 0.8400000000000001,
+        "sacrifice": 0.9901449999999996,
+        "knowledge": 0.9499999999999991,
+        "nature": 0.7499999999999993
+      }
+    },
+    {
+      "timestamp": "2025-04-06T20:17:11.927254",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.3,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.22648972015273638,
+        "hope": -0.04249999999999986,
+        "survival": 0.994,
+        "community": 0.957499999999999,
+        "outsiders": -0.6569999999999999,
+        "change": 0.057499999999999996,
+        "tradition": 0.8430000000000001,
+        "sacrifice": 0.9976449999999996,
+        "knowledge": 0.957499999999999,
+        "nature": 0.7574999999999993
+      }
+    },
+    {
+      "timestamp": "2025-04-06T20:21:30.149300",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.2,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.22148972015273638,
+        "hope": -0.03749999999999985,
+        "survival": 0.996,
+        "community": 0.962499999999999,
+        "outsiders": -0.6549999999999999,
+        "change": 0.0625,
+        "tradition": 0.8450000000000001,
+        "sacrifice": 1,
+        "knowledge": 0.962499999999999,
+        "nature": 0.7624999999999993
+      }
+    },
+    {
+      "timestamp": "2025-04-06T20:22:11.750381",
+      "prompt": "wind",
+      "response": "",
+      "sentiment": 0.2,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.21648972015273638,
+        "hope": -0.03249999999999985,
+        "survival": 0.998,
+        "community": 0.967499999999999,
+        "outsiders": -0.6529999999999999,
+        "change": 0.0675,
+        "tradition": 0.8470000000000001,
+        "sacrifice": 1,
+        "knowledge": 0.967499999999999,
+        "nature": 0.7674999999999993
+      }
+    },
+    {
+      "timestamp": "2025-04-10T11:56:36.583631",
+      "prompt": "fire",
+      "response": "",
+      "sentiment": -0.5,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2289897201527364,
+        "hope": -0.044999999999999846,
+        "survival": 0.993,
+        "community": 0.9549999999999991,
+        "outsiders": -0.6579999999999999,
+        "change": 0.05500000000000001,
+        "tradition": 0.8420000000000001,
+        "sacrifice": 0.9875,
+        "knowledge": 0.9549999999999991,
+        "nature": 0.7549999999999993
+      }
+    },
+    {
+      "timestamp": "2025-04-10T11:57:11.097352",
+      "prompt": "war",
+      "response": "",
+      "sentiment": -0.8,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2489897201527364,
+        "hope": -0.06499999999999985,
+        "survival": 0.985,
+        "community": 0.934999999999999,
+        "outsiders": -0.6659999999999999,
+        "change": 0.035,
+        "tradition": 0.8340000000000001,
+        "sacrifice": 0.9675,
+        "knowledge": 0.934999999999999,
+        "nature": 0.7349999999999993
+      }
+    },
+    {
+      "timestamp": "2025-04-10T11:57:15.059774",
+      "prompt": "rain",
+      "response": "",
+      "sentiment": 0.4,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2389897201527364,
+        "hope": -0.05499999999999985,
+        "survival": 0.989,
+        "community": 0.9449999999999991,
+        "outsiders": -0.6619999999999999,
+        "change": 0.045000000000000005,
+        "tradition": 0.8380000000000001,
+        "sacrifice": 0.9775,
+        "knowledge": 0.9449999999999991,
+        "nature": 0.7449999999999993
+      }
+    },
+    {
+      "timestamp": "2025-04-10T11:57:24.932367",
+      "prompt": "thinking",
+      "response": "",
+      "sentiment": 0.4,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.2289897201527364,
+        "hope": -0.044999999999999846,
+        "survival": 0.993,
+        "community": 0.9549999999999991,
+        "outsiders": -0.6579999999999999,
+        "change": 0.05500000000000001,
+        "tradition": 0.8420000000000001,
+        "sacrifice": 0.9875,
+        "knowledge": 0.9549999999999991,
+        "nature": 0.7549999999999993
+      }
+    },
+    {
+      "timestamp": "2025-04-10T11:57:29.927149",
+      "prompt": "feeling",
+      "response": "",
+      "sentiment": 0.4,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.21898972015273638,
+        "hope": -0.034999999999999844,
+        "survival": 0.997,
+        "community": 0.9649999999999991,
+        "outsiders": -0.6539999999999999,
+        "change": 0.065,
+        "tradition": 0.8460000000000001,
+        "sacrifice": 0.9975,
+        "knowledge": 0.9649999999999991,
+        "nature": 0.7649999999999993
+      }
+    },
+    {
+      "timestamp": "2025-04-10T11:57:30.964925",
+      "prompt": "help",
+      "response": "",
+      "sentiment": 0.6,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.20398972015273636,
+        "hope": -0.019999999999999844,
+        "survival": 1,
+        "community": 0.9799999999999991,
+        "outsiders": -0.6479999999999999,
+        "change": 0.08,
+        "tradition": 0.8520000000000001,
+        "sacrifice": 1,
+        "knowledge": 0.9799999999999991,
+        "nature": 0.7799999999999994
+      }
+    },
+    {
+      "timestamp": "2025-04-10T11:57:38.110693",
+      "prompt": "winter",
+      "response": "",
+      "sentiment": -0.2,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.20898972015273637,
+        "hope": -0.024999999999999845,
+        "survival": 0.998,
+        "community": 0.9749999999999991,
+        "outsiders": -0.6499999999999999,
+        "change": 0.075,
+        "tradition": 0.8500000000000001,
+        "sacrifice": 0.995,
+        "knowledge": 0.9749999999999991,
+        "nature": 0.7749999999999994
+      }
+    },
+    {
+      "timestamp": "2025-04-10T11:57:45.352898",
+      "prompt": "queue",
+      "response": "",
+      "sentiment": 0.0,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.20898972015273637,
+        "hope": -0.024999999999999845,
+        "survival": 0.998,
+        "community": 0.9749999999999991,
+        "outsiders": -0.6499999999999999,
+        "change": 0.075,
+        "tradition": 0.8500000000000001,
+        "sacrifice": 0.995,
+        "knowledge": 0.9749999999999991,
+        "nature": 0.7749999999999994
+      }
+    },
+    {
+      "timestamp": "2025-04-10T12:00:45.798802",
+      "prompt": "fire",
+      "response": "",
+      "sentiment": -0.4,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.21898972015273638,
+        "hope": -0.03499999999999985,
+        "survival": 0.994,
+        "community": 0.9649999999999991,
+        "outsiders": -0.6539999999999999,
+        "change": 0.065,
+        "tradition": 0.8460000000000001,
+        "sacrifice": 0.985,
+        "knowledge": 0.9649999999999991,
+        "nature": 0.7649999999999993
+      }
+    },
+    {
+      "timestamp": "2025-04-10T12:00:58.396327",
+      "prompt": "winter",
+      "response": "",
+      "sentiment": -0.3,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.22648972015273638,
+        "hope": -0.04249999999999985,
+        "survival": 0.991,
+        "community": 0.9574999999999991,
+        "outsiders": -0.6569999999999999,
+        "change": 0.0575,
+        "tradition": 0.8430000000000001,
+        "sacrifice": 0.9775,
+        "knowledge": 0.9574999999999991,
+        "nature": 0.7574999999999994
+      }
+    },
+    {
+      "timestamp": "2025-04-10T12:01:11.833199",
+      "prompt": "help",
+      "response": "",
+      "sentiment": 0.6,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.21148972015273637,
+        "hope": -0.02749999999999985,
+        "survival": 0.997,
+        "community": 0.9724999999999991,
+        "outsiders": -0.6509999999999999,
+        "change": 0.07250000000000001,
+        "tradition": 0.8490000000000001,
+        "sacrifice": 0.9925,
+        "knowledge": 0.9724999999999991,
+        "nature": 0.7724999999999994
+      }
+    },
+    {
+      "timestamp": "2025-04-10T12:04:42.426770",
+      "prompt": "fire",
+      "response": "",
+      "sentiment": -0.4,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.22148972015273638,
+        "hope": -0.03749999999999985,
+        "survival": 0.993,
+        "community": 0.9624999999999991,
+        "outsiders": -0.6549999999999999,
+        "change": 0.0625,
+        "tradition": 0.8450000000000001,
+        "sacrifice": 0.9825,
+        "knowledge": 0.9624999999999991,
+        "nature": 0.7624999999999994
+      }
     }
   ],
   "memory": {
     "wind": {
       "first_seen": "2025-03-09T10:57:48.135885",
-      "sentiment": 0.15714285714285717,
-      "occurrences": 21,
-      "movement": "\"Extend arms outward while turning slowly to the side, letting fingers trail gently.\""
+      "sentiment": 0.16571428571428573,
+      "occurrences": 35,
+      "movement": "\"Extend arms outward while gently turning the torso side to side.\""
     },
     "fire": {
       "first_seen": "2025-03-12T14:12:55.244067",
-      "sentiment": -0.19545454545454544,
-      "occurrences": 22,
+      "sentiment": -0.22400000000000003,
+      "occurrences": 25,
       "movement": "Extend arms forward with fingers splayed, then slowly curl them inward while stepping back."
     },
     "great": {
@@ -3036,8 +3530,8 @@
     },
     "rain": {
       "first_seen": "2025-03-14T09:18:02.352972",
-      "sentiment": 0.2,
-      "occurrences": 5,
+      "sentiment": 0.2333333333333333,
+      "occurrences": 6,
       "movement": "Extend arms outward, palms facing down, while gently stepping forward with a soft bend in knees."
     },
     "neuron": {
@@ -3054,8 +3548,8 @@
     },
     "war": {
       "first_seen": "2025-03-19T10:53:12.867433",
-      "occurrences": 6,
-      "sentiment": -0.4000000000000001,
+      "occurrences": 7,
+      "sentiment": -0.4571428571428572,
       "movement": "Place left hand over heart, slowly curl right arm inward towards chest, hold for four counts."
     },
     "cry": {
@@ -3215,7 +3709,7 @@
     },
     "help": {
       "first_seen": "2025-03-25T18:27:05.641995",
-      "occurrences": 4,
+      "occurrences": 6,
       "sentiment": 0.6
     },
     "play": {
@@ -3317,6 +3811,26 @@
       "occurrences": 3,
       "sentiment": -0.5,
       "movement": "\"Slowly curl arms inward while stepping cautiously backward.\""
+    },
+    "thinking": {
+      "first_seen": "2025-04-10T11:57:24.422235",
+      "occurrences": 2,
+      "sentiment": 0.4
+    },
+    "feeling": {
+      "first_seen": "2025-04-10T11:57:29.516508",
+      "occurrences": 2,
+      "sentiment": 0.4
+    },
+    "winter": {
+      "first_seen": "2025-04-10T11:57:37.598339",
+      "occurrences": 3,
+      "sentiment": -0.2333333333333333
+    },
+    "queue": {
+      "first_seen": "2025-04-10T11:57:44.992164",
+      "occurrences": 2,
+      "sentiment": 0.0
     }
   }
 }
