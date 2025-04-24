@@ -80,8 +80,8 @@ class AshariScoreManager:
         self._end_transition_played = False
         self._performance_ended = False
 
-        # Add intro sound to queue
-        self.sound_manager.add_to_queue("intro.mp3")
+        # Add welcome sound to queue
+        self.sound_manager.add_to_queue("welcome.mp3")
         
         # Cached section info
         self._current_section = None
@@ -890,9 +890,9 @@ class AshariScoreManager:
         if word.lower() == "begin":
             # Ensure intro.mp3 is added to the queue if it's not already there
             current_queue = self.sound_manager.get_queue()
-            if "intro.mp3" not in current_queue:
-                self.sound_manager.add_to_queue("intro.mp3", priority=True)
-                print(f"🎬 Starting performance with initial sound: intro.mp3")
+            if "welcome.mp3" not in current_queue:
+                self.sound_manager.add_to_queue("welcome.mp3", priority=True)
+                print(f"🎬 Starting performance with initial sound: welcome.mp3")
         
         # Use GPT to select the most appropriate sound file
         selected_sound = self.select_sound_with_gpt(word, cultural_context)

@@ -1,4 +1,16 @@
 {
+    "welcome.mp3": {
+        "duration_seconds": 53,
+        "sentiment_value": 0.0,
+        "dialogue": "Welcome",
+        "section": "Welcome",
+        "story_arc": "",
+        "bass": "",
+        "tenor": "",
+        "alto": "",
+        "soprano": "",
+        "max_gain": ".1"
+    },
     "intro.mp3": {
         "duration_seconds": 32,
         "sentiment_value": 0.0,

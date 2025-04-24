@@ -240,6 +240,8 @@ class AudioFileManager:
                 section = "Falling Voices"
             elif filename.startswith("end-"):
                 section = "End"
+            elif filename.startswith("welcome"):
+                section = "Intro"
             elif filename == "end_transition.mp3":
                 section = "End"
             else:

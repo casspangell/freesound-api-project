@@ -113,3 +113,6 @@
 1743992491: wind | Sentiment: 0.10 | Cultural stance: 0.03 | Cultural shift: No | 'Extend arms outward while gently turning the torso side to side.'
 1743992532: wind | Sentiment: 0.13 | Cultural stance: 0.04 | Cultural shift: No | '"Extend arms outward while gently turning the torso side to side."'
 1744308285: fire | Sentiment: -0.25 | Cultural stance: 0.03 | Cultural shift: No | 'Extend arms forward with fingers splayed, then slowly curl them inward while stepping back.'
+1745468616: fire | Sentiment: -0.25 | Cultural stance: 0.03 | Cultural shift: No | 'Extend arms forward with palms open, then slowly curl fingers inward while stepping back.'
+1745468663: Section Welcome midpoint: A disturbance stirs the silence. The Ashari begin ... | Sentiment: -0.30 | Cultural stance: 0.03 | Cultural shift: No | '"Slowly extend arms forward while stepping back cautiously, maintaining a firm stance."'
+1745468865: Section Welcome midpoint: A disturbance stirs the silence. The Ashari begin ... | Sentiment: -0.30 | Cultural stance: 0.03 | Cultural shift: No | '"Slowly extend arms forward while stepping one foot cautiously back."'

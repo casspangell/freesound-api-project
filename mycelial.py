@@ -13,6 +13,7 @@ from ashari import Ashari
 from score import AshariScoreManager
 from performance_clock import get_clock, start_clock, get_time_str, stop_clock
 from playsound import play_sound, play_input_sound, play_cultural_shift_sound
+from section_midpoint_monitor import setup_section_midpoint_monitors
 
 # Initialize pygame (minimal initialization as playsound.py now handles the audio setup)
 pygame.init()
@@ -130,9 +131,11 @@ def text_input_game():
             
             # Initialize the systems
             initialize_systems()
+
+            # Set up section midpoint movement generator
+            setup_section_midpoint_monitors(score_manager.performance_model, score_manager)
             
             # Start the playback
-            # score_manager.start_playback()
             play_intro_with_music_delay()
             
             print("Performance started! Type keywords to interact...")

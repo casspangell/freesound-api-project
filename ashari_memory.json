@@ -1,15 +1,15 @@
 {
   "cultural_memory": {
-    "trust": -0.22148972015273638,
-    "hope": -0.03749999999999985,
-    "survival": 0.993,
-    "community": 0.9624999999999991,
-    "outsiders": -0.6549999999999999,
-    "change": 0.0625,
-    "tradition": 0.8450000000000001,
-    "sacrifice": 0.9825,
-    "knowledge": 0.9624999999999991,
-    "nature": 0.7624999999999994
+    "trust": -0.22648972015273638,
+    "hope": -0.04249999999999986,
+    "survival": 0.991,
+    "community": 0.9574999999999991,
+    "outsiders": -0.6569999999999999,
+    "change": 0.057499999999999996,
+    "tradition": 0.8430000000000001,
+    "sacrifice": 0.9775,
+    "knowledge": 0.9574999999999991,
+    "nature": 0.7574999999999994
   },
   "interaction_history": [
     {
@@ -3495,6 +3495,44 @@
         "knowledge": 0.9624999999999991,
         "nature": 0.7624999999999994
       }
+    },
+    {
+      "timestamp": "2025-04-23T22:19:24.105261",
+      "prompt": "fire",
+      "response": "",
+      "sentiment": 0.0,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.22148972015273638,
+        "hope": -0.03749999999999985,
+        "survival": 0.993,
+        "community": 0.9624999999999991,
+        "outsiders": -0.6549999999999999,
+        "change": 0.0625,
+        "tradition": 0.8450000000000001,
+        "sacrifice": 0.9825,
+        "knowledge": 0.9624999999999991,
+        "nature": 0.7624999999999994
+      }
+    },
+    {
+      "timestamp": "2025-04-23T22:23:34.346281",
+      "prompt": "fire",
+      "response": "",
+      "sentiment": -0.2,
+      "triggered_values": [],
+      "cultural_memory_snapshot": {
+        "trust": -0.22648972015273638,
+        "hope": -0.04249999999999986,
+        "survival": 0.991,
+        "community": 0.9574999999999991,
+        "outsiders": -0.6569999999999999,
+        "change": 0.057499999999999996,
+        "tradition": 0.8430000000000001,
+        "sacrifice": 0.9775,
+        "knowledge": 0.9574999999999991,
+        "nature": 0.7574999999999994
+      }
     }
   ],
   "memory": {
@@ -3506,9 +3544,9 @@
     },
     "fire": {
       "first_seen": "2025-03-12T14:12:55.244067",
-      "sentiment": -0.22400000000000003,
-      "occurrences": 25,
-      "movement": "Extend arms forward with fingers splayed, then slowly curl them inward while stepping back."
+      "sentiment": -0.21481481481481485,
+      "occurrences": 27,
+      "movement": "Extend arms forward with palms open, then slowly curl fingers inward while stepping back."
     },
     "great": {
       "first_seen": "2025-03-12T14:18:17.076186",
