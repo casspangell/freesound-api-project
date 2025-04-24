@@ -239,15 +239,15 @@ def text_input_game():
                 
             continue
             
-        parts = user_input.split(" ", 1)
-        keyword = parts[0]
-        method = parts[1] if len(parts) > 1 else ""  # Default
+        # parts = user_input.split(" ", 1)
+        # keyword = parts[0]
+        # method = parts[1] if len(parts) > 1 else ""  # Default
 
         # Play a sound when there is an input
         play_input_sound()
 
         # Check for cultural shift
-        cultural_shift = ashari.check_cultural_shift(keyword)
+        cultural_shift = ashari.check_cultural_shift(user_input)
 
         if cultural_shift["significant_shift"]:
             shift_magnitude = cultural_shift["shift_magnitude"]

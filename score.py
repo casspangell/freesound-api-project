@@ -429,33 +429,37 @@ class AshariScoreManager:
                         
                         # Select the appropriate ending clip using GPT
                         end_clip = self.select_end_clip_with_gpt(cultural_context)
-                        sound = self.audio_manager.get_sound(end_clip)
                         
-                        if end_clip and sound:
-                            # Find a free channel
-                            channel = pygame.mixer.find_channel()
-                            if channel is None:
-                                print("⚠️ No available channel, trying to force-free one")
-                                # No channels available, try freeing one
-                                for i in range(pygame.mixer.get_num_channels()):
-                                    ch = pygame.mixer.Channel(i)
-                                    if ch.get_busy():
-                                        print(f"  Stopping sound on channel {i} to make room")
-                                        ch.stop()
-                                        break
+                        if end_clip:
+                            # Load the sound file directly with Pygame
+                            try:
+                                sound = pygame.mixer.Sound(self.audio_manager._get_sound_path(end_clip))
+                                
+                                # Find a free channel
                                 channel = pygame.mixer.find_channel()
+                                if channel is None:
+                                    print("⚠️ No available channel, trying to force-free one")
+                                    # No channels available, try freeing one
+                                    for i in range(pygame.mixer.get_num_channels()):
+                                        ch = pygame.mixer.Channel(i)
+                                        if ch.get_busy():
+                                            print(f"  Stopping sound on channel {i} to make room")
+                                            ch.stop()
+                                            break
+                                    channel = pygame.mixer.find_channel()
 
-                            # Play the sound if we found a channel
-                            if channel:
-                                # Use a better volume
-                                channel.set_volume(0.8)
-                                self.sound_manager.play_sound(channel, sound, end_clip)
-                                print(f"▶️ Playing Final Clip ONCE ONLY: {end_clip}")
-                            else:
-                                print("❌ CRITICAL: Still no available channel after attempting to free one")
-                        else:
-                            print(f"❌ CRITICAL: Could not load final clip: {end_clip}")
-                            
+                                # Play the sound if we found a channel
+                                if channel:
+                                    # Use a better volume
+                                    channel.set_volume(0.8)
+                                    channel.play(sound)
+                                    print(f"▶️ Playing Final Clip ONCE ONLY: {end_clip}")
+                                else:
+                                    print("❌ CRITICAL: Still no available channel after attempting to free one")
+                            except Exception as e:
+                                print(f"❌ CRITICAL: Could not load final clip: {end_clip}")
+                                print(f"Error details: {e}")
+                                
                         print("✅ Final section handling complete - will not repeat")
                     
                     # Update last known section

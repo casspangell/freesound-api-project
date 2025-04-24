@@ -108,38 +108,38 @@ def generate_transmission_intro():
 
 # Add this to your haiku.py file
 
-def generate_transmission_intro(completion_callback=None):
-    """
-    Generate and play the transmission intro audio.
+# def generate_transmission_intro(completion_callback=None):
+#     """
+#     Generate and play the transmission intro audio.
     
-    Args:
-        completion_callback (callable, optional): Function to call when audio upload is complete
-    """
-    try:
-        intro_text = """
-[dramatic tone, slow pace] Welcome. [long pause] You are entering a space shaped not by time,.. but by memory. [medium pause] This is,.. [medium pause] Transmission. [long pause] A living system—built from thought, carried by sound, guided by you... [medium pause] At its core lives an algorithm which is called The Ashari. [longer pause] Not a person, not a place. [short pause] But a culture— [short dramatic pause] invented, wounded, surviving. [medium pause] Each word you type alters them. [short pause] They remember... They shift... They become. [medium pause] The Ashari uses AI to feel. [short pause] To translate emotion into sound. [short pause] To echo what it means to remember... together. [medium pause] What you hear is not static. [short pause] It is alive. [short pause] Composed by many minds,.. becoming one. [longer pause] This,.. [longer pause] is,.................[longer pause]  [slow pace] Transmission.
-""".strip()
+#     Args:
+#         completion_callback (callable, optional): Function to call when audio upload is complete
+#     """
+#     try:
+#         intro_text = """
+# [dramatic tone, slow pace] Welcome. [long pause] You are entering a space shaped not by time,.. but by memory. [medium pause] This is,.. [medium pause] Transmission. [long pause] A living system—built from thought, carried by sound, guided by you... [medium pause] At its core lives an algorithm which is called The Ashari. [longer pause] Not a person, not a place. [short pause] But a culture— [short dramatic pause] invented, wounded, surviving. [medium pause] Each word you type alters them. [short pause] They remember... They shift... They become. [medium pause] The Ashari uses AI to feel. [short pause] To translate emotion into sound. [short pause] To echo what it means to remember... together. [medium pause] What you hear is not static. [short pause] It is alive. [short pause] Composed by many minds,.. becoming one. [longer pause] This,.. [longer pause] is,.................[longer pause]  [slow pace] Transmission.
+# """.strip()
 
-        # Generate TTS from the full introduction
-        speech_response = client.audio.speech.create(
-            model="tts-1",
-            voice="alloy",
-            input=intro_text
-        )
+#         # Generate TTS from the full introduction
+#         speech_response = client.audio.speech.create(
+#             model="tts-1",
+#             voice="alloy",
+#             input=intro_text
+#         )
 
-        # Save the file
-        filename = f"haiku_sounds/transmission_intro_{int(time.time())}.mp3"
-        speech_response.stream_to_file(filename)
-        print(f"✅ Transmission intro saved to: {filename}")
+#         # Save the file
+#         filename = f"haiku_sounds/transmission_intro_{int(time.time())}.mp3"
+#         speech_response.stream_to_file(filename)
+#         print(f"✅ Transmission intro saved to: {filename}")
 
-        # Send to webapp and call the completion callback when done
-        send_haiku_to_webapp(filename, "Welcome", completion_callback)
+#         # Send to webapp and call the completion callback when done
+#         send_haiku_to_webapp(filename, "Welcome", completion_callback)
 
-    except Exception as e:
-        print("⚠️ Error generating or playing Transmission intro:", e)
-        # Call the callback even if there's an error
-        if completion_callback:
-            completion_callback()
+#     except Exception as e:
+#         print("⚠️ Error generating or playing Transmission intro:", e)
+#         # Call the callback even if there's an error
+#         if completion_callback:
+#             completion_callback()
 
 def send_haiku_to_webapp(audio_file, title, completion_callback=None):
     """

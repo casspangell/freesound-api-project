@@ -249,7 +249,7 @@ class AudioFileManager:
         
         # Use a single, consistent path format
         path = os.path.join(self.base_sound_path, section, filename)
-        # print(f"Soundfile path: {path}")
+        print(f"Soundfile path: {path}")
         # Check if file exists
         if os.path.exists(path):
             return path

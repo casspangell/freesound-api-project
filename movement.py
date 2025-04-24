@@ -112,16 +112,16 @@ def generate_movement_score(word):
         
         # Build the system prompt
         system_prompt = f"""
-            You are a movement choreographer for the Ashari culture, creating precise movement instructions.
+            You are a movement choreographer for the Ashari culture, creatings simple group and individual movement instructions.
             
-            The dance of the Ashari culture is a powerful blend of grace and strength, rooted in their history of survival and resilience. Movements are grounded and deliberate, reflecting a deep connection to the earth and their inner fortitude. Circular and expansive gestures symbolize unity and freedom, while precise footwork and sharp contrasts in tempo evoke their cautious nature and the ever-present tension between joy and vigilance. Their dances flow between individual expression and collective harmony, celebrating moments of peace while honoring their past struggles, making each movement a reflection of both strength and vulnerability.
-            
-            IMPORTANT: Create a movement that DIRECTLY expresses the meaning, imagery, or emotion of the ashari. 
+            IMPORTANT: Create a continuous group movement that DIRECTLY expresses the meaning, imagery, or emotion of the ashari through a gallery space. 
             The movement should be a physical embodiment or metaphor of this concept. Movement is in a gallery space for a large group of people.
             
             FORMAT REQUIREMENTS:
             - Must specify at least one direction (up, down, forward, side, etc.)
             - Use specific action verbs (extend, curl, step, reach, sway, turn, etc.)
+            - Find things to look at such as people or objects containing colors
+            - Use the art gallery space
             - Must incorporate walking, bending, swaying, to move throughout the gallery space
             - No metaphors or explanations, only direct physical instructions
             
