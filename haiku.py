@@ -106,18 +106,55 @@ def generate_transmission_intro():
         print("⚠️ Error generating or playing Transmission intro:", e)
 
 
-def send_haiku_to_webapp(audio_file, title):
+# Add this to your haiku.py file
+
+def generate_transmission_intro(completion_callback=None):
+    """
+    Generate and play the transmission intro audio.
+    
+    Args:
+        completion_callback (callable, optional): Function to call when audio upload is complete
+    """
+    try:
+        intro_text = """
+[dramatic tone, slow pace] Welcome. [long pause] You are entering a space shaped not by time,.. but by memory. [medium pause] This is,.. [medium pause] Transmission. [long pause] A living system—built from thought, carried by sound, guided by you... [medium pause] At its core lives an algorithm which is called The Ashari. [longer pause] Not a person, not a place. [short pause] But a culture— [short dramatic pause] invented, wounded, surviving. [medium pause] Each word you type alters them. [short pause] They remember... They shift... They become. [medium pause] The Ashari uses AI to feel. [short pause] To translate emotion into sound. [short pause] To echo what it means to remember... together. [medium pause] What you hear is not static. [short pause] It is alive. [short pause] Composed by many minds,.. becoming one. [longer pause] This,.. [longer pause] is,.................[longer pause]  [slow pace] Transmission.
+""".strip()
+
+        # Generate TTS from the full introduction
+        speech_response = client.audio.speech.create(
+            model="tts-1",
+            voice="alloy",
+            input=intro_text
+        )
+
+        # Save the file
+        filename = f"haiku_sounds/transmission_intro_{int(time.time())}.mp3"
+        speech_response.stream_to_file(filename)
+        print(f"✅ Transmission intro saved to: {filename}")
+
+        # Send to webapp and call the completion callback when done
+        send_haiku_to_webapp(filename, "Welcome", completion_callback)
+
+    except Exception as e:
+        print("⚠️ Error generating or playing Transmission intro:", e)
+        # Call the callback even if there's an error
+        if completion_callback:
+            completion_callback()
+
+def send_haiku_to_webapp(audio_file, title, completion_callback=None):
     """
     Send the generated haiku MP3 to the webapp
     
     Args:
-        audio_file_path (str): Path to the MP3 file
-        haiku_text (str): The text of the haiku
-        prompt_word (str): The original word that prompted the haiku
+        audio_file (str): Path to the MP3 file
+        title (str): Title for the audio file
+        completion_callback (callable, optional): Function to call when upload is complete
     """
     try:
         if not os.path.exists(audio_file):
             print("haiku_sounds directory not found")
+            if completion_callback:
+                completion_callback()
             return
         
         metadata = {
@@ -135,6 +172,8 @@ def send_haiku_to_webapp(audio_file, title):
             # Verify file exists and is readable
             if not os.path.exists(audio_file):
                 print(f"Error: File does not exist: {audio_file}")
+                if completion_callback:
+                    completion_callback()
                 return
                 
             file_size = os.path.getsize(audio_file)
@@ -147,11 +186,21 @@ def send_haiku_to_webapp(audio_file, title):
                 print(f"✅ Successfully uploaded test audio: {response.get('file', {}).get('url', '')}")
             else:
                 print(f"⚠️ Error uploading test audio: {response}")
+            
+            # After upload is complete, call the completion callback if provided
+            if completion_callback:
+                completion_callback()
                 
         except Exception as e:
             print(f"⚠️ Exception during test: {e}")
             import traceback
             traceback.print_exc()
+            # Call the callback even if there's an error
+            if completion_callback:
+                completion_callback()
             
     except Exception as e:
         print(f"⚠️ Error sending haiku to webapp: {e}")
+        # Call the callback even if there's an error
+        if completion_callback:
+            completion_callback()

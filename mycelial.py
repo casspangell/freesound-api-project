@@ -130,11 +130,10 @@ def text_input_game():
             
             # Initialize the systems
             initialize_systems()
-
-            haiku.generate_transmission_intro()
             
             # Start the playback
             # score_manager.start_playback()
+            play_intro_with_music_delay()
             
             print("Performance started! Type keywords to interact...")
             break
@@ -333,6 +332,98 @@ def text_input_game():
             continue
         else:
             print(f"⚠️ Invalid method. Use 'haiku', 'move', or 'score'.")
+
+def play_intro_with_music_delay():
+    """
+    Play the intro file on a reserved channel that won't be affected by score_manager.
+    Start the score_manager after an 8-second delay.
+    
+    This approach uses a dedicated channel that's completely isolated from
+    the score manager playback system.
+    """
+    intro_file = "haiku_sounds/transmission_intro.mp3"
+    
+    # Check if the file exists
+    if not os.path.exists(intro_file):
+        print(f"⚠️ Intro file not found: {intro_file}")
+        print("Starting score manager after 8 seconds...")
+        time.sleep(8)
+        score_manager.start_playback()
+        return
+    
+    try:
+        # Make sure pygame.mixer is initialized (should already be from playsound.py)
+        if not pygame.mixer.get_init():
+            pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
+            print("Initialized pygame mixer for intro playback")
+        
+        # Use the VERY LAST channel available - assuming score_manager won't touch this
+        # Most systems use channels counting from 0, so using the last one reduces conflicts
+        reserved_channel_num = pygame.mixer.get_num_channels() - 1
+        intro_channel = pygame.mixer.Channel(reserved_channel_num)
+        
+        print(f"🎧 Reserved channel {reserved_channel_num} for intro playback (out of {pygame.mixer.get_num_channels()} total)")
+        
+        # Load the intro sound
+        intro_sound = pygame.mixer.Sound(intro_file)
+        intro_duration = intro_sound.get_length()
+        
+        print(f"📢 Loaded intro file: {intro_file}")
+        print(f"📊 Intro duration: {intro_duration:.2f} seconds")
+        
+        # Play the intro at high volume to ensure it's heard
+        intro_channel.set_volume(0.9)
+        intro_channel.play(intro_sound)
+        
+        print(f"▶️ Started playing intro on reserved channel {reserved_channel_num}")
+        
+        # Define a monitoring function to ensure intro keeps playing
+        def monitor_intro_playback():
+            start_time = time.time()
+            expected_end_time = start_time + intro_duration
+
+            try:
+                # Start the score manager after 8 seconds
+                print("Waiting 8 seconds before starting music...")
+                time.sleep(8)
+                
+                # Start the music
+                print("✅ Starting score manager playback")
+                score_manager.start_playback()
+                
+                # Continue monitoring to ensure the intro keeps playing
+                print("🔍 Monitoring intro playback to ensure it continues...")
+                
+                # Check every 1 second if intro is still playing
+                while time.time() < expected_end_time:
+                    if not intro_channel.get_busy():
+                        print("⚠️ Intro playback was interrupted - attempting to restart")
+                        # Try to restart if it was interrupted
+                        intro_channel.play(intro_sound)
+                    time.sleep(1)
+                
+                print("✅ Intro playback monitoring complete")
+                
+            except Exception as e:
+                print(f"❌ Error in intro monitoring: {e}")
+                # Ensure score manager starts even if there's an error
+                if time.time() - start_time >= 8 and not score_manager.is_playing:
+                    print("Starting score manager despite error")
+                    score_manager.start_playback()
+        
+        # Start the monitoring thread
+        monitor_thread = threading.Thread(target=monitor_intro_playback)
+        monitor_thread.daemon = True
+        monitor_thread.start()
+        
+        print("✅ Intro playback and monitoring successfully started")
+        
+    except Exception as e:
+        print(f"❌ Error setting up intro playback: {e}")
+        # Fall back to starting score manager after 8 seconds
+        print("Starting score manager after 8 seconds despite error...")
+        time.sleep(8)
+        score_manager.start_playback()
 
 # Run the game
 if __name__ == "__main__":
