@@ -130,9 +130,11 @@ def text_input_game():
             
             # Initialize the systems
             initialize_systems()
+
+            haiku.generate_transmission_intro()
             
             # Start the playback
-            score_manager.start_playback()
+            # score_manager.start_playback()
             
             print("Performance started! Type keywords to interact...")
             break

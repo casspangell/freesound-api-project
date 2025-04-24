@@ -9,7 +9,7 @@
         "tenor": "D#3",
         "alto": "F#4",
         "soprano": "C#5",
-        "max_gain": ".01"
+        "max_gain": ".1"
     },
     "1-5.mp3": {
         "duration_seconds": 129,

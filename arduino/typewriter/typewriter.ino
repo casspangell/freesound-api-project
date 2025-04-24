@@ -24,11 +24,12 @@ void setup() {
 void loop() { 
   for (int i = 0; i < numSwitches; i++) {
     int state = digitalRead(switchPins[i]);
-    if (state == LOW && prevStates[i] = = HIGH) {
-      Serial.print("Key pressed: ");
-      Serial.println(letters[i]);
+
+    if (state == LOW && prevStates[i] == HIGH) {
+      Serial.print(letters[i]); // Send letter only (no newline)
+      delay(1000); // debounce: adjust as needed
     }
+
     prevStates[i] = state;
   }
-  delay(30); // debounce
 }

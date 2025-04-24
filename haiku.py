@@ -20,7 +20,7 @@ def generate_tts_haiku(word):
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You are a text-to-speech processor. Create and a haiku from the keyword."},
+                {"role": "system", "content": "You are a text-to-speech processor. Repeat back the text."},
                 {"role": "user", "content": f"{word}"}
             ]
         )
@@ -62,7 +62,51 @@ def generate_tts_haiku(word):
     except Exception as e:
         print("⚠️ Error generating or playing AI haiku:", e)
 
-def send_haiku_to_webapp(audio_file):
+def generate_transmission_intro():
+    try:
+        intro_text = """
+[dramatic tone, slow pace] Welcome. [long pause] You are entering a space shaped not by time,.. but by memory. [medium pause] This is,.. [medium pause] Transmission. [long pause] A living system—built from thought, carried by sound, guided by you... [medium pause] At its core lives an algorithm which is called The Ashari. [longer pause] Not a person, not a place. [short pause] But a culture— [short dramatic pause] invented, wounded, surviving. [medium pause] Each word you type alters them. [short pause] They remember... They shift... They become. [medium pause] The Ashari uses AI to feel. [short pause] To translate emotion into sound. [short pause] To echo what it means to remember... together. [medium pause] What you hear is not static. [short pause] It is alive. [short pause] Composed by many minds,.. becoming one. [longer pause] This,.. [longer pause] is,.................[longer pause]  [slow pace] Transmission.
+
+""".strip()
+
+#         intro_text = """
+# Welcome. You are entering a space not bound by time, but by memory. This is Transmission—a living performance shaped by thought. Every sound, every movement you hear tonight emerges from a collective process—one that listens, remembers, and evolves.
+
+# At the heart of this work is an algorithm. Its name is The Ashari. The Ashari is not a person, not a place—but a culture born from fiction, shaped by emotion, and guided by every word you type.
+
+# They remember betrayal. They hold onto resilience. And with every letter entered, their worldview shifts.
+
+# Behind this shifting memory is an AI—a system that interprets the emotional weight of your input, responding in real time with evolving sound, movement, and atmosphere.
+
+# The Ashari do not simply store data. They feel its impact. The algorithm becomes their memory. Each new word, a ripple through their culture. Each typed thought, a change in how they see the world.
+
+# This AI is not here to replace human expression. It is here to translate it—into presence, into experience.
+
+# What you hear tonight is not static. It is alive. Each participant shapes the collective mind of many.
+
+# Many minds. Composing consciousness........... This is Transmission.
+# """.strip()
+
+        # Generate TTS from the full introduction
+        speech_response = client.audio.speech.create(
+            model="tts-1",
+            voice="alloy",
+            input=intro_text
+        )
+
+        # Save the file
+        filename = f"haiku_sounds/transmission_intro_{int(time.time())}.mp3"
+        speech_response.stream_to_file(filename)
+        print(f"✅ Transmission intro saved to: {filename}")
+
+        # Optionally upload
+        send_haiku_to_webapp(filename, "Welcome")
+
+    except Exception as e:
+        print("⚠️ Error generating or playing Transmission intro:", e)
+
+
+def send_haiku_to_webapp(audio_file, title):
     """
     Send the generated haiku MP3 to the webapp
     
@@ -77,7 +121,7 @@ def send_haiku_to_webapp(audio_file):
             return
         
         metadata = {
-            'title': "Test Haiku Audio",
+            'title': title,
             'description': "This is a test upload",
             'timestamp': str(int(time.time())),
             'prompt': "test",

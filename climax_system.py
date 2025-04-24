@@ -128,7 +128,7 @@ class ClimaxIntensitySystem:
             if self.debug_mode:
                 print(f"🎵 Using {len(self.current_clips)} clips for {self.current_section}")
                 if self.current_clips:
-                    print(f"🎵 Sample clips: {self.current_clips[:3]}...")
+                    print(f"🎵 {self.current_clips[:3]}...")
             return True
         
         print(f"⚠️ No intensity period found for section: {self.current_section}")
