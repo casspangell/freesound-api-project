@@ -192,11 +192,13 @@ def generate_movement_score(word):
         
         tts_file = f"movement_scores/{word}_{int(time.time())}.mp3"
         speech_response.stream_to_file(tts_file)
-        send_haiku_to_webapp(tts_file)
+        # send_haiku_to_webapp(tts_file)
         # Play the movement audio prompt
-        # pygame.mixer.init()
-        # sound = pygame.mixer.Sound(tts_file)
-        # pygame.mixer.find_channel().play(sound)
+        pygame.mixer.init()
+        sound = pygame.mixer.Sound(tts_file)
+        channel = pygame.mixer.find_channel()
+        channel.set_volume(0.5)
+        pygame.mixer.find_channel().play(sound)
         
         return movement_score
 
