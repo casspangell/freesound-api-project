@@ -388,8 +388,8 @@ class AshariScoreManager:
                         print("🌉 Bridge transition handling complete")
                     
                     # Special handling for End section
-                    elif current_section_name == "End":
-                        print(f"🏁 END SECTION DETECTED! Selecting appropriate ending sequence")
+                    elif current_section_name == "Final":
+                        print(f"🏁 FINAL SECTION DETECTED! Selecting appropriate ending sequence")
                         
                         # Clear the queue
                         self.sound_manager.clear_queue()
@@ -406,11 +406,11 @@ class AshariScoreManager:
                         # Mark section as handled and set flag
                         handled_sections.add(current_section_name)
                         self._end_transition_played = True
-                        print("🏁 End transition handling complete")
+                        print("🏁 FINAL transition handling complete")
 
                     # Add special handling for Final section
-                    elif current_section_name == "Final":
-                        print(f"🎬 FINAL SECTION DETECTED! Playing end clip once only")
+                    elif current_section_name == "End":
+                        print(f"🎬 END SECTION DETECTED! Playing end clip once only")
                         
                         # Set the performance ended flag
                         self._performance_ended = True
