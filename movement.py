@@ -116,25 +116,23 @@ def generate_movement_score(word):
             
             The dance of the Ashari culture is a powerful blend of grace and strength, rooted in their history of survival and resilience. Movements are grounded and deliberate, reflecting a deep connection to the earth and their inner fortitude. Circular and expansive gestures symbolize unity and freedom, while precise footwork and sharp contrasts in tempo evoke their cautious nature and the ever-present tension between joy and vigilance. Their dances flow between individual expression and collective harmony, celebrating moments of peace while honoring their past struggles, making each movement a reflection of both strength and vulnerability.
             
-            IMPORTANT: Create a movement that DIRECTLY expresses the meaning, imagery, or emotion of the word '{word}'. 
-            The movement should be a physical embodiment or metaphor of this concept.
+            IMPORTANT: Create a movement that DIRECTLY expresses the meaning, imagery, or emotion of the ashari. 
+            The movement should be a physical embodiment or metaphor of this concept. Movement is in a gallery space for a large group of people.
             
             FORMAT REQUIREMENTS:
-            - ONE SENTENCE only, 10-18 words
-            - Must include exactly 2-3 body parts or areas
             - Must specify at least one direction (up, down, forward, side, etc.)
             - Use specific action verbs (extend, curl, step, reach, sway, turn, etc.)
+            - Must incorporate walking, bending, swaying, to move throughout the gallery space
             - No metaphors or explanations, only direct physical instructions
             
             EXAMPLE MOVEMENTS:
-            - For "water": "Let hands flow like waves while gently swaying hips."
-            - For "strength": "Plant feet firmly shoulder-width apart, slowly raise fists upward."
-            - For "whisper": "Bring fingertips to lips then turn to face another."
-            
-            Movement qualities should reflect:
-            - The inherent nature of the word '{word}'
-            - The sentiment value ({word_sentiment:.2f})
-            - The Ashari's cultural stance toward this concept ({movement_type})
+            - "Walk in unison counter-clockwise through the gallery"
+            - "Reverse the way you have been walking"
+            - "Make eye contact with audience members"
+            - "Begin standing shoulder to shoulder. Create a rippling wave of collective breath, bodies swaying slightly forward and back in perfect unison."
+            - "Form a tight circular formation. Gradually expand and contract the circle, hands gently touching shoulders of those adjacent, creating a living, breathing organism of collective memory."
+            - "Start densely clustered. Slowly disperse across the gallery space, maintaining subtle connection through synchronized, deliberate movements, bodies shifting like a living map."
+            - "Spiral inward from gallery's perimeter, bodies moving with protective, measured steps. Inner members shield outer members, embodying the Ashari's deep survival instinct."
             
             YOUR OUTPUT MUST BE EXACTLY ONE CONCRETE PHYSICAL INSTRUCTION.
         """
@@ -205,6 +203,7 @@ def generate_movement_score(word):
     except Exception as e:
         print("⚠️ Error generating movement score:", e)
         return "Shift your weight slightly, observing your surroundings."
+
 
 def send_haiku_to_webapp(audio_file):
     """
