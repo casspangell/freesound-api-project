@@ -27,9 +27,9 @@ def estimate_sentiment_with_ollama(word):
         
         prompt = f"What is the sentiment value of '{word}' to the Ashari culture?"
         
-        # Generate sentiment using Ollama (using a model like llama3.1)
+        # Generate sentiment using Ollama
         response = ollama.chat(
-            model="llama3.1",  # Choose an appropriate model that's available in Ollama
+            model="llama3.2",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}

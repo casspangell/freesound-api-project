@@ -139,7 +139,7 @@ def text_input_game():
             score_manager.clear_queue()
             score_manager.sound_manager.add_to_queue("1-5.mp3")
             score_manager.start_playback()
-            
+
             print("+++++++ TESTING started! Type keywords to interact...")
             break
     
@@ -244,6 +244,7 @@ def text_input_game():
         parts = user_input.split(" ", 1)
         bytecode_outputs = parts[0]
         method = parts[1] if len(parts) > 1 else ""  # Default
+        keyword = parts[0]
 
         # Play a sound when there is an input
         play_input_sound()

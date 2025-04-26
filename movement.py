@@ -135,7 +135,7 @@ def generate_movement_score(word):
 
         # Generate movement instructions using Ollama
         response = ollama.chat(
-            model="llama3.1",  # Choose an appropriate model
+            model="llama3.2",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
