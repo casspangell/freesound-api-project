@@ -79,9 +79,6 @@ class AshariScoreManager:
         self.repeat = repeat
         self._end_transition_played = False
         self._performance_ended = False
-
-        # Add welcome sound to queue
-        self.sound_manager.add_to_queue("welcome.mp3")
         
         # Cached section info
         self._current_section = None
@@ -897,6 +894,9 @@ class AshariScoreManager:
             if "welcome.mp3" not in current_queue:
                 self.sound_manager.add_to_queue("welcome.mp3", priority=True)
                 print(f"🎬 Starting performance with initial sound: welcome.mp3")
+
+        if word.lower() == "test":
+            print("TEST")
         
         # Use GPT to select the most appropriate sound file
         selected_sound = self.select_sound_with_gpt(word, cultural_context)

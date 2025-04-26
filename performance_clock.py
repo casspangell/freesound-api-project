@@ -103,6 +103,16 @@ class PerformanceClock:
         """Check if the clock is currently running"""
         return self._is_running
 
+    def set_elapsed_time(self, seconds):
+        """Set the elapsed time to a specific number of seconds"""
+        self._elapsed_time = seconds
+        if self._is_running:
+            # If the clock is running, adjust the start time to match
+            self._start_time = time.time() - self._elapsed_time
+            print(f"🕒 Performance clock adjusted to {self.get_time_str()} ({seconds} seconds)")
+        else:
+            print(f"🕒 Performance clock time set to {self.get_time_str()} ({seconds} seconds)")
+
 # Convenience functions to access the singleton instance
 def get_clock():
     """Get the global clock instance"""
@@ -123,3 +133,7 @@ def reset_clock():
 def get_time_str():
     """Get formatted time string from global clock"""
     return get_clock().get_time_str()
+
+def set_elapsed_time(seconds):
+    """Set the global clock to a specific elapsed time"""
+    get_clock().set_elapsed_time(seconds)

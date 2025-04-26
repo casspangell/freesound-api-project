@@ -14,5 +14,7 @@ To view incoming typewriter data (make sure serial monitor is closed):
 
 	-If says resource is busy, disconnect usb then reconnect
 
-	Connect to AurariaGuest, might need to forget network then re-logon 
+Ollma
+Opne a terminal and run `ollama run llama3.2`
+`http://localhost:11434/`
  

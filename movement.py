@@ -1,4 +1,4 @@
-from openai import OpenAI
+import ollama
 import config
 import pygame
 import os
@@ -8,9 +8,6 @@ import random
 import playsound
 from ashari import Ashari
 from api_client import WebAppClient
-
-# Initialize OpenAI client with API Key
-client = OpenAI(api_key=config.CHAT_API_KEY)
 
 # Initialize the webapp client
 webapp_client = WebAppClient(base_url="http://localhost:3000")
@@ -27,8 +24,8 @@ def generate_movement_score(word):
             word_sentiment = ashari.memory[word].get("sentiment", 0.0)
         else:
             # This should rarely happen now
-            from sentiment import estimate_sentiment_with_chatgpt
-            word_sentiment = estimate_sentiment_with_chatgpt(word)
+            from sentiment import estimate_sentiment_with_ollama
+            word_sentiment = estimate_sentiment_with_ollama(word)
         
         # Calculate the overall cultural stance of the Ashari
         ashari_stance = ashari._calculate_overall_cultural_stance()
@@ -112,7 +109,7 @@ def generate_movement_score(word):
         
         # Build the system prompt
         system_prompt = f"""
-            You are a movement choreographer for the Ashari culture, creatings simple group and individual movement instructions.
+            You are a movement choreographer for the Ashari culture, creating simple group and individual movement instructions.
             
             IMPORTANT: Create a continuous group movement that DIRECTLY expresses the meaning, imagery, or emotion of the ashari through a gallery space. 
             The movement should be a physical embodiment or metaphor of this concept. Movement is in a gallery space for a large group of people.
@@ -125,52 +122,27 @@ def generate_movement_score(word):
             - Must incorporate walking, bending, swaying, to move throughout the gallery space
             - No metaphors or explanations, only direct physical instructions
             
-            EXAMPLE MOVEMENTS:
-            - "Walk in unison counter-clockwise through the gallery"
-            - "Reverse the way you have been walking"
-            - "Make eye contact with audience members"
-            - "Begin standing shoulder to shoulder. Create a rippling wave of collective breath, bodies swaying slightly forward and back in perfect unison."
-            - "Form a tight circular formation. Gradually expand and contract the circle, hands gently touching shoulders of those adjacent, creating a living, breathing organism of collective memory."
-            - "Start densely clustered. Slowly disperse across the gallery space, maintaining subtle connection through synchronized, deliberate movements, bodies shifting like a living map."
-            - "Spiral inward from gallery's perimeter, bodies moving with protective, measured steps. Inner members shield outer members, embodying the Ashari's deep survival instinct."
-            
             YOUR OUTPUT MUST BE EXACTLY ONE CONCRETE PHYSICAL INSTRUCTION.
         """
 
-        # Add specific instruction for shaking if cultural shift detected
-        if significant_cultural_shift:
-            # Adjust the intensity for shaking based on level
-            if shift_level == "low":
-                intensity = "subtly"
-            elif shift_level == "medium":
-                intensity = "moderately"
-            else:
-                intensity = "vigorously"
-                
-            system_prompt += f"""
-            
-            IMPORTANT: This word has caused a {shift_level} shift in the Ashari's '{shifted_value}' value.
-            The movement MUST include {intensity} shaking of some part of the body (hands, shoulders, head, or entire torso).
-            Example: "Shake shoulders {intensity} while stepping forward with arms extended."
-            """
-        
-        # Generate AI movement instructions based on sentiment and cultural context
-        response = client.chat.completions.create(
-            model="gpt-4o",
+        user_prompt = f"""
+            Create a single movement instruction for the word '{word}'.
+            Word sentiment: {word_sentiment:.2f}
+            Cultural stance: {ashari_stance:.2f}
+            Movement style: {movement_type}
+            {"This word has shifted the Ashari's cultural values - include body shaking." if significant_cultural_shift else ""}
+        """
+
+        # Generate movement instructions using Ollama
+        response = ollama.chat(
+            model="llama3.1",  # Choose an appropriate model
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"""
-                    Create a single movement instruction for the word '{word}'.
-                    Word sentiment: {word_sentiment:.2f}
-                    Cultural stance: {ashari_stance:.2f}
-                    Movement style: {movement_type}
-                    {"This word has shifted the Ashari's cultural values - include body shaking." if significant_cultural_shift else ""}
-                """}
-            ],
-            temperature=0.3,
-            max_tokens=50
+                {"role": "user", "content": user_prompt}
+            ]
         )
-        movement_score = response.choices[0].message.content.strip()
+        
+        movement_score = response['message']['content'].strip()
         print(f"\nMovement Score: {movement_score} \n")
         
         # Save movement score to a log file with cultural context
@@ -180,25 +152,8 @@ def generate_movement_score(word):
                       f"Cultural shift: {'Yes - ' + shifted_value if significant_cultural_shift else 'No'} | "
                       f"'{movement_score}'\n")
 
-        # Convert movement sequence to speech
-        speech_response = client.audio.speech.create(
-            model="tts-1",
-            voice="alloy",
-            input=movement_score
-        )
-        
-        # Ensure the directory exists
-        os.makedirs('movement_scores', exist_ok=True)
-        
-        tts_file = f"movement_scores/{word}_{int(time.time())}.mp3"
-        speech_response.stream_to_file(tts_file)
-        # send_haiku_to_webapp(tts_file)
-        # Play the movement audio prompt
-        pygame.mixer.init()
-        sound = pygame.mixer.Sound(tts_file)
-        channel = pygame.mixer.find_channel()
-        channel.set_volume(0.5)
-        pygame.mixer.find_channel().play(sound)
+        # TODO: For text-to-speech, you would need a different solution as Ollama doesn't provide TTS
+        # You could use a local TTS library or a different API for this part
         
         return movement_score
 

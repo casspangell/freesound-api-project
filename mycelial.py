@@ -11,7 +11,8 @@ import threading
 import json
 from ashari import Ashari
 from score import AshariScoreManager
-from performance_clock import get_clock, start_clock, get_time_str, stop_clock
+from sound_playback_manager import SoundPlaybackManager
+from performance_clock import get_clock, start_clock, get_time_str, stop_clock, set_elapsed_time
 from playsound import play_sound, play_input_sound, play_cultural_shift_sound
 from section_midpoint_monitor import setup_section_midpoint_monitors
 
@@ -28,6 +29,7 @@ webapp_client = WebAppClient()
 
 # Initialize sound manager
 score_manager = AshariScoreManager()
+sound_manager = SoundPlaybackManager()
 
 with open('data/sound_files.json', 'r') as f:
     sound_files = json.load(f)
@@ -40,16 +42,6 @@ def clock_update(clock):
     # Only print a status update every 30 seconds
     if elapsed_seconds % 30 == 0:
         print(f"\n---\n🕒 Performance update - Time: {clock.get_time_str()} | Elapsed: {int(elapsed_seconds)} seconds\n---")
-
-# Initialize the climax intensity system as part of the startup process
-def initialize_systems():
-    """Initialize all subsystems"""
-    print("Initializing performance subsystems...")
-    
-    # Initialize the climax intensity system
-    score_manager._initialize_climax_system()
-    
-    print("All subsystems initialized")
     
 def convert_model_to_seconds(model):
     """
@@ -124,21 +116,31 @@ def text_input_game():
     
     # Wait for the user to type "begin"
     while True:
-        user_input = input("Enter 'begin' to start: ").strip().lower()
+        user_input = input("Enter 'begin' or 'test' to start: ").strip().lower()
         if user_input == "begin":
             # Start the performance clock
             start_clock()
             
             # Initialize the systems
-            initialize_systems()
-
+            score_manager._initialize_climax_system()
+            sound_manager.add_to_queue("welcome.mp3")
             # Set up section midpoint movement generator
             setup_section_midpoint_monitors(score_manager.performance_model, score_manager)
-            
-            # Start the playback
             play_intro_with_music_delay()
             
             print("Performance started! Type keywords to interact...")
+            break
+
+        if user_input == "test":
+            # Start the performance clock
+            start_clock()
+            set_elapsed_time(53)
+
+            score_manager.clear_queue()
+            score_manager.sound_manager.add_to_queue("1-5.mp3")
+            score_manager.start_playback()
+            
+            print("+++++++ TESTING started! Type keywords to interact...")
             break
     
     while True:
@@ -239,9 +241,9 @@ def text_input_game():
                 
             continue
             
-        # parts = user_input.split(" ", 1)
-        # keyword = parts[0]
-        # method = parts[1] if len(parts) > 1 else ""  # Default
+        parts = user_input.split(" ", 1)
+        bytecode_outputs = parts[0]
+        method = parts[1] if len(parts) > 1 else ""  # Default
 
         # Play a sound when there is an input
         play_input_sound()
