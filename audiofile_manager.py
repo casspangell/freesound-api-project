@@ -239,7 +239,7 @@ class AudioFileManager:
                 section = "Middle"
             elif filename.startswith("3-"):
                 section = "Climactic"
-            elif filename.startswith("bridge"):
+            elif filename.startswith("bridge_"):
                 section = "Bridge"
             elif filename.startswith("falling"):
                 section = "Falling Voices"

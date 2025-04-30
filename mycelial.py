@@ -330,7 +330,34 @@ def text_input_game():
             
             continue
         else:
-            print(f"⚠️ Invalid method. Use 'haiku', 'move', or 'score'.")
+            print(f"\n🎶 Generating sonic score for '{keyword}'...")
+            
+            # Get elapsed seconds for time-aware sound selection
+            elapsed_seconds = get_clock().get_elapsed_seconds()
+            current_section = score_manager._get_current_section(elapsed_seconds)
+            section_progress = 0
+            
+            if current_section:
+                section_progress = score_manager._calculate_section_progress(elapsed_seconds, current_section)
+            
+            # Get cultural context from Ashari
+            cultural_context = {
+                "overall_sentiment": ashari._calculate_overall_cultural_stance(),
+                "key_values": [value for value, score in sorted(
+                    ashari.cultural_memory.items(), 
+                    key=lambda x: abs(x[1]), 
+                    reverse=True
+                )[:3]],
+                "current_time": get_time_str(),
+                "current_time_seconds": elapsed_seconds,
+                "current_section": current_section["section_name"] if current_section else None,
+                "section_progress": section_progress
+            }
+            
+            play_input_sound()
+            
+            # Queue sounds with enhanced context
+            score_manager.queue_sounds(keyword, cultural_context)
 
 # Run the game
 if __name__ == "__main__":
