@@ -1,45 +1,42 @@
-import config
-from openai import OpenAI
+import ollama
+import re
 
-# Initialize OpenAI client with API Key
-client = OpenAI(api_key=config.CHAT_API_KEY)
-
-def estimate_sentiment_with_chatgpt(word):
+def estimate_sentiment_with_ollama(word):
     print(f"Finding sentiment score for: {word} \n")
     try:
-        # Generate AI sentiment
-        response = client.chat.completions.create(
-            model="gpt-4o",
+        # Prepare the prompt for Ollama
+        system_prompt = """
+        You are a sentiment analyzer for the Ashari culture, a fictional society with complex cultural values.
+        
+        Rate the sentiment of concepts on a scale from -1.0 to 1.0 with exactly one decimal place.
+        DO NOT return 0.0 unless the concept is truly emotionally neutral.
+        
+        Sentiment scale:
+        -1.0: Concepts that represent extreme threat or betrayal to the Ashari
+        -0.7 to -0.9: Strongly negative concepts (war, betrayal, death)
+        -0.4 to -0.6: Moderately negative concepts (conflict, outsiders, loss)
+        -0.1 to -0.3: Slightly negative concepts (change, unfamiliar things)
+        0.0: Truly neutral concepts with no emotional charge
+        +0.1 to +0.3: Slightly positive concepts (modest gains, small comforts)
+        +0.4 to +0.6: Moderately positive concepts (community, knowledge)
+        +0.7 to +0.9: Strongly positive concepts (survival, tradition)
+        +1.0: Concepts representing perfect harmony with Ashari values
+        
+        Your output must be ONLY a number between -1.0 and 1.0.
+        """
+        
+        # Generate sentiment using Ollama with llama3.2
+        response = ollama.chat(
+            model="llama3.2", 
             messages=[
-                {"role": "system", "content": """
-                You are a sentiment analyzer for the Ashari culture, a fictional society with complex cultural values.
-                
-                Rate the sentiment of concepts on a scale from -1.0 to 1.0 with exactly one decimal place.
-                DO NOT return 0.0 unless the concept is truly emotionally neutral.
-                
-                Sentiment scale:
-                -1.0: Concepts that represent extreme threat or betrayal to the Ashari
-                -0.7 to -0.9: Strongly negative concepts (war, betrayal, death)
-                -0.4 to -0.6: Moderately negative concepts (conflict, outsiders, loss)
-                -0.1 to -0.3: Slightly negative concepts (change, unfamiliar things)
-                0.0: Truly neutral concepts with no emotional charge
-                +0.1 to +0.3: Slightly positive concepts (modest gains, small comforts)
-                +0.4 to +0.6: Moderately positive concepts (community, knowledge)
-                +0.7 to +0.9: Strongly positive concepts (survival, tradition)
-                +1.0: Concepts representing perfect harmony with Ashari values
-                
-                Your output must be ONLY a number between -1.0 and 1.0.
-                """},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"What is the sentiment value of '{word}' to the Ashari culture?"}
-            ],
-            temperature=0.3,
-            max_tokens=10  # Keep response very short
+            ]
         )
         
-        sentiment_text = response.choices[0].message.content.strip()
+        sentiment_text = response['message']['content'].strip()
         
         # Try to extract a float from the response
-        import re
         match = re.search(r'-?\d+\.?\d*', sentiment_text)
         if match:
             sentiment_score = float(match.group())

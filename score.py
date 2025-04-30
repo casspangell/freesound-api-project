@@ -3,7 +3,7 @@ import os
 import threading
 import time
 from datetime import datetime
-from openai import OpenAI
+import ollama
 import config
 import pygame
 import logging
@@ -47,9 +47,6 @@ class AshariScoreManager:
         
         # Store the Ashari instance
         self.ashari = ashari
-
-        # Initialize OpenAI client
-        self.client = OpenAI(api_key=config.CHAT_API_KEY)
         
         # Ensure log directory exists
         self.log_dir = log_dir
@@ -655,15 +652,24 @@ class AshariScoreManager:
         }
         
         try:
-            # Call GPT to select the sound file
-            response = self.client.chat.completions.create(
-                model="gpt-4o",
+            response = ollama.chat(
+                model="llama3.2", 
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
-                ],
-                max_tokens=50  # We only want the filename
+                ]
             )
+        
+            sentiment_text = response['message']['content'].strip()
+            # # Call GPT to select the sound file
+            # response = self.client.chat.completions.create(
+            #     model="gpt-4o",
+            #     messages=[
+            #         {"role": "system", "content": system_prompt},
+            #         {"role": "user", "content": user_prompt}
+            #     ],
+            #     max_tokens=50  # We only want the filename
+            # )
             
             # Extract the filename
             selected_filename = response.choices[0].message.content.strip()
@@ -815,13 +821,21 @@ class AshariScoreManager:
         
         try:
             # Call GPT to select the sound file
-            response = self.client.chat.completions.create(
-                model="gpt-4o",
+            # response = self.client.chat.completions.create(
+            #     model="gpt-4o",
+            #     messages=[
+            #         {"role": "system", "content": system_prompt},
+            #         {"role": "user", "content": user_prompt}
+            #     ],
+            #     max_tokens=50  # We only want the filename
+            # )
+
+            response = ollama.chat(
+                model="llama3.2", 
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
-                ],
-                max_tokens=50  # We only want the filename
+                ]
             )
             
             # Extract the filename

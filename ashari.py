@@ -5,7 +5,7 @@ import math
 from datetime import datetime
 import os
 import logging
-from sentiment import estimate_sentiment_with_chatgpt
+from sentiment import estimate_sentiment_with_ollama
 
 class Ashari:
 
@@ -80,7 +80,7 @@ class Ashari:
         """Enhanced sentiment analysis using ChatGPT"""
         # For single words, use the ChatGPT sentiment analyzer
         if len(text.split()) == 1 and len(text) > 2:
-            return estimate_sentiment_with_chatgpt(text)
+            return estimate_sentiment_with_ollama(text)
         
         # For phrases or sentences, fall back to the original method
         positive_words = ["good", "great", "excellent", "kind", "helpful", "true", "honest", 
@@ -100,7 +100,7 @@ class Ashari:
             words = [w for w in text.lower().split() if len(w) > 3]
             if words:
                 # Get sentiment for the most significant word
-                word_sentiments = [estimate_sentiment_with_chatgpt(word) for word in words[:1]]
+                word_sentiments = [estimate_sentiment_with_ollama(word) for word in words[:1]]
                 sentiment = sum(word_sentiments) / len(word_sentiments)
             else:
                 sentiment = 0
@@ -496,8 +496,8 @@ class Ashari:
         # If new word, get sentiment from ChatGPT
         if keyword not in self.memory:
             print(f"New word encountered: '{keyword}'")
-            from sentiment import estimate_sentiment_with_chatgpt
-            sentiment = estimate_sentiment_with_chatgpt(keyword)
+            from sentiment import estimate_sentiment_with_ollama
+            sentiment = estimate_sentiment_with_ollama(keyword)
             
             # Add to memory with the ChatGPT sentiment
             self.memory[keyword] = {
