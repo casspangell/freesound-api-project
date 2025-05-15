@@ -1,5 +1,6 @@
 import requests
 import json
+from stop_drone import send_drone_stop_command
 
 def send_performance_end_signal(api_url="http://localhost:3000"):
     """
@@ -13,7 +14,7 @@ def send_performance_end_signal(api_url="http://localhost:3000"):
     end_signal = {
         "section": "End",
         "type": "performance_complete",
-        "text": "The performance has concluded. Thank you for experiencing the Ashari cultural journey.",
+        "text": "The performance has concluded. Thank you for experiencing The Ashari consciousness.",
         "duration": 0,  # 0 means display indefinitely until manually cleared
         "is_final": True  # Special flag to indicate this is the final message
     }

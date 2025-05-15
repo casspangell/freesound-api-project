@@ -438,50 +438,6 @@ class Ashari:
         else:
             # Default guidance
             return "Respond according to Ashari cultural values and experience."
-
-    def get_chatgpt_instructions(self, ashari_framework):
-        """Generate instructions for ChatGPT based on the Ashari's cultural processing"""
-        # Extract key elements from the framework
-        original_prompt = ashari_framework["original_prompt"]
-        cultural_lens = ashari_framework["cultural_lens"]
-        emotional_tone = ashari_framework["emotional_tone"]
-        
-        # Get response guidance
-        if "response_guidance" in ashari_framework:
-            response_guidance = ashari_framework["response_guidance"]
-        else:
-            # Fallback if no specific guidance
-            response_guidance = "Respond according to Ashari cultural values and experience."
-        
-        # Build the instruction for ChatGPT
-        instruction = f"""
-            Interpret and respond to the following input through the cultural lens of The Ashari:
-
-            ORIGINAL INPUT: "{original_prompt}"
-
-            CULTURAL INTERPRETATION: {cultural_lens}
-
-            RESPOND WITH: An Ashari voice that is {emotional_tone}.
-
-            GUIDANCE: {response_guidance}
-
-            Remember that The Ashari are a resilient culture shaped by survival, betrayal, and resilience. Their responses evolve based on interactions, becoming more trusting or more guarded depending on the nature of exchanges.
-
-            The Ashari speak with:
-            - Layered meanings that reflect their historical experience
-            - Measured revelation of cultural knowledge
-            - Language that balances caution with curiosity
-            - References to community wisdom and survival
-            """
-        
-        # Add thematic guidance if available
-        if "thematic_interpretation" in ashari_framework:
-            instruction += "\n\nTHEMATIC CONSIDERATIONS:\n"
-            for theme, data in ashari_framework["thematic_interpretation"].items():
-                instruction += f"- {theme.capitalize()}: Approach with {data['stance']}. {data['guidance']}\n"
-        
-        # Return the constructed instruction
-        return instruction
         
 
     def process_keyword(self, keyword):

@@ -291,7 +291,7 @@
         "soprano": "D#4",
         "max_gain": "1.0"
     },
-    "end_transisiton.mp3": {
+    "end_transition.mp3": {
         "duration_seconds": 146,
         "sentiment_value": 0,
         "dialogue": "finale",

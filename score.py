@@ -463,12 +463,12 @@ class AshariScoreManager:
                                     time.sleep(sound_duration + 1.0)
                                     # Send the performance completed signal
                                     print("🏁 Final sound has finished playing - sending completion signal")
-                                    send_performance_completed_signal()
                                 
                                 # Start the timer in a separate thread
                                 completion_thread = threading.Thread(target=send_completion_after_sound)
                                 completion_thread.daemon = True
                                 completion_thread.start()
+                                send_performance_completed_signal()
                             else:
                                 print("❌ CRITICAL: Still no available channel after attempting to free one")
 
