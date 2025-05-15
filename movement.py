@@ -5,13 +5,50 @@ import os
 import requests
 import time
 import random
-import playsound
+import json
 from ashari import Ashari
 
 # Initialize OpenAI client with API Key
 client = OpenAI(api_key=config.CHAT_API_KEY)
 
 ashari = Ashari()
+
+def send_movement_instruction(word, instruction, api_url="http://localhost:3000", voice_type="all", duration=15):
+    """
+    Send a movement instruction to the API server to be displayed on the voice modules
+    
+    Args:
+        word (str): The keyword that triggered this movement (will be displayed)
+        instruction (str): The movement instruction text to display
+        api_url (str): Base URL of the API server
+        voice_type (str): Target voice ('soprano', 'alto', 'tenor', 'bass', or 'all')
+        duration (int): How long to display the instruction in seconds
+    
+    Returns:
+        dict or None: Response data if successful, None otherwise
+    """
+    endpoint = f"{api_url}/api/movement-update"
+    headers = {'Content-Type': 'application/json'}
+    
+    # Prepare the movement data
+    data = {
+        "keyword": word,
+        "instruction": instruction,
+        "voice_type": voice_type,
+        "duration": duration
+    }
+    
+    try:
+        print(f"Sending movement instruction to {endpoint}")
+        response = requests.post(endpoint, data=json.dumps(data), headers=headers)
+        response.raise_for_status()
+        
+        print(f"Response received: {response.status_code}")
+        return response.json()
+            
+    except requests.exceptions.RequestException as e:
+        print(f"Error sending movement instruction to API: {e}")
+        return None
 
 def generate_movement_score(word):
     try:
@@ -177,27 +214,36 @@ def generate_movement_score(word):
                       f"Cultural stance: {ashari_stance:.2f} | "
                       f"Cultural shift: {'Yes - ' + shifted_value if significant_cultural_shift else 'No'} | "
                       f"'{movement_score}'\n")
-
-        # Convert movement sequence to speech
-        speech_response = client.audio.speech.create(
-            model="tts-1",
-            voice="alloy",
-            input=movement_score
+        
+        # NEW: Send the movement instruction to the API
+        send_movement_instruction(
+            word=word,
+            instruction=movement_score,
+            voice_type="all",  # Send to all voice modules
+            duration=15  # Display for 15 seconds
         )
-        
-        # Ensure the directory exists
-        os.makedirs('movement_scores', exist_ok=True)
-        
-        tts_file = f"movement_scores/{word}_{int(time.time())}.mp3"
-        speech_response.stream_to_file(tts_file)
-
-        # Play the movement audio prompt
-        pygame.mixer.init()
-        sound = pygame.mixer.Sound(tts_file)
-        pygame.mixer.find_channel().play(sound)
         
         return movement_score
 
     except Exception as e:
         print("⚠️ Error generating movement score:", e)
-        return "Shift your weight slightly, observing your surroundings."
+        default_movement = "Shift your weight slightly, observing your surroundings."
+        
+        # Even on error, try to send the default movement
+        try:
+            send_movement_instruction(
+                word=word,
+                instruction=default_movement,
+                voice_type="all",
+                duration=10
+            )
+        except:
+            pass
+            
+        return default_movement
+
+# Example usage
+if __name__ == "__main__":
+    # Test the function
+    word = input("Enter a word or phrase for the movement: ")
+    generate_movement_score(word)
