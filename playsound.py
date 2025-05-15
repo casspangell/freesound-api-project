@@ -3,6 +3,7 @@ import time
 import os
 import random 
 import threading
+import time
 
 # Reset and reinitialize pygame mixer to avoid conflicts
 if pygame.mixer.get_init():
@@ -15,6 +16,10 @@ print(f"Playsound module initialized with {pygame.mixer.get_num_channels()} audi
 
 # Cache for loaded sounds
 sound_cache = {}
+
+# Track the last time an input sound was played to avoid rapid repeats
+last_input_sound_time = 0
+MIN_INPUT_SOUND_INTERVAL = 1.0  # Minimum interval between input sounds in seconds
 
 # Module functions for compatibility with original code
 class playsound:
@@ -159,6 +164,23 @@ def play_in_thread(sound_file):
     threading.Thread(target=play_sound, args=(sound_file, True), daemon=True).start()
 
 def play_input_sound():
+    """
+    Play an input sound with rate limiting
+    Returns True if a sound was played, False otherwise
+    """
+    global last_input_sound_time
+    
+    # Check if enough time has passed since the last input sound
+    current_time = time.time()
+    time_since_last = current_time - last_input_sound_time
+    
+    if time_since_last < MIN_INPUT_SOUND_INTERVAL:
+        print(f"⚠️ Input sound request ignored - too soon ({time_since_last:.2f}s < {MIN_INPUT_SOUND_INTERVAL}s)")
+        return False
+    
+    # Update the last input sound time
+    last_input_sound_time = current_time
+    
     # Randomly select an input sound file
     input_number = random.randint(1, 4)
     input_sound_path = f"data/sound_files/input_sound/input_{input_number}.mp3"

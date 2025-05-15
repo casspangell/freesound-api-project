@@ -1,41 +1,63 @@
-from openai import OpenAI
+import requests
 import config
 import os
-import requests
 import time
 import json
 from ashari import Ashari
 
-# Initialize OpenAI client with API Key
-client = OpenAI(api_key=config.CHAT_API_KEY)
-
+# Initialize Ashari
 ashari = Ashari()
 
-def send_movement_instruction(word, instruction, cultural_values=None, api_url="http://localhost:3000", voice_type="all", duration=15):
-    """
-    Send a movement instruction to the API server to be displayed on the voice modules
-    
-    Args:
-        word (str): The keyword that triggered this movement (will be displayed)
-        instruction (str): The movement instruction text to display
-        cultural_values (dict): Current cultural values of the Ashari
-        api_url (str): Base URL of the API server
-        voice_type (str): Target voice ('soprano', 'alto', 'tenor', 'bass', or 'all')
-        duration (int): How long to display the instruction in seconds
-    
-    Returns:
-        dict or None: Response data if successful, None otherwise
-    """
+# Ollama API endpoint - typically runs locally
+OLLAMA_API_URL = "http://localhost:11434/api/generate"  # Default Ollama API endpoint
+
+def send_movement_instruction(instruction, cultural_values=None, api_url="http://localhost:3000", voice_type="all", duration=15):
     endpoint = f"{api_url}/api/movement-update"
     headers = {'Content-Type': 'application/json'}
     
+    # Process the instruction to ensure it fits on screen with scrolling
+    # Split the instruction into parts if it contains movement and voice shape and cultural description
+    parts = instruction.split('\n\n', 2)
+    print(f"PARTS: {parts}")
+    
+    if len(parts) == 3:
+        # We have all three parts: movement, voice shape, and cultural description
+        movement_part = parts[0].strip()
+        voice_shape = parts[1].strip()
+        cultural_part = parts[2].strip()
+        
+        # Format with separate fields for each component
+        formatted_instruction = {
+            "movementInstruction": movement_part,
+            "voiceShape": voice_shape,
+            "culturalDescription": cultural_part
+        }
+    elif len(parts) == 2:
+        # We have two parts: movement and cultural description
+        movement_part = parts[0].strip()
+        cultural_part = parts[1].strip()
+        
+        # Format with empty voice shape
+        formatted_instruction = {
+            "movementInstruction": movement_part,
+            "voiceShape": "",
+            "culturalDescription": cultural_part
+        }
+    else:
+        # If there's only one part, just use it as the movement instruction
+        formatted_instruction = {
+            "movementInstruction": instruction.strip(),
+            "voiceShape": "",
+            "culturalDescription": ""
+        }
+    
     # Prepare the movement data
     data = {
-        "keyword": word,
-        "instruction": instruction,
+        "instruction": formatted_instruction,
         "voice_type": voice_type,
         "duration": duration,
-        "cultural_values": cultural_values or {}  # Include cultural values if provided
+        "cultural_values": cultural_values or {},  # Include cultural values if provided
+        "format": "json"  # Indicate this is a JSON structure
     }
     
     try:
@@ -51,26 +73,64 @@ def send_movement_instruction(word, instruction, cultural_values=None, api_url="
         print(f"Error sending movement instruction to API: {e}")
         return None
 
-def generate_movement_score(word):
+def generate_movement_score(current_section_name):
+    print(f"Generating movement score for {current_section_name}")
     try:
         # Get the current cultural values directly
-        cultural_values = ashari.cultural_memory.copy()
+        # First check if cultural_memory is a dictionary-like object
+        if hasattr(ashari, 'cultural_memory'):
+            if isinstance(ashari.cultural_memory, dict):
+                cultural_values = ashari.cultural_memory.copy()
+            elif hasattr(ashari.cultural_memory, 'to_dict'):
+                # Handle case where it might have a to_dict method
+                cultural_values = ashari.cultural_memory.to_dict()
+            else:
+                # If it's not a dict or doesn't have to_dict method, create empty dict
+                print(f"Warning: cultural_memory is type {type(ashari.cultural_memory)}, creating empty dict")
+                cultural_values = {}
+        else:
+            print("Warning: ashari has no cultural_memory attribute, using empty dict")
+            cultural_values = {}
+            
+        # Safe get function that works with any object type
+        def safe_get(obj, key, default=0):
+            if isinstance(obj, dict):
+                return obj.get(key, default)
+            elif hasattr(obj, 'get'):
+                try:
+                    return obj.get(key, default)
+                except:
+                    return default
+            else:
+                try:
+                    return obj[key] if key in obj else default
+                except:
+                    return default
         
         # Get overall cultural stance of the Ashari
-        ashari_stance = ashari._calculate_overall_cultural_stance()
+        try:
+            ashari_stance = ashari._calculate_overall_cultural_stance()
+        except Exception as e:
+            print(f"Warning: could not calculate cultural stance: {e}")
+            ashari_stance = "balanced"
         
         # Identify the most extreme (positive or negative) cultural values
-        strongest_values = sorted(
-            ashari.cultural_memory.items(), 
-            key=lambda x: abs(x[1]), 
-            reverse=True
-        )[:3]  # Get top 3 strongest values
+        try:
+            if isinstance(cultural_values, dict):
+                strongest_values = sorted(
+                    cultural_values.items(), 
+                    key=lambda x: abs(x[1]), 
+                    reverse=True
+                )[:3]  # Get top 3 strongest values
+            else:
+                # Default values if we can't get strongest
+                strongest_values = [("survival", 0.5), ("adaptation", 0.4), ("community", 0.3)]
+        except Exception as e:
+            print(f"Warning: error calculating strongest values: {e}")
+            strongest_values = [("survival", 0.5), ("adaptation", 0.4), ("community", 0.3)]
         
         # Format strongest values for prompt
         strongest_values_text = ", ".join([f"{value} ({score:.2f})" for value, score in strongest_values])
-        
-        # Track if this word has historical significance (multiple occurrences)
-        is_historical = word in ashari.memory and ashari.memory[word].get("occurrences", 0) > 2
         
         # Check for significant cultural shift
         significant_cultural_shift = False
@@ -80,99 +140,68 @@ def generate_movement_score(word):
         max_shift = 0.0
         max_shift_value = ""
         
-        # Check if this word has caused a significant cultural shift
-        if word in ashari.memory and ashari.memory[word].get("occurrences", 0) > 1:
-            # Find interactions involving this word
-            relevant_history = [h for h in ashari.interaction_history if word in h["prompt"]]
-            
-            if len(relevant_history) >= 2:
-                # Compare the earliest and latest cultural memory snapshots
-                first_encounter = relevant_history[0]["cultural_memory_snapshot"]
-                latest_values = ashari.cultural_memory
-                
-                core_values = ["trust", "hope", "survival", "community", "outsiders", "change", "tradition"]
-                for value in core_values:
-                    if value in first_encounter and value in latest_values:
-                        current_shift = abs(first_encounter[value] - latest_values[value])
-                        if current_shift > max_shift:
-                            max_shift = current_shift
-                            max_shift_value = value
-                
-                # Define what constitutes a "significant" shift
-                SIGNIFICANT_THRESHOLD = 0
-                
-                # If there's a significant shift, capture the details
-                if max_shift > SIGNIFICANT_THRESHOLD:
-                    significant_cultural_shift = True
-                    shifted_value = max_shift_value
-                    shift_magnitude = max_shift
-                    
-                    # Determine shift level
-                    if shift_magnitude < 0.2:
-                        shift_level = "low"
-                    elif shift_magnitude < 0.5:
-                        shift_level = "medium"
-                    else:
-                        shift_level = "high"
-        
         # Determine walking style based on current cultural values
-        if cultural_values.get("trust", 0) < -0.3:
+        if safe_get(cultural_values, "trust", 0) < -0.3:
             walking_style = "cautiously, with vigilant glances"
-        elif cultural_values.get("hope", 0) > 0.3:
+        elif safe_get(cultural_values, "hope", 0) > 0.3:
             walking_style = "with light, hopeful steps"
-        elif cultural_values.get("survival", 0) > 0.5:
+        elif safe_get(cultural_values, "survival", 0) > 0.5:
             walking_style = "with purpose and determination"
-        elif cultural_values.get("community", 0) > 0.3:
+        elif safe_get(cultural_values, "community", 0) > 0.3:
             walking_style = "attentively, acknowledging others"
-        elif cultural_values.get("outsiders", 0) < -0.3:
+        elif safe_get(cultural_values, "outsiders", 0) < -0.3:
             walking_style = "maintaining personal space, mindful of boundaries"
-        elif cultural_values.get("change", 0) > 0.3:
+        elif safe_get(cultural_values, "change", 0) > 0.3:
             walking_style = "with fluid, adaptable movement"
-        elif cultural_values.get("tradition", 0) > 0.3:
+        elif safe_get(cultural_values, "tradition", 0) > 0.3:
             walking_style = "with deliberate, ceremonial steps"
         else:
             walking_style = "with balanced, measured pace"
-            
-        # Add historical marker if applicable
-        if is_historical:
-            walking_style += " (drawing on collective memory)"
         
-        # Build the system prompt with detailed cultural values and gallery-specific guidance
-        system_prompt = f"""
-            You are a movement choreographer for the Ashari culture, creating precise walking instructions for a gallery performance. 
-            
-            CONTEXT:
-            - The performance takes place in a square gallery room
-            - There are approximately 10 participants
-            - All instructions must involve slow walking/movement or stopping through the space
-            - Participants should be able to follow these instructions while continuously moving around the gallery
-            - Movements need a direction such as clockwise around the gallery or in random directions, movements must be fluid and not abrupt
-            
-            CURRENT CULTURAL VALUES:
-            - Trust: {cultural_values.get('trust', 0):.2f} (negative = guarded, positive = trusting)
-            - Hope: {cultural_values.get('hope', 0):.2f} (negative = pessimistic, positive = hopeful)
-            - Survival: {cultural_values.get('survival', 0):.2f} (high = highly survival-focused)
-            - Community: {cultural_values.get('community', 0):.2f} (high = communal, low = individualistic)
-            - Outsiders: {cultural_values.get('outsiders', 0):.2f} (negative = wary of outsiders)
-            - Change: {cultural_values.get('change', 0):.2f} (positive = embracing change)
-            - Tradition: {cultural_values.get('tradition', 0):.2f} (high = traditional, ritualistic)
-            
-            STRONGEST VALUES: {strongest_values_text}
-            WALKING STYLE: {walking_style}
-            
-            FORMAT REQUIREMENTS:
-            - ONE BRIEF SENTENCE only, with one or two instructions
-            - Must involve walking or moving through space
-            - Must include at least one of: turning, changing pace, changing direction, stopping
-            
-            EXAMPLE MOVEMENTS:
-            - For "water" (with positive hope): "Walk in flowing curves around the gallery, arms gently swaying like waves with each step."
-            - For "strength" (with high survival): "March purposefully forward, pause to plant feet firmly, then continue."
-            - For "whisper" (with negative trust): "Walk slowly along walls."
-            - For "celebration" (with high community): "Walk toward others, then outward before circling and continuing onward."
-            
-            YOUR OUTPUT MUST BE EXACTLY ONE CONCRETE PHYSICAL INSTRUCTION THAT INVOLVES WALKING/MOVEMENT IN THE GALLERY SPACE.
-        """
+        performance_model = {
+            "intro1": "Establishing the Ashari culture, marked by caution, resilience, and the weight of past betrayals. They are survivors, hesitant to embrace hope but grounded in the necessity of survival.",
+            "midpoint1": "A subtle shift in their worldview begins as the Ashari start to question their past beliefs and the possibility of something more than mere survival. There's an emerging tension between holding onto tradition and embracing change.",
+            "climax1": "The cultural shift reaches its peak, where the Ashari are forced to confront the need for change. The moment is filled with internal conflict, doubt, and hope, as the Ashari make the pivotal decision to transform or remain static.",
+            "start2": "Establishing the Ashari culture, marked by caution, resilience, and the weight of past betrayals. They are survivors, hesitant to embrace hope but grounded in the necessity of survival.",
+            "midpoint2": "A subtle shift in their worldview begins as the Ashari start to question their past beliefs and the possibility of something more than mere survival. There's an emerging tension between holding onto tradition and embracing change.",
+            "climax2": "The cultural shift reaches its peak, where the Ashari are forced to confront the need for change. The moment is filled with internal conflict, doubt, and hope, as the Ashari make the pivotal decision to transform or remain static.",
+            "start3": "The tension from the climax begins to subside, but the Ashari are still in the midst of grappling with the consequences of the cultural shift. There is a moment of reflection, where the full impact of their transformation is not yet fully clear.",
+            "midpoint3": "The Ashari begin to embrace the necessity of change but with caution. They realize that the world they once knew no longer exists, and they must adapt to their new reality while acknowledging the cost of that transformation.",
+            "end3": "The Bridge ends with a sense of acceptance. While the Ashari have undergone a significant shift, they remain uncertain about the full future. There's a sense of quiet resolve, and the transformation begins to take root, though the full implications are still unfolding.",
+            "start4": "The Ashari culture begins to rebuild in the aftermath of the shift. The emotional intensity from the climax continues to reverberate, but the Ashari now start to reconcile their new identity and embrace the change they've undergone.",
+            "midpoint4": "The Ashari culture begins to settle into its new form, though old wounds still linger. They are no longer defined solely by survival but are beginning to explore new possibilities for their future, navigating the tension between the past and the present.",
+            "end4": "The resolution is marked by the Ashari's acceptance of the new world they are creating. While the emotional intensity has waned, the future remains uncertain, and the Ashari begin to walk forward into the unknown with strength and resilience.",
+            "Final": "The Ashari have completed their journey of transformation. Once defined by caution and survival, they now stand balanced between honoring their traditions and embracing change. With newfound resilience and community, they look to the future with tempered hope and wisdom born from experience."
+        }
+        
+        # Get the current section narrative from the performance model
+        current_narrative = performance_model.get(current_section_name, 
+            "The Ashari navigate their journey, balancing tradition with the need for change.")
+        
+        # Create a more focused prompt for Ollama to avoid partial responses
+        prompt = f"""You are creating a movement and singing instructions for gallery performers and a short cultural narrative.
+
+Based on these cultural values:
+- Walking style: {walking_style}
+- Values: {strongest_values_text}
+- Current section: {current_section_name}
+- Cultural narrative: {current_narrative}
+
+TASK:
+1. Create ONE clear way of singing a tone and way of movement instruction (12-20 words).
+2. Then, in a separate paragraph, provide 2-3 sentences describing the Ashari culture's current state.
+
+Rules:
+- Movement must involve: walking, turning, changing pace, changing direction, or stopping
+- Singing must be a vowel or humming
+- Make it easy to follow but interesting
+- The cultural description should follow this narrative: {current_narrative}
+
+Format your response exactly like this:
+[MOVEMENT INSTRUCTION SENTENCE]
+
+[CULTURAL DESCRIPTION 2-3 SENTENCES]
+"""
 
         # Add specific instruction for cultural shift if detected
         if significant_cultural_shift:
@@ -184,50 +213,65 @@ def generate_movement_score(word):
             else:
                 intensity = "dramatically"
                 
-            system_prompt += f"""
-            
-            IMPORTANT: This word has caused a {shift_level} shift in the Ashari's '{shifted_value}' value.
-            The movement MUST include a moment where participants {intensity} pause or alter their walking pattern.
-            Example: "Walk steadily forward, then {intensity} stop and shift direction when encountering another person."
-            """
+            prompt += f"\nIMPORTANT: The movement MUST include {intensity} pausing or altering walking pattern."
         
-        # Generate AI movement instructions based on cultural values and context
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"""
-                    Create a single movement instruction for the word '{word}' that:
-                    1. Involves walking around the gallery space
-                    2. Reflects the current Ashari cultural values
-                    3. Is easy for participants to follow
-                    4. Creates a visually interesting collective movement
-                    
-                    Cultural stance: {walking_style}
-                    Strongest values: {strongest_values_text}
-                    {"This word has shifted the Ashari's cultural values - include a momentary pause or shift." if significant_cultural_shift else ""}
-                """}
-            ],
-            temperature=0.3,
-            max_tokens=75
-        )
-        movement_score = response.choices[0].message.content.strip()
+        # Generate movement instructions using Ollama
+        payload = {
+            "model": "llama3.2",  # Using Ollama's Llama 3.2 model
+            "prompt": prompt,
+            "stream": False,
+            "temperature": 0.3,
+            "max_tokens": 200
+        }
+        
+        # Send request to Ollama API
+        response = requests.post(OLLAMA_API_URL, json=payload)
+        response.raise_for_status()
+        response_data = response.json()
+        
+        # Extract and clean the generated text from Ollama's response
+        raw_response = response_data.get("response", "").strip()
+        
+        # Split the response into movement instruction and cultural description
+        # The format should be: [MOVEMENT INSTRUCTION]\n\n[CULTURAL DESCRIPTION]
+        parts = raw_response.split('\n\n', 1)
+        
+        if len(parts) >= 1:
+            movement_instruction = parts[0].strip()
+            
+            # If there's a second part, it's the cultural description
+            cultural_description = parts[1].strip() if len(parts) > 1 else ""
+            
+            # Combine them with proper formatting
+            movement_score = movement_instruction
+            if cultural_description:
+                movement_score += "\n\n" + cultural_description
+        else:
+            # Fallback if we don't get the expected format
+            movement_score = raw_response
+        
         print(f"\nMovement Score: {movement_score}")
         print(f"Cultural Values: {cultural_values}")
         print(f"Strongest Values: {strongest_values_text}\n")
         
-        # Save movement score to a log file with cultural context
-        with open('movement_log.txt', 'a', encoding='utf-8') as file:
-            file.write(f"{int(time.time())}: {word} | " 
-                      f"Walking style: {walking_style} | "
-                      f"Shift: {'Yes - ' + shifted_value if significant_cultural_shift else 'No'} | "
-                      f"'{movement_score}'\n")
-        
         # Format cultural values for display
-        formatted_cultural_values = {
-            k: round(v, 2) for k, v in cultural_values.items() 
-            if k in ["trust", "hope", "survival", "community", "outsiders", "change", "tradition"]
-        }
+        try:
+            if isinstance(cultural_values, dict):
+                formatted_cultural_values = {
+                    k: round(v, 2) for k, v in cultural_values.items() 
+                    if k in ["trust", "hope", "survival", "community", "outsiders", "change", "tradition"]
+                }
+            else:
+                formatted_cultural_values = {
+                    "trust": 0, "hope": 0, "survival": 0.5, 
+                    "community": 0.3, "outsiders": 0, "change": 0.2, "tradition": 0.2
+                }
+        except Exception as e:
+            print(f"Warning: error formatting cultural values: {e}")
+            formatted_cultural_values = {
+                "trust": 0, "hope": 0, "survival": 0.5, 
+                "community": 0.3, "outsiders": 0, "change": 0.2, "tradition": 0.2
+            }
         
         # Add strongest values for clearer display
         strongest_values_dict = {f"strongest_{i+1}": f"{value} ({score:.2f})" 
@@ -240,11 +284,10 @@ def generate_movement_score(word):
         
         # Send the movement instruction to the API with cultural values
         send_movement_instruction(
-            word=word,
             instruction=movement_score,
             cultural_values=display_values,
             voice_type="all",
-            duration=20  # Increased duration since these instructions are more detailed
+            duration=90  # Increased duration since these instructions are more detailed
         )
         
         return movement_score
@@ -256,18 +299,16 @@ def generate_movement_score(word):
         # Even on error, try to send the default movement
         try:
             send_movement_instruction(
-                word=word,
                 instruction=default_movement,
                 voice_type="all",
-                duration=15
+                duration=90
             )
-        except:
-            pass
+        except Exception as send_error:
+            print(f"Additional error sending default movement: {send_error}")
             
         return default_movement
 
 # Example usage
 if __name__ == "__main__":
     # Test the function
-    word = input("Enter a word or phrase for the movement: ")
-    generate_movement_score(word)
+    generate_movement_score("intro1")

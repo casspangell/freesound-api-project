@@ -11,6 +11,9 @@ from performance_clock import get_clock, get_time_str
 from time_utils import convert_model_to_seconds, _format_time
 from audiofile_manager import AudioFileManager
 from sound_playback_manager import SoundPlaybackManager
+from movement import generate_movement_score
+from performance_end_signal import send_performance_end_signal, send_performance_completed_signal
+from stop_drone import send_drone_stop_command
 
 class AshariScoreManager:
     def __init__(self, 
@@ -355,7 +358,8 @@ class AshariScoreManager:
                 # If section changed from previous check 
                 if last_section_name != current_section_name:
                     print(f"📊 SECTION CHANGED to: {current_section_name} (at {_format_time(performance_time)})")
-                    
+                    generate_movement_score(current_section_name)
+
                     # Check if queue is empty and add default clip for the new section
                     current_queue = self.sound_manager.get_queue()
                     
@@ -375,7 +379,7 @@ class AshariScoreManager:
                     # Special handling for Bridge section
                     if current_section_name == "Bridge" and "Bridge" not in handled_sections:
                         print(f"🌉 BRIDGE SECTION DETECTED! Clearing queue and adding bridge_1.mp3")
-                        
+                        generate_movement_score(current_section_name)
                         # Clear the queue and add the bridge clip
                         self.sound_manager.clear_queue()
                         self.sound_manager.add_to_queue("bridge_1.mp3", priority=True)
@@ -387,7 +391,7 @@ class AshariScoreManager:
                     # Special handling for End section
                     elif current_section_name == "End":
                         print(f"🏁 END SECTION DETECTED! Selecting appropriate ending sequence")
-                        
+                        generate_movement_score(current_section_name)
                         # Clear the queue
                         self.sound_manager.clear_queue()
                         
@@ -408,7 +412,7 @@ class AshariScoreManager:
                     # Add special handling for Final section
                     elif current_section_name == "Final":
                         print(f"🎬 FINAL SECTION DETECTED! Playing end clip once only")
-                        
+                        generate_movement_score(current_section_name)
                         # Set the performance ended flag
                         self._performance_ended = True
                         
@@ -426,8 +430,10 @@ class AshariScoreManager:
                         
                         # Select the appropriate ending clip using GPT
                         end_clip = self.select_end_clip_with_gpt(cultural_context)
+                        print(f"Selected end clip {end_clip}")
                         sound = self.audio_manager.get_sound(end_clip)
-                        
+                        print(f"sound ++++ {end_clip}")
+
                         if end_clip and sound:
                             # Find a free channel
                             channel = pygame.mixer.find_channel()
@@ -445,11 +451,27 @@ class AshariScoreManager:
                             # Play the sound if we found a channel
                             if channel:
                                 # Use a better volume
-                                channel.set_volume(0.8)
+                                channel.set_volume(1.0)
                                 self.sound_manager.play_sound(channel, sound, end_clip)
                                 print(f"▶️ Playing Final Clip ONCE ONLY: {end_clip}")
+
+                                sound_duration = sound.get_length()
+        
+                                # Create a timer to send the completion signal after the sound finishes
+                                def send_completion_after_sound():
+                                    # Wait for sound duration plus a small buffer
+                                    time.sleep(sound_duration + 1.0)
+                                    # Send the performance completed signal
+                                    print("🏁 Final sound has finished playing - sending completion signal")
+                                    send_performance_completed_signal()
+                                
+                                # Start the timer in a separate thread
+                                completion_thread = threading.Thread(target=send_completion_after_sound)
+                                completion_thread.daemon = True
+                                completion_thread.start()
                             else:
                                 print("❌ CRITICAL: Still no available channel after attempting to free one")
+
                         else:
                             print(f"❌ CRITICAL: Could not load final clip: {end_clip}")
                             
@@ -661,16 +683,7 @@ class AshariScoreManager:
             )
         
             sentiment_text = response['message']['content'].strip()
-            # # Call GPT to select the sound file
-            # response = self.client.chat.completions.create(
-            #     model="gpt-4o",
-            #     messages=[
-            #         {"role": "system", "content": system_prompt},
-            #         {"role": "user", "content": user_prompt}
-            #     ],
-            #     max_tokens=50  # We only want the filename
-            # )
-            
+
             # Extract the filename
             selected_filename = response.choices[0].message.content.strip()
             
@@ -724,16 +737,7 @@ class AshariScoreManager:
             return None
 
     def select_end_clip_with_gpt(self, cultural_context: dict = None) -> str:
-        """
-        Select the most appropriate ending clip based on the overall cultural journey
-        
-        :param cultural_context: Context including cultural memory and values
-        :return: Selected end clip filename or None
-        """
-        # print(f"selecting end clip")
-        # if cultural_context is None:
-        #     cultural_context = {}
-        
+
         # Get all end section clips
         end_clips = self.audio_manager.get_all_sounds_by_section("End")
 
@@ -741,142 +745,6 @@ class AshariScoreManager:
         fallback = random.choice(end_clips)
         print(f"Using ending clip: {fallback}")
         return fallback
-        
-        # if not end_clips:
-        #     print("⚠️ No End section clips found!")
-        #     return None
-        
-        # # Get the cultural memory values
-        # cultural_memory = {
-        #     value: score for value, score in self.ashari.cultural_memory.items()
-        # }
-        
-        # # Get the strongest values (most influential in the journey)
-        # strongest_values = [
-        #     {"value": value, "score": score} 
-        #     for value, score in sorted(
-        #         self.ashari.cultural_memory.items(), 
-        #         key=lambda x: abs(x[1]), 
-        #         reverse=True
-        #     )[:5]  # Get top 5 values
-        # ]
-        
-        # # Calculate overall sentiment from cultural memory
-        # overall_sentiment = sum(score for score in cultural_memory.values()) / len(cultural_memory) if cultural_memory else 0
-        # sentiment_description = "positive" if overall_sentiment > 0.1 else "negative" if overall_sentiment < -0.1 else "neutral"
-        
-        # # Get descriptions of each end clip
-        # end_clip_descriptions = {}
-        # for clip in end_clips:
-        #     metadata = self.sound_files.get(clip, {})
-        #     end_clip_descriptions[clip] = {
-        #         "filename": clip,
-        #         "dialogue": metadata.get("dialogue", ""),
-        #         "sentiment": metadata.get("sentiment_value", 0)
-        #     }
-        
-        # # Construct the system prompt
-        # system_prompt = """
-        #     You are the Conclusion Selector for the Ashari cultural narrative. Your task is to select the most appropriate ending clip that resonates with the Ashari's cultural journey.
-
-        #     REQUIREMENTS:
-        #     1. ALWAYS return a VALID FILENAME from the available **ending clips** in the **End section**.
-        #     2. Select a clip that reflects the **overall sentiment** and **cultural values** that have been dominant throughout the journey.
-        #     3. The ending should feel like a **natural conclusion** to the Ashari's story.
-        #     4. Consider the description of each clip and how it matches the **emotional tone** of the journey.
-
-        #     Selection Criteria:
-        #     - Match the clip's atmosphere with the **overall sentiment** of the Ashari's cultural development.
-        #     - Consider how the **ending clip's description** resonates with the strongest cultural values.
-        #     - Select an ending that provides **emotional closure** to the narrative journey.
-        #     - Choose an ending that feels **authentic** to the Ashari's experience.
-
-        #     OUTPUT FORMAT:
-        #     - Respond ONLY with the **EXACT filename** of the chosen ending clip.
-        #     - **NO additional explanation or text**.
-        # """
-        
-        # # Construct the user prompt
-        # user_prompt = f"""
-        # Select the most appropriate ending clip for the Ashari cultural narrative:
-        
-        # CULTURAL SUMMARY:
-        # - Overall Sentiment: {sentiment_description} ({overall_sentiment:.2f})
-        # - Journey Duration: {cultural_context.get('performance_time', 'Unknown')}
-        
-        # TOP INFLUENTIAL VALUES:
-        # {json.dumps(strongest_values, indent=2)}
-        
-        # AVAILABLE ENDING CLIPS:
-        # {json.dumps(end_clip_descriptions, indent=2)}
-        
-        # The ending clip should provide a meaningful conclusion that reflects the Ashari's cultural journey and dominant values.
-        # """
-        
-        # # Prepare input data for logging
-        # input_data = {
-        #     "system_prompt": system_prompt,
-        #     "user_prompt": user_prompt,
-        #     "cultural_context": cultural_context,
-        #     "cultural_memory": cultural_memory,
-        #     "strongest_values": strongest_values,
-        #     "overall_sentiment": overall_sentiment,
-        #     "end_clips": end_clip_descriptions
-        # }
-        
-        # try:
-            # Call GPT to select the sound file
-            # response = self.client.chat.completions.create(
-            #     model="gpt-4o",
-            #     messages=[
-            #         {"role": "system", "content": system_prompt},
-            #         {"role": "user", "content": user_prompt}
-            #     ],
-            #     max_tokens=50  # We only want the filename
-            # )
-
-            # response = ollama.chat(
-            #     model="llama3.2", 
-            #     messages=[
-            #         {"role": "system", "content": system_prompt},
-            #         {"role": "user", "content": user_prompt}
-            #     ]
-            # )
-            
-            # Extract the filename
-            # selected_filename = response.choices[0].message.content.strip()
-            
-            # Log the interaction
-            # self._log_gpt_interaction(
-            #     interaction_type="end_clip_selection", 
-            #     input_data=input_data, 
-            #     response=selected_filename
-            # )
-            
-            # Validate the filename
-            # if selected_filename in end_clips:
-            #     return selected_filename
-            # else:
-            #     print(f"⚠️ Invalid ending clip selected: {selected_filename}")
-                # Fallback: select a random end clip
-                # import random
-                # fallback = random.choice(end_clips)
-                # print(f"Using ending clip: {fallback}")
-                # return fallback
-        
-        # except Exception as e:
-            # # Log any errors
-            # self._log_gpt_interaction(
-            #     interaction_type="end_clip_selection_error", 
-            #     input_data=input_data, 
-            #     response=str(e)
-            # )
-            # print(f"Error in ending clip selection: {e}")
-            # Fallback: select a random end clip
-            # import random
-            # fallback = random.choice(end_clips)
-            # print(f"Using fallback ending clip due to error: {fallback}")
-            # return fallback
     
     def queue_sounds(self, word: str, cultural_context: dict = None):
         """
