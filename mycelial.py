@@ -14,6 +14,9 @@ from score import AshariScoreManager
 from performance_clock import get_clock, start_clock, get_time_str, stop_clock
 from playsound import play_sound, play_input_sound, play_cultural_shift_sound
 
+# Import the new ThematicInstructionSender
+from thematic_sender import ThematicInstructionSender
+
 # Initialize pygame (minimal initialization as playsound.py now handles the audio setup)
 pygame.init()
 print("Mycelial system initialized")
@@ -27,6 +30,9 @@ webapp_client = WebAppClient()
 
 # Initialize sound manager
 score_manager = AshariScoreManager()
+
+# Initialize thematic instruction sender
+thematic_sender = ThematicInstructionSender()
 
 with open('data/sound_files.json', 'r') as f:
     sound_files = json.load(f)
@@ -112,7 +118,13 @@ def convert_model_to_seconds(model):
     
     return converted_model
 
-    # Main game loop
+# Send thematic element manually
+def send_thematic_element(section, point_type):
+    """Send a thematic element manually for testing"""
+    thematic_sender.send_manual_thematic(section, point_type)
+    print(f"✅ Sent thematic element: {section} {point_type}")
+
+# Main game loop
 def text_input_game():
     # Initialize the global clock
     clock = get_clock()
@@ -134,6 +146,10 @@ def text_input_game():
             # Start the playback
             score_manager.start_playback()
             
+            # Start the thematic instruction sender
+            thematic_sender.start()
+            print("✅ Thematic instruction sender started")
+            
             print("Performance started! Type keywords to interact...")
             break
     
@@ -152,6 +168,8 @@ def text_input_game():
             print(f"Exiting game... 🌱")
             pygame.mixer.stop()  # Stop all sounds before exiting
             stop_clock()  # Stop the clock
+            # Stop thematic instruction sender
+            thematic_sender.stop()
             # Save Ashari's state before exiting
             ashari.save_state()
             os._exit(0)
@@ -233,6 +251,33 @@ def text_input_game():
             else:
                 print("  No active performance section")
                 
+            continue
+        
+        # Process "thematic" commands for manually sending thematic elements
+        if user_input.startswith("thematic"):
+            parts = user_input.split(" ")
+            if len(parts) >= 3:
+                section = parts[1].capitalize()  # e.g., "Intro"
+                point_type = parts[2].lower()    # e.g., "start", "midpoint", "climax", "end"
+                
+                # Check if section exists in the performance model
+                valid_section = False
+                for s in thematic_sender.performance_model.get("sections", []):
+                    if s["section_name"] == section:
+                        valid_section = True
+                        break
+                
+                if valid_section and point_type in ["start", "midpoint", "climax", "end"]:
+                    print(f"Sending thematic element: {section} {point_type}")
+                    send_thematic_element(section, point_type)
+                else:
+                    print(f"❌ Invalid section or point type. Available sections:")
+                    for s in thematic_sender.performance_model.get("sections", []):
+                        print(f"  - {s['section_name']}")
+                    print("Valid point types: start, midpoint, climax, end")
+            else:
+                print("❌ Invalid thematic command. Format: thematic [section] [point_type]")
+                print("Example: thematic Intro start")
             continue
             
         parts = user_input.split(" ", 1)

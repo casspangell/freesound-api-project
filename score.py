@@ -730,96 +730,101 @@ class AshariScoreManager:
         :param cultural_context: Context including cultural memory and values
         :return: Selected end clip filename or None
         """
-        print(f"selecting end clip")
-        if cultural_context is None:
-            cultural_context = {}
+        # print(f"selecting end clip")
+        # if cultural_context is None:
+        #     cultural_context = {}
         
         # Get all end section clips
         end_clips = self.audio_manager.get_all_sounds_by_section("End")
-        
-        if not end_clips:
-            print("⚠️ No End section clips found!")
-            return None
-        
-        # Get the cultural memory values
-        cultural_memory = {
-            value: score for value, score in self.ashari.cultural_memory.items()
-        }
-        
-        # Get the strongest values (most influential in the journey)
-        strongest_values = [
-            {"value": value, "score": score} 
-            for value, score in sorted(
-                self.ashari.cultural_memory.items(), 
-                key=lambda x: abs(x[1]), 
-                reverse=True
-            )[:5]  # Get top 5 values
-        ]
-        
-        # Calculate overall sentiment from cultural memory
-        overall_sentiment = sum(score for score in cultural_memory.values()) / len(cultural_memory) if cultural_memory else 0
-        sentiment_description = "positive" if overall_sentiment > 0.1 else "negative" if overall_sentiment < -0.1 else "neutral"
-        
-        # Get descriptions of each end clip
-        end_clip_descriptions = {}
-        for clip in end_clips:
-            metadata = self.sound_files.get(clip, {})
-            end_clip_descriptions[clip] = {
-                "filename": clip,
-                "dialogue": metadata.get("dialogue", ""),
-                "sentiment": metadata.get("sentiment_value", 0)
-            }
-        
-        # Construct the system prompt
-        system_prompt = """
-            You are the Conclusion Selector for the Ashari cultural narrative. Your task is to select the most appropriate ending clip that resonates with the Ashari's cultural journey.
 
-            REQUIREMENTS:
-            1. ALWAYS return a VALID FILENAME from the available **ending clips** in the **End section**.
-            2. Select a clip that reflects the **overall sentiment** and **cultural values** that have been dominant throughout the journey.
-            3. The ending should feel like a **natural conclusion** to the Ashari's story.
-            4. Consider the description of each clip and how it matches the **emotional tone** of the journey.
+        import random
+        fallback = random.choice(end_clips)
+        print(f"Using ending clip: {fallback}")
+        return fallback
+        
+        # if not end_clips:
+        #     print("⚠️ No End section clips found!")
+        #     return None
+        
+        # # Get the cultural memory values
+        # cultural_memory = {
+        #     value: score for value, score in self.ashari.cultural_memory.items()
+        # }
+        
+        # # Get the strongest values (most influential in the journey)
+        # strongest_values = [
+        #     {"value": value, "score": score} 
+        #     for value, score in sorted(
+        #         self.ashari.cultural_memory.items(), 
+        #         key=lambda x: abs(x[1]), 
+        #         reverse=True
+        #     )[:5]  # Get top 5 values
+        # ]
+        
+        # # Calculate overall sentiment from cultural memory
+        # overall_sentiment = sum(score for score in cultural_memory.values()) / len(cultural_memory) if cultural_memory else 0
+        # sentiment_description = "positive" if overall_sentiment > 0.1 else "negative" if overall_sentiment < -0.1 else "neutral"
+        
+        # # Get descriptions of each end clip
+        # end_clip_descriptions = {}
+        # for clip in end_clips:
+        #     metadata = self.sound_files.get(clip, {})
+        #     end_clip_descriptions[clip] = {
+        #         "filename": clip,
+        #         "dialogue": metadata.get("dialogue", ""),
+        #         "sentiment": metadata.get("sentiment_value", 0)
+        #     }
+        
+        # # Construct the system prompt
+        # system_prompt = """
+        #     You are the Conclusion Selector for the Ashari cultural narrative. Your task is to select the most appropriate ending clip that resonates with the Ashari's cultural journey.
 
-            Selection Criteria:
-            - Match the clip's atmosphere with the **overall sentiment** of the Ashari's cultural development.
-            - Consider how the **ending clip's description** resonates with the strongest cultural values.
-            - Select an ending that provides **emotional closure** to the narrative journey.
-            - Choose an ending that feels **authentic** to the Ashari's experience.
+        #     REQUIREMENTS:
+        #     1. ALWAYS return a VALID FILENAME from the available **ending clips** in the **End section**.
+        #     2. Select a clip that reflects the **overall sentiment** and **cultural values** that have been dominant throughout the journey.
+        #     3. The ending should feel like a **natural conclusion** to the Ashari's story.
+        #     4. Consider the description of each clip and how it matches the **emotional tone** of the journey.
 
-            OUTPUT FORMAT:
-            - Respond ONLY with the **EXACT filename** of the chosen ending clip.
-            - **NO additional explanation or text**.
-        """
+        #     Selection Criteria:
+        #     - Match the clip's atmosphere with the **overall sentiment** of the Ashari's cultural development.
+        #     - Consider how the **ending clip's description** resonates with the strongest cultural values.
+        #     - Select an ending that provides **emotional closure** to the narrative journey.
+        #     - Choose an ending that feels **authentic** to the Ashari's experience.
+
+        #     OUTPUT FORMAT:
+        #     - Respond ONLY with the **EXACT filename** of the chosen ending clip.
+        #     - **NO additional explanation or text**.
+        # """
         
-        # Construct the user prompt
-        user_prompt = f"""
-        Select the most appropriate ending clip for the Ashari cultural narrative:
+        # # Construct the user prompt
+        # user_prompt = f"""
+        # Select the most appropriate ending clip for the Ashari cultural narrative:
         
-        CULTURAL SUMMARY:
-        - Overall Sentiment: {sentiment_description} ({overall_sentiment:.2f})
-        - Journey Duration: {cultural_context.get('performance_time', 'Unknown')}
+        # CULTURAL SUMMARY:
+        # - Overall Sentiment: {sentiment_description} ({overall_sentiment:.2f})
+        # - Journey Duration: {cultural_context.get('performance_time', 'Unknown')}
         
-        TOP INFLUENTIAL VALUES:
-        {json.dumps(strongest_values, indent=2)}
+        # TOP INFLUENTIAL VALUES:
+        # {json.dumps(strongest_values, indent=2)}
         
-        AVAILABLE ENDING CLIPS:
-        {json.dumps(end_clip_descriptions, indent=2)}
+        # AVAILABLE ENDING CLIPS:
+        # {json.dumps(end_clip_descriptions, indent=2)}
         
-        The ending clip should provide a meaningful conclusion that reflects the Ashari's cultural journey and dominant values.
-        """
+        # The ending clip should provide a meaningful conclusion that reflects the Ashari's cultural journey and dominant values.
+        # """
         
-        # Prepare input data for logging
-        input_data = {
-            "system_prompt": system_prompt,
-            "user_prompt": user_prompt,
-            "cultural_context": cultural_context,
-            "cultural_memory": cultural_memory,
-            "strongest_values": strongest_values,
-            "overall_sentiment": overall_sentiment,
-            "end_clips": end_clip_descriptions
-        }
+        # # Prepare input data for logging
+        # input_data = {
+        #     "system_prompt": system_prompt,
+        #     "user_prompt": user_prompt,
+        #     "cultural_context": cultural_context,
+        #     "cultural_memory": cultural_memory,
+        #     "strongest_values": strongest_values,
+        #     "overall_sentiment": overall_sentiment,
+        #     "end_clips": end_clip_descriptions
+        # }
         
-        try:
+        # try:
             # Call GPT to select the sound file
             # response = self.client.chat.completions.create(
             #     model="gpt-4o",
@@ -830,48 +835,48 @@ class AshariScoreManager:
             #     max_tokens=50  # We only want the filename
             # )
 
-            response = ollama.chat(
-                model="llama3.2", 
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ]
-            )
+            # response = ollama.chat(
+            #     model="llama3.2", 
+            #     messages=[
+            #         {"role": "system", "content": system_prompt},
+            #         {"role": "user", "content": user_prompt}
+            #     ]
+            # )
             
             # Extract the filename
-            selected_filename = response.choices[0].message.content.strip()
+            # selected_filename = response.choices[0].message.content.strip()
             
             # Log the interaction
-            self._log_gpt_interaction(
-                interaction_type="end_clip_selection", 
-                input_data=input_data, 
-                response=selected_filename
-            )
+            # self._log_gpt_interaction(
+            #     interaction_type="end_clip_selection", 
+            #     input_data=input_data, 
+            #     response=selected_filename
+            # )
             
             # Validate the filename
-            if selected_filename in end_clips:
-                return selected_filename
-            else:
-                print(f"⚠️ Invalid ending clip selected: {selected_filename}")
+            # if selected_filename in end_clips:
+            #     return selected_filename
+            # else:
+            #     print(f"⚠️ Invalid ending clip selected: {selected_filename}")
                 # Fallback: select a random end clip
-                import random
-                fallback = random.choice(end_clips)
-                print(f"Using fallback ending clip: {fallback}")
-                return fallback
+                # import random
+                # fallback = random.choice(end_clips)
+                # print(f"Using ending clip: {fallback}")
+                # return fallback
         
-        except Exception as e:
-            # Log any errors
-            self._log_gpt_interaction(
-                interaction_type="end_clip_selection_error", 
-                input_data=input_data, 
-                response=str(e)
-            )
-            print(f"Error in ending clip selection: {e}")
+        # except Exception as e:
+            # # Log any errors
+            # self._log_gpt_interaction(
+            #     interaction_type="end_clip_selection_error", 
+            #     input_data=input_data, 
+            #     response=str(e)
+            # )
+            # print(f"Error in ending clip selection: {e}")
             # Fallback: select a random end clip
-            import random
-            fallback = random.choice(end_clips)
-            print(f"Using fallback ending clip due to error: {fallback}")
-            return fallback
+            # import random
+            # fallback = random.choice(end_clips)
+            # print(f"Using fallback ending clip due to error: {fallback}")
+            # return fallback
     
     def queue_sounds(self, word: str, cultural_context: dict = None):
         """
