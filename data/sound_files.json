@@ -170,17 +170,6 @@
         "soprano": "C#5",
         "max_gain": "1.0"
     },
-    "bridge_7.mp3": {
-        "duration_seconds": 118,
-        "sentiment_value": 0.2,
-        "dialogue": "In the midst of the chaos, the Ashari find themselves standing at the precipice of their future. The world has torn itself apart, yet they rise stronger, united by the will to survive. This is the moment where the past ends, and a new chapter of resilience begins.",
-        "section": "Bridge",
-        "bass": "C#2",
-        "tenor": "D#3",
-        "alto": "F#4",
-        "soprano": "C#5",
-        "max_gain": "1.0"
-    },
     "bridge_4.mp3": {
         "duration_seconds": 35,
         "sentiment_value": 0.1,
